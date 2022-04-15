@@ -1,5 +1,7 @@
 import {
   RESTGetAPIChannelMessagesResult,
+  RESTPostAPIApplicationCommandsJSONBody,
+  RESTPostAPIApplicationCommandsResult,
   RESTPostAPIChannelMessageJSONBody,
   RESTPostAPIChannelMessageResult,
   Routes,
@@ -32,6 +34,20 @@ export class DiscordClient {
     return this.httpClient.post<RESTPostAPIChannelMessageResult>(
       Routes.channelMessages(channelId),
       body
+    );
+  }
+
+  async registerCommands(
+    appId: string,
+    body: RESTPostAPIApplicationCommandsJSONBody[]
+  ) {
+    return Promise.all(
+      body.map(command =>
+        this.httpClient.post<RESTPostAPIApplicationCommandsResult>(
+          Routes.applicationCommands(appId),
+          command
+        )
+      )
     );
   }
 }
