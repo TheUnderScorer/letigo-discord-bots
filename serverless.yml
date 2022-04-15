@@ -1,0 +1,72 @@
+service: wojciech-discord-bot
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+  #- serverless-domain-manager
+
+frameworkVersion: '3'
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-1
+  stage: ${opt:stage, 'development'}
+  logRetentionInDays: 30
+
+
+functions:
+  ravuttoDailyReportReminder:
+    handler: src/functions/ravuttoDailyReportReminder.handler
+    environment:
+      STAGE: ${self:provider.stage}
+      BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
+      CHANNEL_ID: ${self:custom.channelId.${self:provider.stage}}
+      MESSAGE_TO_SEND: '{{MENTION}} Kolego, ale pamiętaj o daily raporcie dzisiaj'
+      TARGET_USER_ID: ${self:custom.targetUserId}
+    events:
+      # Invoke daily at 14:00 UTC
+      - schedule: cron(0 14 * * ? *)
+
+  ravuttoDailyReportMissing:
+    handler: src/functions/ravuttoDailyReportReminder.handler
+    environment:
+      STAGE: ${self:provider.stage}
+      BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
+      CHANNEL_ID: ${self:custom.channelId.${self:provider.stage}}
+      TARGET_USER_ID: ${self:custom.targetUserId.${self:provider.stage}}
+      MESSAGE_TO_SEND: '{{MENTION}} Kolego, a gdzie daily raport?'
+    events:
+      # Invoke daily at 22:00 UTC
+      - schedule: cron(0 22 * * ? *)
+
+
+custom:
+#  customDomain:
+#    domainName: ${self:custom.apiDomainName.${self:provider.stage}}
+#    stage: ${self:provider.stage}
+#    certificateArn: 'arn:aws:acm:eu-west-1:086627185220:certificate/8ad9b636-a8bf-4bc6-be90-f7fab54913d0'
+#    createRoute53Record: true
+#    endpointType: 'regional'
+#    securityPolicy: tls_1_2
+#    apiType: rest
+#    autoDomain: false
+  webpack:
+    webpackConfig: webpack.config.js
+  stages:
+    - development
+    - staging
+    - production
+  apiDomainName:
+    development: wojciech-discord-bot-dev.przemyslawzydek.com
+    production: wojciech-discord-bot.przemyslawzydek.com
+  botToken:
+    development: ${env:BOT_TOKEN}
+    production: ${ssm:/wojciech_discord_bot/bot_token}
+  channelId:
+    development: ${env:CHANNEL_ID}
+    production: ${ssm:/wojciech_discord_bot/channel_id}
+  targetUserId:
+    development: ${env:TARGET_USER_ID}
+    production: ${ssm:/wojciech_discord_bot/target_user_id}
