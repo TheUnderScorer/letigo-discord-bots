@@ -2,8 +2,9 @@ import { initDiscord } from '../src/shared/initDiscord';
 import {
   ApplicationCommandType,
   RESTPostAPIApplicationGuildCommandsJSONBody,
+  ApplicationCommandOptionType,
 } from 'discord-api-types/v10';
-import { Commands } from '../src/command.types';
+import { Commands, KolegoOptions } from '../src/command.types';
 import { config } from 'dotenv';
 import * as path from 'path';
 
@@ -20,7 +21,14 @@ const commands: RESTPostAPIApplicationGuildCommandsJSONBody[] = [
   {
     name: Commands.Kolego,
     type: ApplicationCommandType.ChatInput,
-    description: 'Odpowiada mądrościami życiowymi Wojciecha',
+    description: 'Wywołaj Wojciecha',
+    options: [
+      {
+        name: KolegoOptions.Question,
+        description: 'Zadaj pytanie Wojciechowi',
+        type: ApplicationCommandOptionType.String,
+      },
+    ],
   },
 ];
 

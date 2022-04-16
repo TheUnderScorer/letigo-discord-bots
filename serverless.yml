@@ -15,11 +15,10 @@ provider:
   stage: ${opt:stage, 'development'}
   logRetentionInDays: 30
 
-
 functions:
   handleInteractions:
     memorySize: 128
-    handler: src/functions/handleInteractions.handler
+    handler: src/functions/handleInteractions.default
     environment:
       STAGE: ${self:provider.stage}
       BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}

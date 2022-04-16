@@ -1,23 +1,40 @@
 import { RouteHandler } from '../aws.types';
 import * as nacl from 'tweetnacl';
-import { InteractionType, APIInteraction } from 'discord-api-types/v10';
+import {
+  APIInteraction,
+  InteractionResponseType,
+  InteractionType,
+} from 'discord-api-types/v10';
+import * as middy from 'middy';
+import httpHeaderNormalizer from '@middy/http-header-normalizer';
+import { commandHandlers } from '../commandHandlers/commandHandlers';
+import { Commands } from '../command.types';
 
 export const handler: RouteHandler = async event => {
-  const publicKey = process.env.PUBLIC_KEY as string;
-  const signature = event.headers['x-signature-ed25519'] as string;
-  const timestamp = event.headers['x-signature-timestamp'] as string;
   const strBody = event.body as string;
 
-  const isVerified = nacl.sign.detached.verify(
-    Buffer.from(timestamp + strBody),
-    Buffer.from(signature, 'hex'),
-    Buffer.from(publicKey, 'hex')
-  );
+  try {
+    const publicKey = process.env.PUBLIC_KEY as string;
+    const signature = event.headers['x-signature-ed25519'] as string;
+    const timestamp = event.headers['x-signature-timestamp'] as string;
 
-  if (!isVerified) {
+    const isVerified = nacl.sign.detached.verify(
+      Buffer.from(timestamp + strBody),
+      Buffer.from(signature, 'hex'),
+      Buffer.from(publicKey, 'hex')
+    );
+
+    if (!isVerified) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify('invalid request signature'),
+      };
+    }
+  } catch (error) {
+    console.error(error);
+
     return {
-      statusCode: 401,
-      body: JSON.stringify('invalid request signature'),
+      statusCode: 500,
     };
   }
 
@@ -28,11 +45,26 @@ export const handler: RouteHandler = async event => {
   if (body.type === InteractionType.Ping) {
     return {
       statusCode: 200,
-      body: JSON.stringify({ type: InteractionType.Ping }),
+      body: JSON.stringify({ type: InteractionResponseType.Pong }),
     };
+  }
+
+  if (body.type === InteractionType.ApplicationCommand) {
+    const handler = commandHandlers[body.data.name as Commands];
+
+    if (handler) {
+      const response = await handler(body, event);
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify(response),
+      };
+    }
   }
 
   return {
     statusCode: 404,
   };
 };
+
+export default middy(handler).use(httpHeaderNormalizer());

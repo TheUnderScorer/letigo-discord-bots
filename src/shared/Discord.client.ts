@@ -54,6 +54,14 @@ export class DiscordClient {
     );
   }
 
+  async deleteCommand(appId: string, commandId: string) {
+    return this.httpClient.delete(Routes.applicationCommand(appId, commandId));
+  }
+
+  async listCommands(appId: string) {
+    return this.httpClient.get(Routes.applicationCommands(appId));
+  }
+
   async registerCommands(
     appId: string,
     body: RESTPostAPIApplicationCommandsJSONBody[]
