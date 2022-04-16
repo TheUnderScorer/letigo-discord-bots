@@ -3,7 +3,7 @@ service: wojciech-discord-bot
 plugins:
   - serverless-webpack
   - serverless-offline
-  #- serverless-domain-manager
+  - serverless-domain-manager
 
 frameworkVersion: '3'
 useDotenv: true
@@ -17,19 +17,35 @@ provider:
 
 
 functions:
+  handleInteractions:
+    memorySize: 128
+    handler: src/functions/handleInteractions.handler
+    environment:
+      STAGE: ${self:provider.stage}
+      BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
+      PUBLIC_KEY: ${self:custom.publicKey.${self:provider.stage}}
+    events:
+      - http:
+          path: /interactions
+          method: post
+          cors: true
+
+
   ravuttoDailyReportReminder:
+    memorySize: 128
     handler: src/functions/ravuttoDailyReportReminder.handler
     environment:
       STAGE: ${self:provider.stage}
       BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
       CHANNEL_ID: ${self:custom.channelId.${self:provider.stage}}
       MESSAGE_TO_SEND: '{{MENTION}} Kolego, ale pamiętaj o daily raporcie dzisiaj'
-      TARGET_USER_ID: ${self:custom.targetUserId}
+      TARGET_USER_ID: ${self:custom.targetUserId.${self:provider.stage}}
     events:
       # Invoke daily at 14:00 UTC
       - schedule: cron(0 14 * * ? *)
 
   ravuttoDailyReportMissing:
+    memorySize: 128
     handler: src/functions/ravuttoDailyReportReminder.handler
     environment:
       STAGE: ${self:provider.stage}
@@ -38,20 +54,20 @@ functions:
       TARGET_USER_ID: ${self:custom.targetUserId.${self:provider.stage}}
       MESSAGE_TO_SEND: '{{MENTION}} Kolego, a gdzie daily raport?'
     events:
-      # Invoke daily at 22:00 UTC
-      - schedule: cron(0 22 * * ? *)
+      # Invoke daily at 21:00 UTC
+      - schedule: cron(0 21 * * ? *)
 
 
 custom:
-#  customDomain:
-#    domainName: ${self:custom.apiDomainName.${self:provider.stage}}
-#    stage: ${self:provider.stage}
-#    certificateArn: 'arn:aws:acm:eu-west-1:086627185220:certificate/8ad9b636-a8bf-4bc6-be90-f7fab54913d0'
-#    createRoute53Record: true
-#    endpointType: 'regional'
-#    securityPolicy: tls_1_2
-#    apiType: rest
-#    autoDomain: false
+  customDomain:
+    domainName: ${self:custom.apiDomainName.${self:provider.stage}}
+    stage: ${self:provider.stage}
+    certificateArn: 'arn:aws:acm:eu-west-1:086627185220:certificate/8ad9b636-a8bf-4bc6-be90-f7fab54913d0'
+    createRoute53Record: true
+    endpointType: 'regional'
+    securityPolicy: tls_1_2
+    apiType: rest
+    autoDomain: false
   webpack:
     webpackConfig: webpack.config.js
   stages:
@@ -70,3 +86,6 @@ custom:
   targetUserId:
     development: ${env:TARGET_USER_ID}
     production: ${ssm:/wojciech_discord_bot/target_user_id}
+  publicKey:
+    development: ${env:PUBLIC_KEY}
+    production: ${ssm:/wojciech_discord_bot/public_key}

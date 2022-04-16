@@ -1,7 +1,7 @@
 import { initDiscord } from '../src/shared/initDiscord';
 import {
   ApplicationCommandType,
-  RESTPostAPIApplicationCommandsJSONBody,
+  RESTPostAPIApplicationGuildCommandsJSONBody,
 } from 'discord-api-types/v10';
 import { Commands } from '../src/command.types';
 import { config } from 'dotenv';
@@ -14,8 +14,9 @@ config({
 const { client } = initDiscord();
 
 const appId = process.env.APP_ID as string;
+const guildId = process.env.GUILD_ID as string;
 
-const commands: RESTPostAPIApplicationCommandsJSONBody[] = [
+const commands: RESTPostAPIApplicationGuildCommandsJSONBody[] = [
   {
     name: Commands.Kolego,
     type: ApplicationCommandType.ChatInput,
@@ -24,7 +25,7 @@ const commands: RESTPostAPIApplicationCommandsJSONBody[] = [
 ];
 
 async function main() {
-  const results = await client.registerCommands(appId, commands);
+  const results = await client.registerGuildCommands(appId, guildId, commands);
 
   results.forEach(response => {
     if (response.data?.id) {

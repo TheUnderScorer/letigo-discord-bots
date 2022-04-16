@@ -92,6 +92,7 @@
   },
   "dependencies": {
     "axios": "^0.26.1",
-    "discord-api-types": "^0.31.1"
+    "discord-api-types": "^0.31.1",
+    "tweetnacl": "^1.0.3"
   }
 }
