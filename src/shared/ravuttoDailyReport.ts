@@ -8,11 +8,8 @@ const tokens: Record<string, TokenHandler> = {
   '{{MENTION}}': (msg, userId) => mentionUser(userId),
 };
 
-export const isDailyReport = (content: string) => {
-  const patterns = ['[DZIEŃ', '[Dzień', '[dzień'];
-
-  return patterns.some(pattern => content.startsWith(pattern));
-};
+export const isDailyReport = (content: string) =>
+  content.toLowerCase().startsWith('[dzień');
 
 export const isValidAuthor = (message: APIMessage, targetUserId: string) =>
   message.author.id === targetUserId;
