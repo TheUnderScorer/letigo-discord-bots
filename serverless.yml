@@ -37,7 +37,7 @@ functions:
       STAGE: ${self:provider.stage}
       BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
       CHANNEL_ID: ${self:custom.channelId.${self:provider.stage}}
-      MESSAGE_TO_SEND: '{{MENTION}} Kolego, ale pamiętaj o daily raporcie dzisiaj'
+      MESSAGE_TO_SEND: '{{MENTION}} kolego, ale pamiętaj o daily raporcie dzisiaj'
       TARGET_USER_ID: ${self:custom.targetUserId.${self:provider.stage}}
     events:
       # Invoke daily at 14:00 UTC
@@ -51,7 +51,7 @@ functions:
       BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
       CHANNEL_ID: ${self:custom.channelId.${self:provider.stage}}
       TARGET_USER_ID: ${self:custom.targetUserId.${self:provider.stage}}
-      MESSAGE_TO_SEND: '{{MENTION}} Kolego, a gdzie daily raport?'
+      MESSAGE_TO_SEND: '{{MENTION}} kolego, a gdzie daily raport?'
     events:
       # Invoke daily at 21:00 UTC
       - schedule: cron(0 21 * * ? *)
