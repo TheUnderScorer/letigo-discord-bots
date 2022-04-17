@@ -1,10 +1,23 @@
 import { DiscordClient } from './Discord.client';
+import { AxiosInstance } from 'axios';
 
-export function initDiscord() {
+export interface InitDiscordParams {
+  axios?: AxiosInstance;
+}
+
+export interface InitDiscordResult {
+  client: DiscordClient;
+  targetUserId: string;
+  channelId: string;
+}
+
+export function initDiscord({
+  axios,
+}: InitDiscordParams = {}): InitDiscordResult {
   const channelId = process.env.CHANNEL_ID as string;
   const targetUserId = process.env.TARGET_USER_ID as string;
 
-  const client = new DiscordClient(process.env.BOT_TOKEN as string);
+  const client = new DiscordClient(process.env.BOT_TOKEN as string, axios);
 
   return { channelId, client, targetUserId };
 }

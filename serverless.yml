@@ -32,7 +32,7 @@ functions:
 
   ravuttoDailyReportReminder:
     memorySize: 128
-    handler: src/functions/ravuttoDailyReportReminder.handler
+    handler: src/functions/ravuttoDailyReportReminder.default
     environment:
       STAGE: ${self:provider.stage}
       BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
@@ -45,7 +45,7 @@ functions:
 
   ravuttoDailyReportMissing:
     memorySize: 128
-    handler: src/functions/ravuttoDailyReportReminder.handler
+    handler: src/functions/ravuttoDailyReportReminder.default
     environment:
       STAGE: ${self:provider.stage}
       BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}

@@ -1,18 +1,23 @@
 import {
   applyTokensToMessage,
-  getDailyReportForToday,
+  getDailyReportForDay,
 } from '../shared/ravuttoDailyReport';
-import { initDiscord } from '../shared/initDiscord';
+import { initDiscord, InitDiscordParams } from '../shared/initDiscord';
 
-export async function handler() {
+interface Dependencies extends InitDiscordParams {
+  now?: () => Date;
+}
+
+export const createHandler = (dependencies?: Dependencies) => async () => {
   const messageToSend = process.env.MESSAGE_TO_SEND as string;
 
-  const { channelId, client, targetUserId } = initDiscord();
+  const { channelId, client, targetUserId } = initDiscord(dependencies);
 
-  const todayMessage = await getDailyReportForToday(
+  const todayMessage = await getDailyReportForDay(
     channelId,
     targetUserId,
-    client
+    client,
+    dependencies?.now?.()
   );
 
   if (!todayMessage) {
@@ -20,4 +25,6 @@ export async function handler() {
       content: applyTokensToMessage(messageToSend, targetUserId),
     });
   }
-}
+};
+
+export default createHandler();

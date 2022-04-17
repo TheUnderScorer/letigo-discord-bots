@@ -14,13 +14,13 @@ export const isDailyReport = (content: string) =>
 export const isValidAuthor = (message: APIMessage, targetUserId: string) =>
   message.author.id === targetUserId;
 
-export const isMessageFromToday = (message: APIMessage, today = new Date()) => {
+export const isMessageFromDate = (message: APIMessage, date = new Date()) => {
   const messageDate = new Date(message.timestamp);
 
   return (
-    messageDate.getDate() === today.getDate() &&
-    messageDate.getMonth() === today.getMonth() &&
-    messageDate.getFullYear() === today.getFullYear()
+    messageDate.getDate() === date.getDate() &&
+    messageDate.getMonth() === date.getMonth() &&
+    messageDate.getFullYear() === date.getFullYear()
   );
 };
 
@@ -34,19 +34,18 @@ export function applyTokensToMessage(msg: string, targetUserId: string) {
   );
 }
 
-export async function getDailyReportForToday(
+export async function getDailyReportForDay(
   channelId: string,
   targetUserId: string,
-  client: DiscordClient
+  client: DiscordClient,
+  date = new Date()
 ) {
-  const now = new Date();
-
   const response = await client.getChannelMessages(channelId);
 
   return response.data?.find(
     message =>
       isValidAuthor(message, targetUserId) &&
       isDailyReport(message.content) &&
-      isMessageFromToday(message, now)
+      isMessageFromDate(message, date)
   );
 }
