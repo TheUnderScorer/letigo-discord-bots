@@ -29,16 +29,15 @@ functions:
           method: post
           cors: true
 
-
   ravuttoDailyReportReminder:
     memorySize: 128
     handler: src/functions/ravuttoDailyReportReminder.default
     environment:
       STAGE: ${self:provider.stage}
       BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
-      CHANNEL_ID: ${self:custom.channelId.${self:provider.stage}}
+      DAILY_REPORT_CHANNEL_ID: ${self:custom.dailyReportChannelId.${self:provider.stage}}
       MESSAGE_TO_SEND: '{{MENTION}} kolego, ale pamiętaj o daily raporcie dzisiaj'
-      TARGET_USER_ID: ${self:custom.targetUserId.${self:provider.stage}}
+      DAILY_REPORT_TARGET_USER_ID: ${self:custom.dailyReportTargetUserId.${self:provider.stage}}
     events:
       # Invoke daily at 14:00 UTC
       - schedule: cron(0 14 * * ? *)
@@ -49,13 +48,12 @@ functions:
     environment:
       STAGE: ${self:provider.stage}
       BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
-      CHANNEL_ID: ${self:custom.channelId.${self:provider.stage}}
-      TARGET_USER_ID: ${self:custom.targetUserId.${self:provider.stage}}
+      DAILY_REPORT_CHANNEL_ID: ${self:custom.dailyReportChannelId.${self:provider.stage}}
+      DAILY_REPORT_TARGET_USER_ID: ${self:custom.dailyReportTargetUserId.${self:provider.stage}}
       MESSAGE_TO_SEND: '{{MENTION}} kolego, a gdzie daily raport?'
     events:
       # Invoke daily at 21:00 UTC
       - schedule: cron(0 21 * * ? *)
-
 
 custom:
   customDomain:
@@ -79,12 +77,12 @@ custom:
   botToken:
     development: ${env:BOT_TOKEN}
     production: ${ssm:/wojciech_discord_bot/bot_token}
-  channelId:
-    development: ${env:CHANNEL_ID}
-    production: ${ssm:/wojciech_discord_bot/channel_id}
-  targetUserId:
-    development: ${env:TARGET_USER_ID}
-    production: ${ssm:/wojciech_discord_bot/target_user_id}
+  dailyReportChannelId:
+    development: ${env:DAILY_REPORT_CHANNEL_ID}
+    production: ${ssm:/wojciech_discord_bot/daily_report_channel_id}
+  dailyReportTargetUserId:
+    development: ${env:DAILY_REPORT_TARGET_USER_ID}
+    production: ${ssm:/wojciech_discord_bot/daily_report_target_user_id}
   publicKey:
     development: ${env:PUBLIC_KEY}
     production: ${ssm:/wojciech_discord_bot/public_key}

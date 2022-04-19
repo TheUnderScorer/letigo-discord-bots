@@ -14,8 +14,8 @@ export interface InitDiscordResult {
 export function initDiscord({
   axios,
 }: InitDiscordParams = {}): InitDiscordResult {
-  const channelId = process.env.CHANNEL_ID as string;
-  const targetUserId = process.env.TARGET_USER_ID as string;
+  const channelId = process.env.DAILY_REPORT_CHANNEL_ID as string;
+  const targetUserId = process.env.DAILY_REPORT_TARGET_USER_ID as string;
 
   const client = new DiscordClient(process.env.BOT_TOKEN as string, axios);
 

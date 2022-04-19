@@ -1,8 +1,9 @@
 {
   "name": "wojciech-discord-bot",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Wojciech for your discord server!",
   "main": "index.js",
+  "private": true,
   "scripts": {
     "cm": "cz",
     "lint": "eslint ./src/ --fix",
@@ -65,7 +66,7 @@
   },
   "release": {
     "branches": [
-      "main"
+      "master"
     ],
     "plugins": [
       "@semantic-release/commit-analyzer",
