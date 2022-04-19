@@ -57,9 +57,16 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
 
-
       - name: Release & deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HUSKY: 0
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          APP_ID: ${{ secrets.APP_ID }}
+          GUILD_ID: ${{ secrets.GUILD_ID }}
+          DAILY_REPORT_CHANNEL_ID: ${{ secrets.DAILY_REPORT_CHANNEL_ID }}
+          DAILY_REPORT_TARGET_USER_ID: ${{ secrets.DAILY_REPORT_TARGET_USER_ID }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
         run: npx semantic-release
