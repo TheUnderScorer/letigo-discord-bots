@@ -14,8 +14,9 @@
     "test:coverage": "jest --coverage",
     "serve": "sls offline --stage development",
     "invoke:ravutoDailyReportReminder": "sls invoke local --function ravuttoDailyReportReminder --stage development",
-    "deploy": "sls deploy --stage production",
-    "webpack": "sls webpack"
+    "deploy": "npm run register-commands && sls deploy --stage production",
+    "webpack": "sls webpack",
+    "register-commands": "ts-node scripts/registerCommands.ts"
   },
   "engines": {
     "node": "14.x"
