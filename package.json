@@ -24,6 +24,7 @@
   "license": "MIT",
   "devDependencies": {
     "@semantic-release/changelog": "6.0.1",
+    "@semantic-release/exec": "^6.0.3",
     "@semantic-release/git": "10.0.1",
     "@semantic-release/github": "8.0.4",
     "@semantic-release/npm": "9.0.1",
@@ -88,7 +89,13 @@
           ]
         }
       ],
-      "@semantic-release/github"
+      "@semantic-release/github",
+      [
+        "@semantic-release/exec",
+        {
+          "publishCmd": "npm run deploy"
+        }
+      ]
     ]
   },
   "dependencies": {

@@ -58,7 +58,7 @@ jobs:
           PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
 
 
-      - name: Release
+      - name: Release & deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HUSKY: 0
