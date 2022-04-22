@@ -16,6 +16,7 @@
     "invoke:ravutoDailyReportReminder": "sls invoke local --function ravuttoDailyReportReminder --stage development",
     "deploy": "npm run register-commands && sls deploy --stage production",
     "webpack": "sls webpack",
+    "webpack:production": "sls webpack --stage production",
     "register-commands": "ts-node scripts/registerCommands.ts"
   },
   "engines": {

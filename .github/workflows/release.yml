@@ -38,7 +38,7 @@ jobs:
           npm ci && npm i serverless@3 -g
 
       - name: Build
-        run: npm run webpack
+        run: npm run webpack:production
         env:
           APP_ID: ${{ secrets.APP_ID }}
           GUILD_ID: ${{ secrets.GUILD_ID }}
