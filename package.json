@@ -1,6 +1,6 @@
 {
   "name": "wojciech-discord-bot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Wojciech for your discord server!",
   "main": "index.js",
   "private": true,

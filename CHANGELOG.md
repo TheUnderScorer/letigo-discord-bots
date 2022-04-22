@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v1.0.0...v1.1.0) (2022-04-22)
+
+
+### Features
+
+* Add daily greeting ([4e6b38d](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/4e6b38d0e8f17bbbdda99b4aba757ee5d7f41e9d))
+
 # 1.0.0 (2022-04-19)
 
 
