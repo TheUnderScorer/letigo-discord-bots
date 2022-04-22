@@ -39,23 +39,12 @@ jobs:
 
       - name: Build
         run: npm run webpack:production
-        env:
-          APP_ID: ${{ secrets.APP_ID }}
-          GUILD_ID: ${{ secrets.GUILD_ID }}
-          DAILY_REPORT_CHANNEL_ID: ${{ secrets.DAILY_REPORT_CHANNEL_ID }}
-          DAILY_REPORT_TARGET_USER_ID: ${{ secrets.DAILY_REPORT_TARGET_USER_ID }}
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
 
       - name: Test
         run: npm run test
         env:
-          APP_ID: ${{ secrets.APP_ID }}
-          GUILD_ID: ${{ secrets.GUILD_ID }}
           DAILY_REPORT_CHANNEL_ID: ${{ secrets.DAILY_REPORT_CHANNEL_ID }}
           DAILY_REPORT_TARGET_USER_ID: ${{ secrets.DAILY_REPORT_TARGET_USER_ID }}
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
 
       - name: Release & deploy
         env:
@@ -65,8 +54,5 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           APP_ID: ${{ secrets.APP_ID }}
           GUILD_ID: ${{ secrets.GUILD_ID }}
-          DAILY_REPORT_CHANNEL_ID: ${{ secrets.DAILY_REPORT_CHANNEL_ID }}
-          DAILY_REPORT_TARGET_USER_ID: ${{ secrets.DAILY_REPORT_TARGET_USER_ID }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
         run: npx semantic-release

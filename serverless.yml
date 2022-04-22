@@ -86,17 +86,17 @@ custom:
     development: wojciech-discord-bot-dev.przemyslawzydek.com
     production: wojciech-discord-bot.przemyslawzydek.com
   botToken:
-    development: ${env:BOT_TOKEN}
+    development: ${env:BOT_TOKEN, ''}
     production: ${ssm:/wojciech_discord_bot/bot_token}
   dailyReportChannelId:
-    development: ${env:DAILY_REPORT_CHANNEL_ID}
+    development: ${env:DAILY_REPORT_CHANNEL_ID, ''}
     production: ${ssm:/wojciech_discord_bot/daily_report_channel_id}
   dailyReportTargetUserId:
-    development: ${env:DAILY_REPORT_TARGET_USER_ID}
+    development: ${env:DAILY_REPORT_TARGET_USER_ID, ''}
     production: ${ssm:/wojciech_discord_bot/daily_report_target_user_id}
   publicKey:
-    development: ${env:PUBLIC_KEY}
+    development: ${env:PUBLIC_KEY, ''}
     production: ${ssm:/wojciech_discord_bot/public_key}
   greetingChannelId:
-    development: ${env:GREETING_CHANNEL_ID}
+    development: ${env:GREETING_CHANNEL_ID, ''}
     production: ${ssm:/wojciech_discord_bot/greeting_channel_id}
