@@ -29,6 +29,17 @@ functions:
           method: post
           cors: true
 
+  dailyGreeting:
+    memorySize: 128
+    handler: src/functions/dailyGreeting.default
+    environment:
+      STAGE: ${self:provider.stage}
+      BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
+      GREETING_CHANNEL_ID: ${self:custom.greetingChannelId.${self:provider.stage}}
+    events:
+      # Invoke daily at 7:00 UTC
+      - schedule: cron(0 7 * * ? *)
+
   ravuttoDailyReportReminder:
     memorySize: 128
     handler: src/functions/ravuttoDailyReportReminder.default
@@ -86,3 +97,6 @@ custom:
   publicKey:
     development: ${env:PUBLIC_KEY}
     production: ${ssm:/wojciech_discord_bot/public_key}
+  greetingChannelId:
+    development: ${env:GREETING_CHANNEL_ID}
+    production: ${ssm:/wojciech_discord_bot/greeting_channel_id}

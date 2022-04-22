@@ -11,18 +11,19 @@ interface Dependencies extends InitDiscordParams {
 export const createHandler = (dependencies?: Dependencies) => async () => {
   const messageToSend = process.env.MESSAGE_TO_SEND as string;
 
-  const { channelId, client, targetUserId } = initDiscord(dependencies);
+  const { dailyReportChannelId, client, dailyReportTargetUserID } =
+    initDiscord(dependencies);
 
   const todayMessage = await getDailyReportForDay(
-    channelId,
-    targetUserId,
+    dailyReportChannelId,
+    dailyReportTargetUserID,
     client,
     dependencies?.now?.()
   );
 
   if (!todayMessage) {
-    await client.sendMessageToChannel(channelId, {
-      content: applyTokensToMessage(messageToSend, targetUserId),
+    await client.sendMessageToChannel(dailyReportChannelId, {
+      content: applyTokensToMessage(messageToSend, dailyReportTargetUserID),
     });
   }
 };
