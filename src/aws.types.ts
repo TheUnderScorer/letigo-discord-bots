@@ -1,10 +1,3 @@
-import type {
-  APIGatewayProxyEventV2,
-  APIGatewayProxyResultV2,
-  Context,
-} from 'aws-lambda';
+import { APIGatewayProxyStructuredResultV2 } from 'aws-lambda/trigger/api-gateway-proxy';
 
-export type RouteHandler<Req = APIGatewayProxyEventV2> = (
-  request: Req,
-  context: Context
-) => Promise<APIGatewayProxyResultV2>;
+export const response = (data: APIGatewayProxyStructuredResultV2) => data;
