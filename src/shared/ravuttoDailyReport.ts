@@ -1,12 +1,7 @@
 import type { APIMessage } from 'discord-api-types/v10';
 import type { DiscordClient } from './Discord.client';
+import { applyTokens } from './tokens';
 import { mentionUser } from './mentions';
-
-type TokenHandler = (msg: string, userId: string) => string;
-
-const tokens: Record<string, TokenHandler> = {
-  '{{MENTION}}': (msg, userId) => mentionUser(userId),
-};
 
 export const isDailyReport = (content: string) =>
   content.toLowerCase().startsWith('[dzień');
@@ -25,13 +20,11 @@ export const isMessageFromDate = (message: APIMessage, date = new Date()) => {
 };
 
 export function applyTokensToMessage(msg: string, targetUserId: string) {
-  const tokensArray = Object.entries(tokens);
+  const tokens = {
+    MENTION: mentionUser(targetUserId),
+  };
 
-  return tokensArray.reduce(
-    (acc, [token, replacer]) =>
-      acc.replace(new RegExp(token, 'g'), () => replacer(msg, targetUserId)),
-    msg
-  );
+  return applyTokens(msg, tokens);
 }
 
 export async function getDailyReportForDay(
