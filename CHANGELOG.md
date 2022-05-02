@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v1.2.0...v1.3.0) (2022-05-02)
+
+
+### Features
+
+* Support insulting other users ([e49f14d](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/e49f14da4952c07f42ff33cc4b0f7a002dbfdbab))
+
 # [1.2.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v1.1.0...v1.2.0) (2022-05-02)
 
 
