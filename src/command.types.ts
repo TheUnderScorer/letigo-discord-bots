@@ -3,6 +3,7 @@ import { APIGatewayProxyEventV2 } from 'aws-lambda';
 
 export enum Commands {
   Kolego = 'kolego',
+  CoTam = 'cotam',
 }
 
 export enum KolegoOptions {

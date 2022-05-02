@@ -1,8 +1,8 @@
 import { initDiscord } from '../src/shared/initDiscord';
 import {
+  ApplicationCommandOptionType,
   ApplicationCommandType,
   RESTPostAPIApplicationGuildCommandsJSONBody,
-  ApplicationCommandOptionType,
 } from 'discord-api-types/v10';
 import { Commands, KolegoOptions } from '../src/command.types';
 import { config } from 'dotenv';
@@ -30,18 +30,33 @@ const commands: RESTPostAPIApplicationGuildCommandsJSONBody[] = [
       },
     ],
   },
+  {
+    name: Commands.CoTam,
+    type: ApplicationCommandType.ChatInput,
+    description: 'Zapytaj Wojciecha co słychać u niego',
+  },
 ];
 
 async function main() {
-  const results = await client.registerGuildCommands(appId, guildId, commands);
+  try {
+    const results = await client.registerGuildCommands(
+      appId,
+      guildId,
+      commands
+    );
 
-  results.forEach(response => {
-    if (response.data?.id) {
-      console.log(`Command ${response.data.name} registered`);
-    } else {
-      console.error(`Command ${response.data.name} failed to register`);
-    }
-  });
+    results.forEach(response => {
+      if (response.data?.id) {
+        console.log(`Command ${response.data.name} registered`);
+      } else {
+        console.error(`Command ${response.data.name} failed to register`);
+      }
+    });
+  } catch (error) {
+    console.error('Failed to register commands', error);
+
+    throw error;
+  }
 }
 
 main().catch(console.error);

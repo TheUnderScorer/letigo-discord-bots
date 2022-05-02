@@ -1,4 +1,4 @@
-import { KolegoSubCommandHandler } from '../kolego';
+import { KolegoSubCommandHandler } from '../kolego.handler';
 import {
   ApplicationCommandOptionType,
   ApplicationCommandType,

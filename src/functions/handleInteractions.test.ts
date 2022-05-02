@@ -11,7 +11,7 @@ import { messages } from '../messages';
 
 function triggerInteraction(
   command: Commands,
-  options: APIApplicationCommandInteractionDataOption[]
+  options?: APIApplicationCommandInteractionDataOption[]
 ) {
   const body = {
     type: InteractionType.ApplicationCommand,
@@ -51,6 +51,15 @@ describe('Handle interactions', () => {
       const body = JSON.parse(response.body as string);
 
       expect(messages.answers).toContain(body.data.content);
+    });
+  });
+
+  describe('/cotam', () => {
+    it('should return random message', async () => {
+      const response = await triggerInteraction(Commands.CoTam);
+      const body = JSON.parse(response.body as string);
+
+      expect(messages.whatsUpReplies).toContain(body.data.content);
     });
   });
 });
