@@ -12,7 +12,7 @@ export const isDailyReport = (content: string) =>
   content.toLowerCase().startsWith('[dzień');
 
 export const isValidAuthor = (message: APIMessage, targetUserId: string) =>
-  message.author.id === targetUserId;
+  message.author?.id === targetUserId;
 
 export const isMessageFromDate = (message: APIMessage, date = new Date()) => {
   const messageDate = new Date(message.timestamp);

@@ -32,7 +32,7 @@ describe('Ravutto daily report reminder', () => {
       let data: any;
 
       if (request.url?.includes('channels')) {
-        data = getMessagesResponse;
+        data = Object.values(getMessagesResponse);
       }
 
       return {
@@ -60,7 +60,7 @@ describe('Ravutto daily report reminder', () => {
       let data: any;
 
       if (request.url?.includes('channels')) {
-        data = getMessagesResponse;
+        data = Object.values(getMessagesResponse);
       }
 
       return {
