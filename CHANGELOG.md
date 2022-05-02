@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v1.1.0...v1.2.0) (2022-05-02)
+
+
+### Features
+
+* add /cotam command ([e1f982b](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/e1f982bc7458eb06a31673d11247640c631b169c))
+
 # [1.1.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v1.0.0...v1.1.0) (2022-04-22)
 
 
