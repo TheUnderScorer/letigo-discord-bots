@@ -28,6 +28,11 @@ const commands: RESTPostAPIApplicationGuildCommandsJSONBody[] = [
         description: 'Zadaj pytanie Wojciechowi',
         type: ApplicationCommandOptionType.String,
       },
+      {
+        name: KolegoOptions.Insult,
+        description: 'Niech Wojciech kogoś obrazi!',
+        type: ApplicationCommandOptionType.User,
+      },
     ],
   },
   {

@@ -1,6 +1,6 @@
 {
   "notAQuestion": "kolego to nie jest pytanie...",
-  "whatAreYouSaying": "kolego co Ty za głupoty pierdolisz",
+  "whatAreYouSaying": "kolego co ty za glupoty pierdolisz",
   "answers": [
     "who can say where the road goes",
     "kolego tak",
@@ -9,6 +9,12 @@
     "kolego kto wie",
     "czekaj coo",
     "kolego wszystko jest chujowe"
+  ],
+  "insults": [
+    "{{USER}} glupoty pierdolisz",
+    "{{USER}} nie masz racji",
+    "{{USER}} kolego twoja mama",
+    "{{USER}} kolego bo cie skroce o glowe"
   ],
   "whatsUpReplies": [
     "kolego stara bida",

@@ -8,6 +8,7 @@ export enum Commands {
 
 export enum KolegoOptions {
   Question = 'pytanie',
+  Insult = 'obraź',
 }
 
 export interface CommandHandlerResult {
