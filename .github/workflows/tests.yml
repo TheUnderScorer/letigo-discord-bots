@@ -1,8 +1,6 @@
-name: Release
+name: Tests
 on:
-  push:
-    branches:
-      - master
+  pull_request:
 
 jobs:
   release:
@@ -10,16 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check Commit Type
-        uses: gsactions/commit-message-checker@v1
-        with:
-          pattern: '^((?!skip ci).)*$'
-          flags: 's'
-          error: 'Skipping for release commit.'
-
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
       - name: Install Node.js
         uses: actions/setup-node@v1
@@ -45,3 +34,14 @@ jobs:
         env:
           DAILY_REPORT_CHANNEL_ID: ${{ secrets.DAILY_REPORT_CHANNEL_ID }}
           DAILY_REPORT_TARGET_USER_ID: ${{ secrets.DAILY_REPORT_TARGET_USER_ID }}
+
+      - name: Release & deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HUSKY: 0
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          APP_ID: ${{ secrets.APP_ID }}
+          GUILD_ID: ${{ secrets.GUILD_ID }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: npx semantic-release
