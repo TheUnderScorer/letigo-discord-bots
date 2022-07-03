@@ -6,10 +6,12 @@ import {
   InteractionType,
 } from 'discord-api-types/v10';
 import { KolegoOptions } from '../../../command.types';
-import { messages } from '../../../messages/messages';
-import { getRandomArrayElement } from '../../../shared/utils/array';
+import { messages } from '../../../../messages/messages';
+import { getRandomArrayElement } from '../../../../shared/utils/array';
+import { applyTokens } from '../../../../shared/tokens';
+import { mentionUser } from '../../../../shared/mentions';
 
-export const questionSubCommandHandler: KolegoSubCommandHandler =
+export const insultSubCommandHandler: KolegoSubCommandHandler =
   async interaction => {
     if (
       interaction.type === InteractionType.ApplicationCommand &&
@@ -18,24 +20,21 @@ export const questionSubCommandHandler: KolegoSubCommandHandler =
       const option = interaction.data.options?.[0];
 
       if (
-        option?.type === ApplicationCommandOptionType.String &&
-        option.name === KolegoOptions.Question
+        option?.type === ApplicationCommandOptionType.User &&
+        option.name === KolegoOptions.Insult
       ) {
-        const question = option.value;
-
-        if (!question.endsWith('?')) {
-          return {
-            type: InteractionResponseType.ChannelMessageWithSource,
-            data: {
-              content: messages.notAQuestion,
-            },
-          };
-        }
+        const tokens = {
+          USER: mentionUser(option.value),
+        };
+        const message = applyTokens(
+          getRandomArrayElement(messages.insults),
+          tokens
+        );
 
         return {
           type: InteractionResponseType.ChannelMessageWithSource,
           data: {
-            content: getRandomArrayElement(messages.answers),
+            content: message,
           },
         };
       }

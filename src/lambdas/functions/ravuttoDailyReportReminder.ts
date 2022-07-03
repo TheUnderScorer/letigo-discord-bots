@@ -1,8 +1,8 @@
 import {
   applyTokensToMessage,
   getDailyReportForDay,
-} from '../shared/ravuttoDailyReport';
-import { initDiscord, InitDiscordParams } from '../shared/initDiscord';
+} from '../../shared/ravuttoDailyReport';
+import { initDiscord, InitDiscordParams } from '../../shared/initDiscord';
 
 interface Dependencies extends InitDiscordParams {
   now?: () => Date;

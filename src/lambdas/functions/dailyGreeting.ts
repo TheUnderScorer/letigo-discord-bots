@@ -1,6 +1,6 @@
-import { initDiscord, InitDiscordParams } from '../shared/initDiscord';
-import { getRandomArrayElement } from '../shared/utils/array';
-import { messages } from '../messages/messages';
+import { initDiscord, InitDiscordParams } from '../../shared/initDiscord';
+import { getRandomArrayElement } from '../../shared/utils/array';
+import { messages } from '../../messages/messages';
 
 interface Dependencies extends InitDiscordParams {
   now?: () => Date;

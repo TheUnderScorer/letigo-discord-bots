@@ -5,7 +5,7 @@ import {
   InteractionResponseType,
 } from 'discord-api-types/v10';
 import { kolegoSubCommands } from './subCommands';
-import { messages } from '../../messages/messages';
+import { messages } from '../../../messages/messages';
 
 export type KolegoSubCommandHandler = (
   interaction: APIInteraction

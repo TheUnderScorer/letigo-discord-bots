@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { createHandler } from './ravuttoDailyReportReminder';
-import * as getMessagesResponse from '../__tests__/mockResponses/getMessages.json';
+import * as getMessagesResponse from '../../__tests__/mockResponses/getMessages.json';
 
 describe('Ravutto daily report reminder', () => {
   const adapter = jest.fn<Promise<AxiosResponse>, [AxiosRequestConfig]>();
