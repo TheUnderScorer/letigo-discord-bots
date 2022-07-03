@@ -11,9 +11,6 @@ import { mapCommandsForHelp, quoteCommand } from '../shared/utils/commands';
 
 dotenv.config();
 
-// TODO Remove
-const targetGuildId = '993110967535808534';
-
 async function initBot() {
   const bot = new Client({
     intents: [
@@ -40,10 +37,7 @@ async function main() {
   console.log('Bot is ready!');
 
   bot.on('messageCreate', async message => {
-    if (
-      message.guildId !== targetGuildId ||
-      message.author.id === bot.user.id
-    ) {
+    if (message.author.id === bot.user.id) {
       return;
     }
 
