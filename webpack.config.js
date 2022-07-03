@@ -1,6 +1,6 @@
 const slsw = require('serverless-webpack');
 const path = require('path');
-const tsConfigPath = path.resolve(__dirname, 'tsconfig.json');
+const tsConfigPath = path.resolve(__dirname, 'tsconfig.lambdas.json');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const isLocal = slsw.lib.webpack.isLocal;

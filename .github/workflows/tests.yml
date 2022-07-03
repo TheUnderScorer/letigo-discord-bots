@@ -27,7 +27,7 @@ jobs:
           npm ci && npm i serverless@3 -g
 
       - name: Build
-        run: npm run webpack:production
+        run: npm run lambdas:webpack:production
 
       - name: Test
         run: npm run test
