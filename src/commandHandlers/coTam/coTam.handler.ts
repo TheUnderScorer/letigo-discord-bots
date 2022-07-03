@@ -1,6 +1,6 @@
 import { CommandHandler } from '../../command.types';
 import { InteractionResponseType } from 'discord-api-types/v10';
-import { messages } from '../../messages';
+import { messages } from '../../messages/messages';
 import { getRandomArrayElement } from '../../shared/utils/array';
 
 export const coTamHandler: CommandHandler = async () => {

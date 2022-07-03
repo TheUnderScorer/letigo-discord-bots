@@ -6,7 +6,7 @@ import {
   InteractionType,
 } from 'discord-api-types/v10';
 import { KolegoOptions } from '../../../command.types';
-import { messages } from '../../../messages';
+import { messages } from '../../../messages/messages';
 import { getRandomArrayElement } from '../../../shared/utils/array';
 import { applyTokens } from '../../../shared/tokens';
 import { mentionUser } from '../../../shared/mentions';

@@ -13,6 +13,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "serve": "sls offline --stage development",
+    "serve:server": "ts-node-dev src/server/server.ts -p tsconfig.json",
     "invoke:ravutoDailyReportReminder": "sls invoke local --function ravuttoDailyReportReminder --stage development",
     "deploy": "npm run register-commands && sls deploy --stage production",
     "webpack": "sls webpack",
@@ -101,10 +102,14 @@
     ]
   },
   "dependencies": {
+    "@discordjs/voice": "^0.10.0",
     "@middy/http-header-normalizer": "^2.5.7",
     "axios": "^0.26.1",
     "discord-api-types": "^0.31.1",
+    "discord.js": "^13.8.1",
     "middy": "^0.36.0",
-    "tweetnacl": "^1.0.3"
+    "tiny-typed-emitter": "^2.1.0",
+    "tweetnacl": "^1.0.3",
+    "ytdl-core": "^4.11.0"
   }
 }

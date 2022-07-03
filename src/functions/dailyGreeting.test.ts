@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { createHandler } from './dailyGreeting';
-import { messages } from '../messages';
+import { messages } from '../messages/messages';
 
 const days = Array.from({ length: 7 }, (v, k) => k);
 

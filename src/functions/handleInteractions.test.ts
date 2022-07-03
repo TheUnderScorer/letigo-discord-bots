@@ -7,7 +7,7 @@ import {
 } from 'discord-api-types/v10';
 import { Commands, KolegoOptions } from '../command.types';
 import { handler } from './handleInteractions';
-import { messages } from '../messages';
+import { messages } from '../messages/messages';
 import { applyTokens } from '../shared/tokens';
 import { mentionUser } from '../shared/mentions';
 
