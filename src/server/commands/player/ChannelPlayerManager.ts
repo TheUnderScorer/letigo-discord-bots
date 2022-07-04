@@ -1,6 +1,10 @@
 import { ChannelPlayer } from './ChannelPlayer';
 import { VoiceChannel } from 'discord.js';
-import { createAudioPlayer } from '@discordjs/voice';
+import {
+  createAudioPlayer,
+  VoiceConnection,
+  VoiceConnectionStatus,
+} from '@discordjs/voice';
 import { retrieveVoiceConnection } from './voiceConnection';
 import { Messages } from '../../../messages/messages';
 import { applyTokens } from '../../../shared/tokens';
@@ -26,14 +30,26 @@ export class ChannelPlayerManager {
 
     const player = new ChannelPlayer(channel, subscription, this.messages);
 
-    this.setupEvents(player);
+    this.setupEvents(player, connection, channel);
 
     this.players.set(channel.guildId, player);
 
     return player;
   }
 
-  setupEvents(player: ChannelPlayer) {
+  setupEvents(
+    player: ChannelPlayer,
+    connection: VoiceConnection,
+    channel: VoiceChannel
+  ) {
+    connection.once(VoiceConnectionStatus.Disconnected, async () => {
+      console.log('Voice connection destroyed');
+
+      await player.dispose();
+
+      this.players.delete(channel.guildId);
+    });
+
     player.on('playStarted', async (song, channel) => {
       const message = applyTokens(
         getRandomArrayElement(this.messages.server.player.nowPlaying),
