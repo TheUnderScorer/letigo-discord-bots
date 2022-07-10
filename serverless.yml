@@ -1,9 +1,11 @@
 service: wojciech-discord-bot
 
 plugins:
+  - serverless-vpc-plugin
   - serverless-webpack
   - serverless-offline
   - serverless-domain-manager
+  - serverless-fargate
 
 frameworkVersion: '3'
 useDotenv: true
@@ -14,11 +16,36 @@ provider:
   region: eu-west-1
   stage: ${opt:stage, 'development'}
   logRetentionInDays: 30
+  ecr:
+    scanOnPush: false
+    images:
+      server:
+        file: ./docker/server/Dockerfile
+        path: .
+
+fargate:
+  memory: '0.5GB'
+  cpu: 256
+  vpc:
+    assignPublicIp: true
+    subnetIds:
+      - !Ref AppSubnet1
+      - !Ref AppSubnet2
+
+  tasks:
+    server:
+      name: ${self:service}-${self:provider.stage}-wojciech-discord-bot-server
+      image: server
+      service:
+        desiredCount: 1
+      environment:
+        STAGE: ${self:provider.stage}
+        BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
 
 functions:
   handleInteractions:
     memorySize: 128
-    handler: src/functions/handleInteractions.default
+    handler: src/lambdas/functions/handleInteractions.default
     environment:
       STAGE: ${self:provider.stage}
       BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
@@ -31,7 +58,7 @@ functions:
 
   dailyGreeting:
     memorySize: 128
-    handler: src/functions/dailyGreeting.default
+    handler: src/lambdas/functions/dailyGreeting.default
     environment:
       STAGE: ${self:provider.stage}
       BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
@@ -42,7 +69,7 @@ functions:
 
   ravuttoDailyReportReminder:
     memorySize: 128
-    handler: src/functions/ravuttoDailyReportReminder.default
+    handler: src/lambdas/functions/ravuttoDailyReportReminder.default
     environment:
       STAGE: ${self:provider.stage}
       BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
@@ -55,7 +82,7 @@ functions:
 
   ravuttoDailyReportMissing:
     memorySize: 128
-    handler: src/functions/ravuttoDailyReportReminder.default
+    handler: src/lambdas/functions/ravuttoDailyReportReminder.default
     environment:
       STAGE: ${self:provider.stage}
       BOT_TOKEN: ${self:custom.botToken.${self:provider.stage}}
@@ -67,6 +94,14 @@ functions:
       - schedule: cron(0 21 * * ? *)
 
 custom:
+  vpcConfig:
+    cidrBlock: '10.0.0.0/16'
+    createDbSubnet: false
+    exportOutputs: true
+    createNatInstance: false
+    zones:
+      - eu-west-1a
+      - eu-west-1b
   customDomain:
     domainName: ${self:custom.apiDomainName.${self:provider.stage}}
     stage: ${self:provider.stage}
