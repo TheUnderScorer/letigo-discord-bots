@@ -8,6 +8,7 @@
     "afternoon": "{{MENTION}} kolego, ale pamiętaj o daily raporcie dzisiaj",
     "night": "{{MENTION}} kolego, a gdzie daily raport?"
   },
+  "invalidUrl": "kolego co ty mi tu za bledne linki przesylasz",
   "server": {
     "help": "kolego no ja ci nie pomoge za bardzo ale mozesz sprobowac tego: {{COMMANDS}}. polecam zwlaszcza {{PLAY_COMMAND}} zeby se muzyki posluchac, poprawia nastroj prawie tak jak kawa ze swiezo zmielonch ziaren",
     "player": {

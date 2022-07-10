@@ -1,18 +1,18 @@
 import type ytdl from 'ytdl-core';
 
 export enum PlayerSubcommands {
-  Queue = 'queue',
+  Queue = 'dodaj',
   List = 'list',
-  ClearQueue = 'clear-queue',
-  Pause = 'pause',
-  Play = 'play',
+  ClearQueue = 'wyczysc-kolejke',
+  Pause = 'pauza',
+  Play = 'odtwarzaj',
   Next = 'next',
 }
 
 export interface PlayerSong {
   url: string;
   name: string;
-  format: ytdl.videoFormat;
+  format?: ytdl.videoFormat;
 }
 
 export enum PlayerQueueOptions {

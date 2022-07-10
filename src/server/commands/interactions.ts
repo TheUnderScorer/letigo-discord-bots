@@ -31,10 +31,10 @@ export const makeInteractionsHandler =
         }
 
         if (interaction.deferred) {
-          await interaction.deleteReply();
+          await interaction.editReply(reply);
+        } else {
+          await interaction.reply(reply);
         }
-
-        await interaction.reply(reply);
       }
     }
   };

@@ -45,6 +45,10 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
   }
 
   async queue(url: string) {
+    if (!ytdl.validateURL(url)) {
+      throw new BotError(this.messages.invalidUrl);
+    }
+
     let isPlaying = false;
 
     const state = this.playerState;
@@ -111,7 +115,7 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
       filter: 'audioonly',
       // 32mb
       highWaterMark: 1 << 25,
-      quality: song.format.itag,
+      quality: song.format?.itag,
     });
 
     const { player } = this.playerSubscription;
