@@ -19,4 +19,4 @@ COPY --from=builder /app/package-lock.json .
 RUN apk add --update ffmpeg
 RUN npm ci
 
-CMD ["node", "server/server.js"]
+CMD ["node", "src/server/server.js"]
