@@ -15,6 +15,16 @@ jobs:
         with:
           node-version: 16
 
+      - name: Install npm dependencies
+        run: |
+          npm ci && npm ci --prefix deploy
+
+      - name: Build
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -22,15 +32,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
-      - name: Install npm dependencies
-        run: |
-          npm ci && npm i serverless@3 -g
-
-      - name: Build
-        run: npm run webpack:production
-
       - name: Test
         run: npm run test
         env:
           DAILY_REPORT_CHANNEL_ID: ${{ secrets.DAILY_REPORT_CHANNEL_ID }}
           DAILY_REPORT_TARGET_USER_ID: ${{ secrets.DAILY_REPORT_TARGET_USER_ID }}
+
+      - name: Preview deployment
+        uses: pulumi/actions@v3
+        with:
+          command: preview
+          stack-name: production
+          comment-on-pr: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          work-dir: ./deploy
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+

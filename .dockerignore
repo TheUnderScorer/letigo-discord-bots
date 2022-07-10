@@ -1,0 +1,9 @@
+node_modules
+dist
+.husky
+.github
+.gitignore
+.eslintrc.js
+.eslintignore
+CHANGELOD.md
+.prettierc
