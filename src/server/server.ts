@@ -6,6 +6,7 @@ import express from 'express';
 import { makeInteractionsHandler } from './commands/interactions';
 import { commandsCollection, registerSlashCommands } from './commands/commands';
 import { initScheduler } from './scheduler/scheduler';
+import pkg from '../../package.json';
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ async function main() {
   app.get('/', (req, res) => {
     res.json({
       result: true,
+      version: pkg.version,
     });
   });
 
