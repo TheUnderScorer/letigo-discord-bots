@@ -14,6 +14,7 @@ import {
   registerSlashCommands,
   slashCommandsCollection,
 } from './slashCommands';
+import { initScheduler } from './scheduler/scheduler';
 
 dotenv.config();
 
@@ -46,6 +47,7 @@ async function main() {
   const channelPlayerManager = new ChannelPlayerManager(messages);
 
   await registerSlashCommands(botToken, appId, guildId);
+  initScheduler(bot, messages);
 
   const app = express();
   const port = process.env.PORT || 3000;
