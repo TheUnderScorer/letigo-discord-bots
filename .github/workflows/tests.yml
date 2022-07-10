@@ -24,7 +24,7 @@ jobs:
 
       - name: Install npm dependencies
         run: |
-          npm ci
+          npm ci && npm ci --prefix deploy
 
       - name: Build
         run: npm run build
