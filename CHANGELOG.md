@@ -1,3 +1,21 @@
+# [2.0.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v1.3.0...v2.0.0) (2022-07-10)
+
+
+### Features
+
+* introduce music player available via "!kolego player <command>" ([40e9dc2](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/40e9dc2329ee0814437822d5f44f1c1e718bba71))
+* Remove lambdas ([de40c1a](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/de40c1a9c1a36be543447a64da65775bf1cc85d0))
+
+
+### Performance Improvements
+
+* **player:** find best quality for playing ([d77ef1c](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/d77ef1c9c3c8faa6e6297a7e3363715c6fd727ec))
+
+
+### BREAKING CHANGES
+
+* API Endpoints are no longer available
+
 # [1.3.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v1.2.0...v1.3.0) (2022-05-02)
 
 
