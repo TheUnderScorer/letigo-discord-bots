@@ -35,6 +35,21 @@ const containerService = new aws.lightsail.ContainerService(serviceName, {
 });
 
 const port = 3000;
+const containerEnvKeys = [
+  'BOT_TOKEN',
+  'APP_ID',
+  'PUBLIC_KEY',
+  'DAILY_REPORT_CHANNEL_ID',
+  'DAILY_REPORT_TARGET_USER_ID',
+  'GUILD_ID',
+  'GREETING_CHANNEL_ID',
+];
+const containerEnv = containerEnvKeys.reduce((acc, key) => {
+  return {
+    ...acc,
+    [key]: process.env[key] as string,
+  };
+}, {});
 const containerServiceDeployment =
   new aws.lightsail.ContainerServiceDeploymentVersion(serviceName, {
     publicEndpoint: {
@@ -53,8 +68,8 @@ const containerServiceDeployment =
           [port]: 'HTTP',
         },
         environment: {
-          BOT_TOKEN: process.env.BOT_TOKEN as string,
           PORT: port.toString(),
+          ...containerEnv,
         },
       },
     ],
