@@ -12,7 +12,7 @@ FROM --platform=linux/amd64 $IMAGE
 
 WORKDIR /app
 
-COPY --from=builder /app/dist/server/src .
+COPY --from=builder /app/dist .
 COPY --from=builder /app/package.json .
 COPY --from=builder /app/package-lock.json .
 
