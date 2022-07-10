@@ -1,21 +1,44 @@
-import { APIInteraction, APIInteractionResponse } from 'discord-api-types/v10';
-import { APIGatewayProxyEventV2 } from 'aws-lambda';
+import type { Client, CommandInteraction } from 'discord.js';
+import type { Messages } from '../messages/messages';
+import {
+  SlashCommandBuilder,
+  SlashCommandSubcommandsOnlyBuilder,
+} from '@discordjs/builders';
 
 export enum Commands {
   Kolego = 'kolego',
   CoTam = 'cotam',
 }
 
-export enum KolegoOptions {
+export enum KolegoSubcommand {
   Question = 'pytanie',
   Insult = 'obraź',
+  CoTam = 'cotam',
+}
+
+export enum KolegoQuestionOptions {
+  Question = 'pytanie',
+}
+
+export enum KolegoInsultOptions {
+  User = 'użytkownik',
 }
 
 export interface CommandHandlerResult {
   content: string;
 }
 
+export interface CommandHandlerContext {
+  bot: Client<true>;
+  messages: Messages;
+}
+
 export type CommandHandler = (
-  interaction: APIInteraction,
-  event: APIGatewayProxyEventV2
-) => Promise<APIInteractionResponse>;
+  interaction: CommandInteraction,
+  context: CommandHandlerContext
+) => Promise<void>;
+
+export interface CommandDefinition {
+  data: SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder;
+  execute: CommandHandler;
+}

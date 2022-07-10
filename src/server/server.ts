@@ -9,20 +9,27 @@ import { ChannelPlayerManager } from './commands/player/ChannelPlayerManager';
 import { applyTokens } from '../shared/tokens';
 import { mapCommandsForHelp, quoteCommand } from '../shared/utils/commands';
 import express from 'express';
+import { makeInteractionsHandler } from './interactions';
+import {
+  registerSlashCommands,
+  slashCommandsCollection,
+} from './slashCommands';
 
 dotenv.config();
 
-async function initBot() {
+async function initBot(token: string) {
   const bot = new Client({
     intents: [
       'GUILDS',
       'GUILD_VOICE_STATES',
       'GUILD_MESSAGES',
       'GUILD_EMOJIS_AND_STICKERS',
+      'GUILD_INTEGRATIONS',
+      'GUILD_MESSAGE_TYPING',
     ],
   });
 
-  await bot.login(process.env.BOT_TOKEN);
+  await bot.login(token);
 
   return new Promise<Client<true>>(resolve => {
     bot.once('ready', async readyBot => {
@@ -32,8 +39,13 @@ async function initBot() {
 }
 
 async function main() {
-  const bot = await initBot();
+  const botToken = process.env.BOT_TOKEN as string;
+  const appId = process.env.APP_ID as string;
+  const guildId = process.env.GUILD_ID as string;
+  const bot = await initBot(botToken);
   const channelPlayerManager = new ChannelPlayerManager(messages);
+
+  await registerSlashCommands(botToken, appId, guildId);
 
   const app = express();
   const port = process.env.PORT || 3000;
@@ -49,6 +61,17 @@ async function main() {
   app.listen(port, () => {
     console.log('Server is running on port ', port);
   });
+
+  bot.on(
+    'interactionCreate',
+    makeInteractionsHandler({
+      ctx: {
+        bot,
+        messages,
+      },
+      commands: slashCommandsCollection,
+    })
+  );
 
   bot.on('messageCreate', async message => {
     if (message.author.id === bot.user.id) {

@@ -5,7 +5,7 @@ import {
   ApplicationCommandType,
   InteractionType,
 } from 'discord-api-types/v10';
-import { Commands, KolegoOptions } from '../command.types';
+import { Commands, KolegoSubcommand } from '../command.types';
 import { handler } from './handleInteractions';
 import { messages } from '../../messages/messages';
 import { applyTokens } from '../../shared/tokens';
@@ -33,7 +33,7 @@ describe('Handle interactions', () => {
       const userId = '123456789';
       const response = await triggerInteraction(Commands.Kolego, [
         {
-          name: KolegoOptions.Insult,
+          name: KolegoSubcommand.Insult,
           type: ApplicationCommandOptionType.User,
           value: userId,
         },
@@ -56,7 +56,7 @@ describe('Handle interactions', () => {
     it('should insult if question doesnt contain question mark', async () => {
       const response = await triggerInteraction(Commands.Kolego, [
         {
-          name: KolegoOptions.Question,
+          name: KolegoSubcommand.Question,
           type: ApplicationCommandOptionType.String,
           value: 'pytanie',
         },
@@ -69,7 +69,7 @@ describe('Handle interactions', () => {
     it('should reply with random answer', async () => {
       const response = await triggerInteraction(Commands.Kolego, [
         {
-          name: KolegoOptions.Question,
+          name: KolegoSubcommand.Question,
           type: ApplicationCommandOptionType.String,
           value: 'Jaki jest sens życia?',
         },

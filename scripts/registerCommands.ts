@@ -4,7 +4,7 @@ import {
   ApplicationCommandType,
   RESTPostAPIApplicationGuildCommandsJSONBody,
 } from 'discord-api-types/v10';
-import { Commands, KolegoOptions } from '../src/lambdas/command.types';
+import { Commands, KolegoSubcommand } from '../src/lambdas/command.types';
 import { config } from 'dotenv';
 import * as path from 'path';
 
@@ -24,12 +24,12 @@ const commands: RESTPostAPIApplicationGuildCommandsJSONBody[] = [
     description: 'Wywołaj Wojciecha',
     options: [
       {
-        name: KolegoOptions.Question,
+        name: KolegoSubcommand.Question,
         description: 'Zadaj pytanie Wojciechowi',
         type: ApplicationCommandOptionType.String,
       },
       {
-        name: KolegoOptions.Insult,
+        name: KolegoSubcommand.Insult,
         description: 'Niech Wojciech kogoś obrazi!',
         type: ApplicationCommandOptionType.User,
       },

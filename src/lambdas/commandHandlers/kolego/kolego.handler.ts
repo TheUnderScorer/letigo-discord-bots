@@ -1,29 +1,17 @@
 import { CommandHandler } from '../../command.types';
-import {
-  APIInteraction,
-  APIInteractionResponse,
-  InteractionResponseType,
-} from 'discord-api-types/v10';
 import { kolegoSubCommands } from './subCommands';
-import { messages } from '../../../messages/messages';
+import { CommandInteraction } from 'discord.js';
 
 export type KolegoSubCommandHandler = (
-  interaction: APIInteraction
-) => Promise<APIInteractionResponse | false>;
+  interaction: CommandInteraction
+) => Promise<boolean>;
 
 export const kolegoHandler: CommandHandler = async interaction => {
   for (const subCommandHandler of kolegoSubCommands) {
     const result = await subCommandHandler(interaction);
 
     if (result) {
-      return result;
+      break;
     }
   }
-
-  return {
-    type: InteractionResponseType.ChannelMessageWithSource,
-    data: {
-      content: messages.whatAreYouSaying,
-    },
-  };
 };

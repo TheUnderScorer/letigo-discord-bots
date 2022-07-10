@@ -1,13 +1,11 @@
 import { CommandHandler } from '../../command.types';
-import { InteractionResponseType } from 'discord-api-types/v10';
-import { messages } from '../../../messages/messages';
 import { getRandomArrayElement } from '../../../shared/utils/array';
 
-export const coTamHandler: CommandHandler = async () => {
-  return {
-    type: InteractionResponseType.ChannelMessageWithSource,
-    data: {
-      content: getRandomArrayElement(messages.whatsUpReplies),
-    },
-  };
+export const coTamHandler: CommandHandler = async (
+  interaction,
+  { messages }
+) => {
+  if (interaction.isRepliable()) {
+    await interaction.reply(getRandomArrayElement(messages.whatsUpReplies));
+  }
 };
