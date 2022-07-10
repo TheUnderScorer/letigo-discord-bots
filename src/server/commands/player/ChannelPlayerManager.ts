@@ -2,6 +2,7 @@ import { ChannelPlayer } from './ChannelPlayer';
 import { VoiceChannel } from 'discord.js';
 import {
   createAudioPlayer,
+  NoSubscriberBehavior,
   VoiceConnection,
   VoiceConnectionStatus,
 } from '@discordjs/voice';
@@ -21,7 +22,12 @@ export class ChannelPlayerManager {
     }
 
     const connection = await retrieveVoiceConnection(channel);
-    const audioPlayer = createAudioPlayer({});
+    const audioPlayer = createAudioPlayer({
+      behaviors: {
+        noSubscriber: NoSubscriberBehavior.Stop,
+        maxMissedFrames: 1,
+      },
+    });
     const subscription = connection.subscribe(audioPlayer);
 
     if (!subscription) {

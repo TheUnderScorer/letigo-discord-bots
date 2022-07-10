@@ -48,7 +48,7 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
     let isPlaying = false;
 
     const state = this.playerState;
-    const info = await ytdl.getInfo(url);
+    const info = await ytdl.getBasicInfo(url);
 
     const bestFormat = findDesiredFormat(info);
 
@@ -109,8 +109,8 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
   async playSong(song: PlayerSong) {
     const stream = ytdl(song.url, {
       filter: 'audioonly',
-      highWaterMark: 5 * 1024 * 1024,
-      dlChunkSize: 5 * 1024 * 1024,
+      // 32mb
+      highWaterMark: 1 << 25,
       quality: song.format.itag,
     });
 

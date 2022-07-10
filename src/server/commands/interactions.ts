@@ -1,5 +1,6 @@
 import type { Collection, Interaction } from 'discord.js';
 import type { CommandDefinition, CommandHandlerContext } from './command.types';
+import { BotError } from '../../shared/errors/BotError';
 
 interface Dependencies {
   ctx: CommandHandlerContext;
@@ -16,6 +17,24 @@ export const makeInteractionsHandler =
     const handler = commands.get(interaction.commandName);
 
     if (handler) {
-      await handler.execute(interaction, ctx);
+      try {
+        await handler.execute(interaction, ctx);
+      } catch (error) {
+        console.error(error);
+
+        let reply: string;
+
+        if (error instanceof BotError) {
+          reply = error.message;
+        } else {
+          reply = ctx.messages.unknownError;
+        }
+
+        if (interaction.deferred) {
+          await interaction.deleteReply();
+        }
+
+        await interaction.reply(reply);
+      }
     }
   };

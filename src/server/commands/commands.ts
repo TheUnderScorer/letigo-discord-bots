@@ -3,8 +3,9 @@ import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import { kolegoCommand } from './kolego/kolego.command';
 import { Collection } from 'discord.js';
+import { playerCommand } from './player/player.command';
 
-export const commands: CommandDefinition[] = [kolegoCommand];
+export const commands: CommandDefinition[] = [kolegoCommand, playerCommand];
 
 export const commandsCollection = new Collection<string, CommandDefinition>();
 

@@ -4,16 +4,18 @@ import type {
   SlashCommandBuilder,
   SlashCommandSubcommandsOnlyBuilder,
 } from '@discordjs/builders';
+import { ChannelPlayerManager } from './player/ChannelPlayerManager';
 
 export enum Commands {
   Kolego = 'kolego',
-  CoTam = 'cotam',
+  Dj = 'dj',
 }
 
 export enum KolegoSubcommand {
   Question = 'pytanie',
   Insult = 'obraź',
   CoTam = 'cotam',
+  Player = 'dj',
 }
 
 export enum KolegoQuestionOptions {
@@ -31,6 +33,7 @@ export interface CommandHandlerResult {
 export interface CommandHandlerContext {
   bot: Client<true>;
   messages: Messages;
+  channelPlayerManager: ChannelPlayerManager;
 }
 
 export type CommandHandler = (
