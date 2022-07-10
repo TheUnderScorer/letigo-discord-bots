@@ -39,8 +39,8 @@ jobs:
           DAILY_REPORT_CHANNEL_ID: ${{ secrets.DAILY_REPORT_CHANNEL_ID }}
           DAILY_REPORT_TARGET_USER_ID: ${{ secrets.DAILY_REPORT_TARGET_USER_ID }}
 
-      - name: Release & deploy
+      - name: Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
           HUSKY: 0
         run: npx semantic-release
