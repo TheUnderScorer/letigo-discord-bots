@@ -8,7 +8,7 @@ const stack = pulumi.getStack();
 const name = pulumi.getProject();
 const serviceName = `${stack}-${name}`;
 
-const ecr = new aws.ecr.Repository(`${serviceName}-server`, {
+const ecr = new aws.ecr.Repository(`${serviceName}-server-ecr`, {
   imageScanningConfiguration: {
     scanOnPush: false,
   },
