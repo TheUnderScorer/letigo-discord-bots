@@ -4,7 +4,7 @@ on:
 
 jobs:
   release:
-    name: Build & Release
+    name: Run tests
     runs-on: ubuntu-latest
 
     steps:
