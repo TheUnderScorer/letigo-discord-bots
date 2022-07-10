@@ -5,6 +5,7 @@ import ytdl from 'ytdl-core';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { Messages } from '../../../messages/messages';
 import { BotError } from '../../../shared/errors/BotError';
+import { findDesiredFormat } from './findDesiredFormat';
 
 export interface PlayerQueueEvents {
   finished: (channel: VoiceChannel) => unknown;
@@ -49,6 +50,8 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
     const state = this.playerState;
     const info = await ytdl.getInfo(url);
 
+    const bestFormat = findDesiredFormat(info);
+
     const existingSong = this.playerQueue.find(song => song.url === url);
 
     if (existingSong) {
@@ -58,6 +61,7 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
     const song: PlayerSong = {
       url,
       name: info.videoDetails.media.song ?? info.videoDetails.title,
+      format: bestFormat,
     };
 
     const index = this.playerQueue.push(song);
@@ -103,7 +107,12 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
   }
 
   async playSong(song: PlayerSong) {
-    const stream = ytdl(song.url, { filter: 'audioonly' });
+    const stream = ytdl(song.url, {
+      filter: 'audioonly',
+      highWaterMark: 5 * 1024 * 1024,
+      dlChunkSize: 5 * 1024 * 1024,
+      quality: song.format.itag,
+    });
 
     const { player } = this.playerSubscription;
 

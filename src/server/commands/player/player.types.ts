@@ -1,3 +1,5 @@
+import type ytdl from 'ytdl-core';
+
 export enum PlayerCommandArg {
   Queue = 'queue',
   List = 'list',
@@ -11,4 +13,5 @@ export enum PlayerCommandArg {
 export interface PlayerSong {
   url: string;
   name: string;
+  format: ytdl.videoFormat;
 }
