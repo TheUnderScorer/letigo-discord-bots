@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . ./
 
 RUN npm ci
-RUN npm run server:build
+RUN npm run build
 
 FROM --platform=linux/amd64 $IMAGE
 
