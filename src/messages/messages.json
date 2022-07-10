@@ -9,29 +9,26 @@
     "night": "{{MENTION}} kolego, a gdzie daily raport?"
   },
   "invalidUrl": "kolego co ty mi tu za bledne linki przesylasz",
-  "server": {
-    "help": "kolego no ja ci nie pomoge za bardzo ale mozesz sprobowac tego: {{COMMANDS}}. polecam zwlaszcza {{PLAY_COMMAND}} zeby se muzyki posluchac, poprawia nastroj prawie tak jak kawa ze swiezo zmielonch ziaren",
-    "player": {
-      "noMoreSongs": "kolego nie ma nic wiecej w kolejce, moze dodaj cos??",
-      "clearedQueue": "dobra kolego kolejka wyczyszczona",
-      "alreadyQueued": "kolego to juz jest w kolejce",
-      "ended": [
-        "koledzy muzyka sie skonczyla",
-        "koledzy koniec muzyki, puszczamy cos jeszcze?"
-      ],
-      "addedToQueue": [
-        "spoko kolego dodalem to do kolejki bedzie puszczone jako {{INDEX}}",
-        "no juz kolego nie sapaj sie kolejnosc tego utworu to {{INDEX}}",
-        "ehhh kolego no dobra niech bedziem, bedzie puszczone jako {{INDEX}}"
-      ],
-      "addedToQueueAsNext": "dodane kolego to poleci jako nastepne jak cos",
-      "nowPlaying": [
-        "koledzy a teraz puszczamy \"{{SONG_NAME}}\"!",
-        "jak tam koledzy?? teraz leci \"{{SONG_NAME}}\"!",
-        "bawimy sie koledzy bawimy, teraz pora na \"{{SONG_NAME}}\"!"
-      ],
-      "availableCommands": "kolego tutaj mamy takie cos: {{COMMANDS}}, ale wiecej o tym nie chce mi sie pisac"
-    }
+  "player": {
+    "noMoreSongs": "kolego nie ma nic wiecej w kolejce, moze dodaj cos??",
+    "clearedQueue": "dobra kolego kolejka wyczyszczona",
+    "alreadyQueued": "kolego to juz jest w kolejce",
+    "ended": [
+      "koledzy muzyka sie skonczyla",
+      "koledzy koniec muzyki, puszczamy cos jeszcze?"
+    ],
+    "addedToQueue": [
+      "spoko kolego dodalem to do kolejki bedzie puszczone jako {{INDEX}}",
+      "no juz kolego nie sapaj sie kolejnosc tego utworu to {{INDEX}}",
+      "ehhh kolego no dobra niech bedziem, bedzie puszczone jako {{INDEX}}"
+    ],
+    "addedToQueueAsNext": "dodane kolego to poleci jako nastepne jak cos",
+    "nowPlaying": [
+      "koledzy a teraz puszczamy \"{{SONG_NAME}}\"!",
+      "jak tam koledzy?? teraz leci \"{{SONG_NAME}}\"!",
+      "bawimy sie koledzy bawimy, teraz pora na \"{{SONG_NAME}}\"!"
+    ],
+    "availableCommands": "kolego tutaj mamy takie cos: {{COMMANDS}}, ale wiecej o tym nie chce mi sie pisac"
   },
   "answers": [
     "who can say where the road goes",

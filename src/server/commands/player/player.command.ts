@@ -71,14 +71,12 @@ export const playerCommand: CommandDefinition = {
             const reply =
               entryIndex > 0
                 ? applyTokens(
-                    getRandomArrayElement(
-                      ctx.messages.server.player.addedToQueue
-                    ),
+                    getRandomArrayElement(ctx.messages.player.addedToQueue),
                     {
                       INDEX: (entryIndex + 1).toString(),
                     }
                   )
-                : ctx.messages.server.player.addedToQueueAsNext;
+                : ctx.messages.player.addedToQueueAsNext;
 
             await interaction.editReply(reply);
           } else {
@@ -111,20 +109,22 @@ export const playerCommand: CommandDefinition = {
       case PlayerSubcommands.ClearQueue:
         await player.clearQueue();
 
-        await interaction.reply(ctx.messages.server.player.clearedQueue);
+        await interaction.reply(ctx.messages.player.clearedQueue);
 
         break;
 
       case PlayerSubcommands.List: {
+        await interaction.deferReply();
+
         const songs = player.songQueue;
 
         if (!songs.length) {
-          await interaction.reply(ctx.messages.server.player.noMoreSongs);
+          await interaction.editReply(ctx.messages.player.noMoreSongs);
 
           return;
         }
 
-        await interaction.reply({
+        await interaction.editReply({
           content: songs
             .map((song, index) => `${index + 1}. ${song.name}`)
             .join('\n'),

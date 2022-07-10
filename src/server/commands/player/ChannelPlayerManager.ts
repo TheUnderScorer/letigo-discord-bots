@@ -58,7 +58,7 @@ export class ChannelPlayerManager {
 
     player.on('playStarted', async (song, channel) => {
       const message = applyTokens(
-        getRandomArrayElement(this.messages.server.player.nowPlaying),
+        getRandomArrayElement(this.messages.player.nowPlaying),
         {
           SONG_NAME: song.name,
         }
@@ -68,7 +68,7 @@ export class ChannelPlayerManager {
     });
 
     player.on('finished', async channel => {
-      const message = getRandomArrayElement(this.messages.server.player.ended);
+      const message = getRandomArrayElement(this.messages.player.ended);
 
       await channel.send(message);
     });

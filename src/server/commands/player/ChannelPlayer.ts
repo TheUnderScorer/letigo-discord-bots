@@ -59,7 +59,7 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
     const existingSong = this.playerQueue.find(song => song.url === url);
 
     if (existingSong) {
-      throw new BotError(this.messages.server.player.alreadyQueued);
+      throw new BotError(this.messages.player.alreadyQueued);
     }
 
     const song: PlayerSong = {
@@ -102,7 +102,7 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
       this.emit('nextSong', song);
     } else {
       if (throwErrorOnEmpty) {
-        throw new BotError(this.messages.server.player.noMoreSongs);
+        throw new BotError(this.messages.player.noMoreSongs);
       }
 
       await this.stop();
