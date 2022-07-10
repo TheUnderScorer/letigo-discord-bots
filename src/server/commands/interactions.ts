@@ -1,8 +1,5 @@
 import type { Collection, Interaction } from 'discord.js';
-import {
-  CommandDefinition,
-  CommandHandlerContext,
-} from '../lambdas/command.types';
+import type { CommandDefinition, CommandHandlerContext } from './command.types';
 
 interface Dependencies {
   ctx: CommandHandlerContext;

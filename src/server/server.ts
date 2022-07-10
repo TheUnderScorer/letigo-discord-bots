@@ -9,11 +9,8 @@ import { ChannelPlayerManager } from './commands/player/ChannelPlayerManager';
 import { applyTokens } from '../shared/tokens';
 import { mapCommandsForHelp, quoteCommand } from '../shared/utils/commands';
 import express from 'express';
-import { makeInteractionsHandler } from './interactions';
-import {
-  registerSlashCommands,
-  slashCommandsCollection,
-} from './slashCommands';
+import { makeInteractionsHandler } from './commands/interactions';
+import { commandsCollection, registerSlashCommands } from './commands/commands';
 import { initScheduler } from './scheduler/scheduler';
 
 dotenv.config();
@@ -71,7 +68,7 @@ async function main() {
         bot,
         messages,
       },
-      commands: slashCommandsCollection,
+      commands: commandsCollection,
     })
   );
 

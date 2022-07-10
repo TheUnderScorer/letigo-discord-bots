@@ -1,5 +1,5 @@
 import { getRandomArrayElement } from '../../../../shared/utils/array';
-import { CommandHandler } from '../../../../lambdas/command.types';
+import { CommandHandler } from '../../command.types';
 
 export const coTamSubCommandHandler: CommandHandler = async (
   interaction,

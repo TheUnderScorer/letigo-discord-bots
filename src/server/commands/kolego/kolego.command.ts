@@ -4,7 +4,7 @@ import {
   KolegoInsultOptions,
   KolegoQuestionOptions,
   KolegoSubcommand,
-} from '../../../lambdas/command.types';
+} from '../command.types';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { insultSubCommandHandler } from './subCommands/insult';
 import { questionSubCommandHandler } from './subCommands/question';

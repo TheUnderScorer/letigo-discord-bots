@@ -4,7 +4,10 @@ import {
   ApplicationCommandType,
   RESTPostAPIApplicationGuildCommandsJSONBody,
 } from 'discord-api-types/v10';
-import { Commands, KolegoSubcommand } from '../src/lambdas/command.types';
+import {
+  Commands,
+  KolegoSubcommand,
+} from '../src/server/commands/command.types';
 import { config } from 'dotenv';
 import * as path from 'path';
 

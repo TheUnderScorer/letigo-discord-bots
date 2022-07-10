@@ -1,4 +1,4 @@
-import { CommandHandler, Commands } from '../command.types';
+import { CommandHandler, Commands } from '../../server/commands/command.types';
 import { kolegoHandler } from './kolego/kolego.handler';
 import { coTamHandler } from './coTam/coTam.handler';
 

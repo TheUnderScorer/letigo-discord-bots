@@ -1,7 +1,4 @@
-import {
-  CommandHandler,
-  KolegoInsultOptions,
-} from '../../../../lambdas/command.types';
+import { CommandHandler, KolegoInsultOptions } from '../../command.types';
 import { getRandomArrayElement } from '../../../../shared/utils/array';
 import { applyTokens } from '../../../../shared/tokens';
 

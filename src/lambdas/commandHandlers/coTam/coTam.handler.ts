@@ -1,4 +1,4 @@
-import { CommandHandler } from '../../command.types';
+import { CommandHandler } from '../../../server/commands/command.types';
 import { getRandomArrayElement } from '../../../shared/utils/array';
 
 export const coTamHandler: CommandHandler = async (

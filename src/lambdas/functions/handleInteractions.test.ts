@@ -5,7 +5,10 @@ import {
   ApplicationCommandType,
   InteractionType,
 } from 'discord-api-types/v10';
-import { Commands, KolegoSubcommand } from '../command.types';
+import {
+  Commands,
+  KolegoSubcommand,
+} from '../../server/commands/command.types';
 import { handler } from './handleInteractions';
 import { messages } from '../../messages/messages';
 import { applyTokens } from '../../shared/tokens';

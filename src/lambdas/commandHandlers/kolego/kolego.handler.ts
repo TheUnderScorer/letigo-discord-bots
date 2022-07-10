@@ -1,4 +1,4 @@
-import { CommandHandler } from '../../command.types';
+import { CommandHandler } from '../../../server/commands/command.types';
 import { kolegoSubCommands } from './subCommands';
 import { CommandInteraction } from 'discord.js';
 

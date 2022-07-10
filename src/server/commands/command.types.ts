@@ -1,6 +1,6 @@
 import type { Client, CommandInteraction } from 'discord.js';
-import type { Messages } from '../messages/messages';
-import {
+import type { Messages } from '../../messages/messages';
+import type {
   SlashCommandBuilder,
   SlashCommandSubcommandsOnlyBuilder,
 } from '@discordjs/builders';

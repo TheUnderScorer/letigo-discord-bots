@@ -1,7 +1,4 @@
-import {
-  CommandHandler,
-  KolegoQuestionOptions,
-} from '../../../../lambdas/command.types';
+import { CommandHandler, KolegoQuestionOptions } from '../../command.types';
 import { getRandomArrayElement } from '../../../../shared/utils/array';
 
 export const questionSubCommandHandler: CommandHandler = async (

@@ -7,7 +7,7 @@ import {
 import middy from 'middy';
 import httpHeaderNormalizer from '@middy/http-header-normalizer';
 import { commandHandlers } from '../commandHandlers/commandHandlers';
-import { Commands } from '../command.types';
+import { Commands } from '../../server/commands/command.types';
 import { verifyDiscordSignature } from '../middleware/verifyDiscordSignature';
 import { APIGatewayProxyEventV2 } from 'aws-lambda';
 

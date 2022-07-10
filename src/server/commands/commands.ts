@@ -1,18 +1,15 @@
-import { CommandDefinition } from '../lambdas/command.types';
+import type { CommandDefinition } from './command.types';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
-import { kolegoCommand } from './commands/kolego/kolego.command';
+import { kolegoCommand } from './kolego/kolego.command';
 import { Collection } from 'discord.js';
 
-export const slashCommands: CommandDefinition[] = [kolegoCommand];
+export const commands: CommandDefinition[] = [kolegoCommand];
 
-export const slashCommandsCollection = new Collection<
-  string,
-  CommandDefinition
->();
+export const commandsCollection = new Collection<string, CommandDefinition>();
 
-slashCommands.forEach(cmd => {
-  slashCommandsCollection.set(cmd.data.name, cmd);
+commands.forEach(cmd => {
+  commandsCollection.set(cmd.data.name, cmd);
 });
 
 export async function registerSlashCommands(
@@ -22,9 +19,7 @@ export async function registerSlashCommands(
 ) {
   const rest = new REST({ version: '10' }).setToken(token);
 
-  const commandsPayload = Object.values(slashCommands).map(cmd =>
-    cmd.data.toJSON()
-  );
+  const commandsPayload = Object.values(commands).map(cmd => cmd.data.toJSON());
 
   await rest.put(Routes.applicationGuildCommands(applicationId, guildId), {
     body: commandsPayload,
