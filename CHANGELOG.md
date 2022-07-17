@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.0.0...v2.1.0) (2022-07-17)
+
+
+### Features
+
+* support new daily report format ([a921990](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/a921990174e35493b88df0c2101c9be6effd994a))
+
 # [2.0.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v1.3.0...v2.0.0) (2022-07-10)
 
 
