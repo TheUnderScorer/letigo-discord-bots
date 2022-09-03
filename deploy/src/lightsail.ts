@@ -43,6 +43,7 @@ const containerEnvKeys = [
   'DAILY_REPORT_TARGET_USER_ID',
   'GUILD_ID',
   'GREETING_CHANNEL_ID',
+  'YT_API_KEY',
 ];
 const containerEnv = containerEnvKeys.reduce((acc, key) => {
   return {
