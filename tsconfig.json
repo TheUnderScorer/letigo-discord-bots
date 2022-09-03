@@ -11,7 +11,8 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "lib": [
-      "ES2020"
+      "ES2020",
+      "DOM"
     ]
   }
 }

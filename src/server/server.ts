@@ -7,6 +7,7 @@ import { makeInteractionsHandler } from './commands/interactions';
 import { commandsCollection, registerSlashCommands } from './commands/commands';
 import { initScheduler } from './scheduler/scheduler';
 import pkg from '../../package.json';
+import { makeMessageCreateHandler } from './messageCreate/messageCreate';
 
 dotenv.config();
 
@@ -38,8 +39,19 @@ async function main() {
   const bot = await initBot(botToken);
   const channelPlayerManager = new ChannelPlayerManager(messages);
 
+  const greetingChannelId = process.env.GREETING_CHANNEL_ID as string;
+  const dailyReportChannelId = process.env.DAILY_REPORT_CHANNEL_ID as string;
+  const dailyReportTargetUserId = process.env
+    .DAILY_REPORT_TARGET_USER_ID as string;
+
   await registerSlashCommands(botToken, appId, guildId);
-  initScheduler(bot, messages);
+  initScheduler({
+    client: bot,
+    messages,
+    dailyReportChannelId,
+    dailyReportTargetUserId,
+    greetingChannelId,
+  });
 
   const app = express();
   const port = process.env.PORT || 3000;
@@ -56,6 +68,18 @@ async function main() {
   app.listen(port, () => {
     console.log('Server is running on port ', port);
   });
+
+  bot.on(
+    'messageCreate',
+    makeMessageCreateHandler({
+      ctx: {
+        bot,
+        messages,
+        dailyReportChannelId,
+        dailyReportTargetUserId,
+      },
+    })
+  );
 
   bot.on(
     'interactionCreate',

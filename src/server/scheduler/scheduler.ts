@@ -4,12 +4,21 @@ import { schedule } from 'node-cron';
 import { Messages } from '../../messages/messages';
 import { createDailyReportReminder } from './jobs/dailyReport/dailyReportReminder';
 
-export function initScheduler(client: Client<true>, messages: Messages) {
-  const greetingChannelId = process.env.GREETING_CHANNEL_ID as string;
-  const dailyReportChannelId = process.env.DAILY_REPORT_CHANNEL_ID as string;
-  const dailyReportTargetUserId = process.env
-    .DAILY_REPORT_TARGET_USER_ID as string;
+interface InitSchedulerParams {
+  client: Client<true>;
+  messages: Messages;
+  greetingChannelId: string;
+  dailyReportChannelId: string;
+  dailyReportTargetUserId: string;
+}
 
+export function initScheduler({
+  client,
+  messages,
+  dailyReportTargetUserId,
+  dailyReportChannelId,
+  greetingChannelId,
+}: InitSchedulerParams) {
   const jobs = [
     createDailyGreeting(greetingChannelId),
     createDailyReportReminder(
