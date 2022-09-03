@@ -1,7 +1,7 @@
 import { ScheduledJobDefinition } from '../../scheduler.types';
 import { applyTokens } from '../../../../shared/tokens';
 import { mentionUser } from '../../../../shared/mentions';
-import { Client, Message } from 'discord.js';
+import { getDailyReportForDay } from '../../../../shared/dailyReport/getDailyReportForDay';
 
 export const createDailyReportReminder = (
   channelId: string,
@@ -23,53 +23,21 @@ export const createDailyReportReminder = (
       const channel = client.channels.cache.get(channelId);
 
       if (channel?.isText()) {
-        await channel.send(applyTokensToMessage(message, targetUserId));
+        await channel.send(
+          applyTokensToDailyReportReminder(message, targetUserId)
+        );
       }
     }
   },
 });
 
-export const isDailyReport = (content: string) =>
-  content.split('\n')[0].toLowerCase().includes('[dzień');
-
-export const isValidAuthor = (message: Message, targetUserId: string) =>
-  message.author?.id === targetUserId;
-
-export const isMessageFromDate = (message: Message, date = new Date()) => {
-  const messageDate = message.createdAt;
-
-  return (
-    messageDate.getDate() === date.getDate() &&
-    messageDate.getMonth() === date.getMonth() &&
-    messageDate.getFullYear() === date.getFullYear()
-  );
-};
-
-export function applyTokensToMessage(msg: string, targetUserId: string) {
+export function applyTokensToDailyReportReminder(
+  msg: string,
+  targetUserId: string
+) {
   const tokens = {
     MENTION: mentionUser(targetUserId),
   };
 
   return applyTokens(msg, tokens);
-}
-
-export async function getDailyReportForDay(
-  channelId: string,
-  targetUserId: string,
-  client: Client<true>,
-  date = new Date()
-) {
-  const channel = client.channels.cache.get(channelId);
-  const channelMessages = channel?.isText()
-    ? await channel.messages
-        .fetch({ limit: 100 })
-        .then(res => Array.from(res.values()))
-    : [];
-
-  return channelMessages.find(
-    message =>
-      isValidAuthor(message, targetUserId) &&
-      isDailyReport(message.content) &&
-      isMessageFromDate(message, date)
-  );
 }

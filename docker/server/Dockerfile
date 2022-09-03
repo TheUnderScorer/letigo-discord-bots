@@ -18,5 +18,6 @@ COPY --from=builder /app/package-lock.json .
 
 RUN apk add --update ffmpeg
 RUN npm ci
+RUN npx playwright install --with-deps
 
 CMD ["node", "src/server/server.js"]

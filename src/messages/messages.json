@@ -88,5 +88,19 @@
     [
       "miłej soboty koledzy"
     ]
-  ]
+  ],
+  "dailyReportReplies": {
+    "mentalComments": {
+      "medium": ["widze ze jest ogolnie w sam raz z mentalem"],
+      "high": ["widze ze z mentalem ogolnie dobrze"],
+      "low": ["widze ze z mentalem ogolnie nie najlepiej kolego, bydzie dobrze"]
+    },
+    "timeSpentComments": {
+      "medium": ["czas spędziles w sam raz"],
+      "high": ["sporo czasu dzisiaj na it spedziles, ladnie"],
+      "low": ["troche malo czasu spedziles dzisiaj, czemu to tak??"]
+    },
+    "greeting": ["elegancko kolego, dzien {{DAY}} zaorany"],
+    "song": ["SONG dnia: {{SONG_URL}}"]
+  }
 }

@@ -8,7 +8,6 @@ jobs:
   release:
     name: Run tests
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
 
@@ -19,7 +18,7 @@ jobs:
 
       - name: Install npm dependencies
         run: |
-          npm ci && npm ci --prefix deploy
+          npm ci && npm ci --prefix deploy && npx playwright install --with-deps
 
       - name: Build
         run: npm run build
@@ -39,6 +38,7 @@ jobs:
         env:
           DAILY_REPORT_CHANNEL_ID: ${{ secrets.DAILY_REPORT_CHANNEL_ID }}
           DAILY_REPORT_TARGET_USER_ID: ${{ secrets.DAILY_REPORT_TARGET_USER_ID }}
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
 
       - name: Preview deployment
         uses: pulumi/actions@v3

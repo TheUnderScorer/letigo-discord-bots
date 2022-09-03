@@ -27,6 +27,7 @@ describe('interactions', () => {
     ctx: {
       bot: {} as any,
       messages,
+      channelPlayerManager: {} as any,
     },
     commands: commandsCollection,
   });
