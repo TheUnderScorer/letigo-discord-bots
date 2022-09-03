@@ -41,6 +41,7 @@ function getSpentSeconds(report: DailyReport) {
   return undefined;
 }
 
+// TODO Add tests
 export function generateDailyReportReply(
   report: DailyReport,
   messages: Messages
