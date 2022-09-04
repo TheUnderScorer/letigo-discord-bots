@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.2.0...v2.3.0) (2022-09-04)
+
+
+### Features
+
+* support skipped daily report days ([c5d083c](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/c5d083c5af74a797ac6682e0beee0c4e10a1c631))
+
 # [2.2.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.1.0...v2.2.0) (2022-09-03)
 
 
