@@ -1,12 +1,20 @@
 export type TimeSpent = TimeSpentChronograph | TimeSpentPlain;
 
-export interface DailyReport {
+export interface PassedDailyReport {
   // Ex. 143
   day?: number;
   song?: DailyReportSong;
   timeSpentSeconds?: TimeSpent;
   mentalScore?: number;
+  skipped: false;
 }
+
+export interface SkippedDailyReport {
+  day?: number;
+  skipped: true;
+}
+
+export type DailyReport = SkippedDailyReport | PassedDailyReport;
 
 export interface DailyReportSong {
   url?: string;
@@ -38,4 +46,10 @@ export function isTimeSpentPlain(
   time: any
 ): time is TimeSpentPlain {
   return typeof time?.seconds === 'number';
+}
+
+export function isSkippedDailyReport(
+  report: DailyReport
+): report is SkippedDailyReport {
+  return report.skipped;
 }

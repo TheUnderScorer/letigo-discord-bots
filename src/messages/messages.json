@@ -101,6 +101,7 @@
       "low": ["troche malo czasu spedziles dzisiaj, czemu to tak??"]
     },
     "greeting": ["elegancko kolego, dzien {{DAY}} zaorany"],
-    "song": ["SONG dnia: {{SONG_URL}}"]
+    "song": ["SONG dnia: {{SONG_URL}}"],
+    "skipped": ["coo kolego jakie wolne"]
   }
 }

@@ -1,4 +1,10 @@
-import { DailyReport, isTimeSpentChronograph, isTimeSpentPlain } from './types';
+import {
+  DailyReport,
+  isSkippedDailyReport,
+  isTimeSpentChronograph,
+  isTimeSpentPlain,
+  PassedDailyReport,
+} from './types';
 import { Messages } from '../../messages/messages';
 import { applyTokens } from '../tokens';
 import { getRandomArrayElement } from '../utils/array';
@@ -29,7 +35,7 @@ function matchValueToThreshold<T extends Record<string, number[]>>(
   })?.[0];
 }
 
-function getSpentSeconds(report: DailyReport) {
+function getSpentSeconds(report: PassedDailyReport) {
   if (isTimeSpentChronograph(report.timeSpentSeconds)) {
     return report.timeSpentSeconds.grossSeconds;
   }
@@ -46,6 +52,10 @@ export function generateDailyReportReply(
   report: DailyReport,
   messages: Messages
 ) {
+  if (isSkippedDailyReport(report)) {
+    return getRandomArrayElement(messages.dailyReportReplies.skipped);
+  }
+
   const mentalScore =
     typeof report.mentalScore === 'number'
       ? matchValueToThreshold(definitions.mental, report.mentalScore)

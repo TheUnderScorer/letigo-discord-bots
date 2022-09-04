@@ -1,4 +1,4 @@
-import { DailyReport } from '../types';
+import { PassedDailyReport } from '../types';
 import { fetchChronographData } from './fetchChronographData';
 import { arrayToOrRegex } from '../../utils/regex';
 import ytSearch from 'youtube-search';
@@ -9,9 +9,9 @@ interface ValueExtractorParams {
 }
 
 type ValueExtractors = {
-  [Key in keyof DailyReport]: (
+  [Key in keyof Omit<PassedDailyReport, 'skipped'>]: (
     params: ValueExtractorParams
-  ) => DailyReport[Key] | Promise<DailyReport[Key]>;
+  ) => PassedDailyReport[Key] | Promise<PassedDailyReport[Key]>;
 };
 
 const definitions = {

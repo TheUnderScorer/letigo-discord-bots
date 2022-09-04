@@ -32,6 +32,7 @@ Don't bend, don't break, baby, don't back down`,
     expected: {
       day: 143,
       mentalScore: 6.1,
+      skipped: false,
       timeSpentSeconds: {
         seconds: 7200,
       },
@@ -67,6 +68,7 @@ Don't bend, don't break, baby, don't back down`,
     expected: {
       day: 143,
       mentalScore: 6.1,
+      skipped: false,
       timeSpentSeconds: {
         seconds: 7200,
       },
@@ -74,6 +76,15 @@ Don't bend, don't break, baby, don't back down`,
         name: "bon jovi - it's my life",
         url: 'https://www.youtube.com/watch?v=vx2u5uUu3DE',
       },
+    },
+  },
+
+  {
+    input: `🏳️ [DZIEŃ 140] - 28.08.2022r. 🏳️ 
+WOLNE [3/2]`,
+    expected: {
+      skipped: true,
+      day: 140,
     },
   },
 ];
