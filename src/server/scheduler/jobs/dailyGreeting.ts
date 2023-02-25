@@ -1,5 +1,6 @@
 import { ScheduledJobDefinition } from '../scheduler.types';
 import { getRandomArrayElement } from '../../../shared/utils/array';
+import { isTextChannel } from '../../../shared/utils/channel';
 
 export const createDailyGreeting = (
   channelId: string
@@ -14,7 +15,7 @@ export const createDailyGreeting = (
     if (message) {
       const channel = client.channels.cache.get(channelId);
 
-      if (channel?.isText()) {
+      if (isTextChannel(channel)) {
         await channel.send(message);
       }
     }

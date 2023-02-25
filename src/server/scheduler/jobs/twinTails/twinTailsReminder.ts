@@ -4,6 +4,7 @@ import { isMessageFromDate } from '../../../../shared/messages/isMessageFromDate
 import { applyTokens } from '../../../../shared/tokens';
 import { getRandomArrayElement } from '../../../../shared/utils/array';
 import { mentionUser } from '../../../../shared/mentions';
+import { isTextChannel } from '../../../../shared/utils/channel';
 
 export const createTwinTailsReminder = (
   channelId: string,
@@ -14,7 +15,7 @@ export const createTwinTailsReminder = (
   execute: async ({ date, client, messages }) => {
     const channel = client.channels.cache.get(channelId);
 
-    if (!channel?.isText()) {
+    if (!isTextChannel(channel)) {
       return;
     }
 
@@ -44,7 +45,7 @@ function applyTokensToReminder(msg: string, userId: string) {
 }
 
 async function getRecentMessage(userId: string, channel: TextChannel) {
-  const channelMessages = channel?.isText()
+  const channelMessages = isTextChannel(channel)
     ? await channel.messages
         .fetch({ limit: 1 })
         .then(res => Array.from(res.values()))

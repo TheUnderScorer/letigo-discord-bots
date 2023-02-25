@@ -5,6 +5,10 @@ export const questionSubCommandHandler: CommandHandler = async (
   interaction,
   context
 ) => {
+  if (!interaction.isChatInputCommand()) {
+    return;
+  }
+
   const question = interaction.options.getString(
     KolegoQuestionOptions.Question
   );

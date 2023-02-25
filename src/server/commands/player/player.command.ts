@@ -4,8 +4,9 @@ import { applyTokens } from '../../../shared/tokens';
 import { getRandomArrayElement } from '../../../shared/utils/array';
 import { CommandDefinition, Commands } from '../command.types';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { GuildMember, VoiceChannel } from 'discord.js';
+import { GuildMember } from 'discord.js';
 import { deferredReply } from '../../../shared/utils/interaction';
+import { isVoiceChannel } from '../../../shared/utils/channel';
 
 export const playerCommand: CommandDefinition = {
   data: new SlashCommandBuilder()
@@ -46,16 +47,21 @@ export const playerCommand: CommandDefinition = {
         )
     ),
   execute: async (interaction, ctx) => {
+    if (!interaction.isChatInputCommand()) {
+      return;
+    }
+
     const subcommand = interaction.options.getSubcommand();
 
-    const channel = (interaction.member as GuildMember)?.voice?.channel;
+    const channel =
+      (interaction.member as GuildMember)?.voice?.channel ?? undefined;
 
-    if (!channel?.isVoice()) {
+    if (!isVoiceChannel(channel)) {
       throw new BotError(ctx.messages.mustBeInVoiceChannel);
     }
 
     const player = await ctx.channelPlayerManager.getOrCreateChannelPlayer(
-      channel as VoiceChannel
+      channel
     );
 
     switch (subcommand) {

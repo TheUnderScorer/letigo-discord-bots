@@ -3,6 +3,7 @@ import { applyTokens } from '../../../../shared/tokens';
 import { mentionUser } from '../../../../shared/mentions';
 import { getDailyReportForDay } from '../../../../shared/dailyReport/getDailyReportForDay';
 import { getRandomArrayElement } from '../../../../shared/utils/array';
+import { isTextChannel } from '../../../../shared/utils/channel';
 
 export const createDailyReportReminder = (
   channelId: string,
@@ -23,7 +24,7 @@ export const createDailyReportReminder = (
     if (!todayMessage) {
       const channel = client.channels.cache.get(channelId);
 
-      if (channel?.isText()) {
+      if (isTextChannel(channel)) {
         await channel.send(
           applyTokensToDailyReportReminder(
             getRandomArrayElement(messages),

@@ -14,12 +14,12 @@ dotenv.config();
 async function initBot(token: string) {
   const bot = new Client({
     intents: [
-      'GUILDS',
-      'GUILD_VOICE_STATES',
-      'GUILD_MESSAGES',
-      'GUILD_EMOJIS_AND_STICKERS',
-      'GUILD_INTEGRATIONS',
-      'GUILD_MESSAGE_TYPING',
+      'Guilds',
+      'GuildVoiceStates',
+      'GuildMessages',
+      'GuildEmojisAndStickers',
+      'GuildIntegrations',
+      'GuildMessageTyping',
     ],
   });
 
