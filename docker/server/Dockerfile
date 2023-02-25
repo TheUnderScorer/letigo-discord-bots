@@ -1,4 +1,4 @@
-ARG IMAGE=node:16-alpine3.15
+ARG IMAGE=node:19-alpine3.15
 
 FROM --platform=linux/amd64 $IMAGE as builder
 WORKDIR /app
