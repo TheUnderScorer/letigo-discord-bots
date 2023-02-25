@@ -1,6 +1,7 @@
 import { Message } from 'discord.js';
 import { MessageCreateContext } from './messageCreate.types';
 import { dailyReportReply } from './handlers/dailyReportReply';
+import { twinTailsReact } from './handlers/twinTailsReact';
 
 interface Dependencies {
   ctx: MessageCreateContext;
@@ -13,6 +14,7 @@ export const makeMessageCreateHandler =
       dailyReportReply(message, ctx).catch(error =>
         handleError(message, error)
       ),
+      twinTailsReact(message, ctx).catch(error => handleError(message, error)),
     ]);
   };
 

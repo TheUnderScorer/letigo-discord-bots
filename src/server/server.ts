@@ -81,6 +81,8 @@ async function main() {
         messages,
         dailyReportChannelId,
         dailyReportTargetUserId,
+        twinTailsUserId,
+        twinTailsChannelId,
       },
     })
   );
