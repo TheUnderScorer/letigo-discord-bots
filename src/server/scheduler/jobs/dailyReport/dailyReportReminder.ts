@@ -2,11 +2,12 @@ import { ScheduledJobDefinition } from '../../scheduler.types';
 import { applyTokens } from '../../../../shared/tokens';
 import { mentionUser } from '../../../../shared/mentions';
 import { getDailyReportForDay } from '../../../../shared/dailyReport/getDailyReportForDay';
+import { getRandomArrayElement } from '../../../../shared/utils/array';
 
 export const createDailyReportReminder = (
   channelId: string,
   targetUserId: string,
-  message: string,
+  messages: string[],
   cron: string
 ): ScheduledJobDefinition => ({
   cron,
@@ -24,7 +25,10 @@ export const createDailyReportReminder = (
 
       if (channel?.isText()) {
         await channel.send(
-          applyTokensToDailyReportReminder(message, targetUserId)
+          applyTokensToDailyReportReminder(
+            getRandomArrayElement(messages),
+            targetUserId
+          )
         );
       }
     }

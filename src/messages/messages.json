@@ -5,8 +5,8 @@
   "unknownCommand": "kolego nie rozumiem",
   "unknownError": "kolego cos poszlo nie tak :(",
   "dailyReportReminder": {
-    "afternoon": "{{MENTION}} kolego, ale pamiętaj o daily raporcie dzisiaj",
-    "night": "{{MENTION}} kolego, a gdzie daily raport?"
+    "afternoon": ["{{MENTION}} kolego, ale pamiętaj o daily raporcie dzisiaj", "{{MENTION}} ale wyslesz dzisiaj daily report kolego?"],
+    "night": ["{{MENTION}} kolego, a gdzie daily raport?", "{{MENTION}} kolego gdzie ten daily report"]
   },
   "invalidUrl": "kolego co ty mi tu za bledne linki przesylasz",
   "player": {
