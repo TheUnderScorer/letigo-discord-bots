@@ -1,3 +1,12 @@
+# [2.4.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.3.0...v2.4.0) (2023-02-25)
+
+
+### Features
+
+* add twin tails reactions ([60885a7](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/60885a76b1ad346c8e7237b118e757f37ae7bd8f))
+* add twin tails reminder ([8a1ee59](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/8a1ee59875c93ea5f574bc94bb095d959f3580f6))
+* support multiple daily reminder messages ([883745d](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/883745d4df3071c1054b7e7de3cf31b78fe10fb8))
+
 # [2.3.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.2.0...v2.3.0) (2022-09-04)
 
 
