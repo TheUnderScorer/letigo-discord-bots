@@ -14,12 +14,12 @@ dotenv.config();
 async function initBot(token: string) {
   const bot = new Client({
     intents: [
-      'GUILDS',
-      'GUILD_VOICE_STATES',
-      'GUILD_MESSAGES',
-      'GUILD_EMOJIS_AND_STICKERS',
-      'GUILD_INTEGRATIONS',
-      'GUILD_MESSAGE_TYPING',
+      'Guilds',
+      'GuildVoiceStates',
+      'GuildMessages',
+      'GuildEmojisAndStickers',
+      'GuildIntegrations',
+      'GuildMessageTyping',
     ],
   });
 
@@ -43,6 +43,8 @@ async function main() {
   const dailyReportChannelId = process.env.DAILY_REPORT_CHANNEL_ID as string;
   const dailyReportTargetUserId = process.env
     .DAILY_REPORT_TARGET_USER_ID as string;
+  const twinTailsChannelId = process.env.TWIN_TAILS_CHANNEL_ID as string;
+  const twinTailsUserId = process.env.TWIN_TAILS_USER_ID as string;
 
   await registerSlashCommands(botToken, appId, guildId);
   initScheduler({
@@ -51,6 +53,8 @@ async function main() {
     dailyReportChannelId,
     dailyReportTargetUserId,
     greetingChannelId,
+    twinTailsChannelId,
+    twinTailsUserId,
   });
 
   const app = express();
@@ -77,6 +81,8 @@ async function main() {
         messages,
         dailyReportChannelId,
         dailyReportTargetUserId,
+        twinTailsUserId,
+        twinTailsChannelId,
       },
     })
   );

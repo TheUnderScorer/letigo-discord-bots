@@ -42,6 +42,10 @@ export const kolegoCommand: CommandDefinition = {
         .setDescription('Zapytaj Wojciecha co słychać u niego')
     ),
   execute: async (interaction, context) => {
+    if (!interaction.isChatInputCommand()) {
+      return;
+    }
+
     const subcommand = interaction.options.getSubcommand();
 
     switch (subcommand) {

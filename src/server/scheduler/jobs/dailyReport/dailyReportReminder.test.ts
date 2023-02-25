@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createDailyReportReminder } from './dailyReportReminder';
 import { messages } from '../../../../messages/messages';
+import { createMockChannel } from '../../../../__tests__/mocks';
 
 const targetUserId = '#targetUserId';
 const channelId = '#channelId';
@@ -15,16 +16,6 @@ const createMockMessage = (date: Date) => ({
   },
 });
 
-const createMockChannel = (messages: any[]) => ({
-  isText: () => true,
-  send: jest.fn(),
-  messages: {
-    fetch: jest.fn().mockResolvedValue({
-      values: () => messages,
-    }),
-  },
-});
-
 describe('dailyReportReminder', () => {
   it('should send message if daily report is missing', async () => {
     const today = new Date();
@@ -33,7 +24,7 @@ describe('dailyReportReminder', () => {
     const schedule = createDailyReportReminder(
       channelId,
       targetUserId,
-      message,
+      [message],
       ''
     );
 
@@ -65,7 +56,7 @@ describe('dailyReportReminder', () => {
     const schedule = createDailyReportReminder(
       channelId,
       targetUserId,
-      message,
+      [message],
       ''
     );
 

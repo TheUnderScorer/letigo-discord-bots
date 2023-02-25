@@ -6,4 +6,6 @@ export interface MessageCreateContext {
   messages: Messages;
   dailyReportChannelId: string;
   dailyReportTargetUserId: string;
+  twinTailsChannelId: string;
+  twinTailsUserId: string;
 }

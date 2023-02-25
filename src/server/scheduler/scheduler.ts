@@ -3,6 +3,7 @@ import { createDailyGreeting } from './jobs/dailyGreeting';
 import { schedule } from 'node-cron';
 import { Messages } from '../../messages/messages';
 import { createDailyReportReminder } from './jobs/dailyReport/dailyReportReminder';
+import { createTwinTailsReminder } from './jobs/twinTails/twinTailsReminder';
 
 interface InitSchedulerParams {
   client: Client<true>;
@@ -10,6 +11,8 @@ interface InitSchedulerParams {
   greetingChannelId: string;
   dailyReportChannelId: string;
   dailyReportTargetUserId: string;
+  twinTailsChannelId: string;
+  twinTailsUserId: string;
 }
 
 export function initScheduler({
@@ -18,8 +21,11 @@ export function initScheduler({
   dailyReportTargetUserId,
   dailyReportChannelId,
   greetingChannelId,
+  twinTailsUserId,
+  twinTailsChannelId,
 }: InitSchedulerParams) {
   const jobs = [
+    createTwinTailsReminder(twinTailsChannelId, twinTailsUserId),
     createDailyGreeting(greetingChannelId),
     createDailyReportReminder(
       dailyReportChannelId,
