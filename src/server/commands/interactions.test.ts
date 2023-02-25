@@ -13,6 +13,7 @@ function createKolegoInteraction(
   return {
     commandName: Commands.Kolego,
     isCommand: () => true,
+    isChatInputCommand: () => true,
     isRepliable: () => true,
     reply: jest.fn(),
     options: {

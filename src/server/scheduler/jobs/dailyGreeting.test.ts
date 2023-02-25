@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createDailyGreeting } from './dailyGreeting';
 import { messages } from '../../../messages/messages';
+import { ChannelType } from 'discord.js';
 
 const days = Array.from({ length: 7 }, (v, k) => k);
 
@@ -9,6 +10,7 @@ const channelId = 'test';
 const mockChannel = {
   isText: () => true,
   send: jest.fn(),
+  type: ChannelType.GuildText,
 };
 
 const mockClient = {
