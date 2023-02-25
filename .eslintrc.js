@@ -15,6 +15,7 @@ module.exports = {
     'plugin:prettier/recommended',
   ],
   rules: {
+    '@typescript-eslint/no-misused-promises': 'off',
     'prettier/prettier': 'warn',
     'node/no-missing-import': 'off',
     'node/no-empty-function': 'off',

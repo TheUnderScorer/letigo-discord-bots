@@ -19,16 +19,14 @@ export const createTwinTailsReminder = (
       return;
     }
 
-    const textChanel = channel as TextChannel;
-
-    const recentMessage = await getRecentMessage(userId, textChanel);
+    const recentMessage = await getRecentMessage(userId, channel);
 
     if (!recentMessage) {
       return;
     }
 
     if (!isMessageFromDate(recentMessage, date)) {
-      await textChanel.send(
+      await channel.send(
         applyTokensToReminder(
           getRandomArrayElement(messages.twinTailsReminder.night),
           userId
