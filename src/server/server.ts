@@ -43,6 +43,8 @@ async function main() {
   const dailyReportChannelId = process.env.DAILY_REPORT_CHANNEL_ID as string;
   const dailyReportTargetUserId = process.env
     .DAILY_REPORT_TARGET_USER_ID as string;
+  const twinTailsChannelId = process.env.TWIN_TAILS_CHANNEL_ID as string;
+  const twinTailsUserId = process.env.TWIN_TAILS_USER_ID as string;
 
   await registerSlashCommands(botToken, appId, guildId);
   initScheduler({
@@ -51,6 +53,8 @@ async function main() {
     dailyReportChannelId,
     dailyReportTargetUserId,
     greetingChannelId,
+    twinTailsChannelId,
+    twinTailsUserId,
   });
 
   const app = express();

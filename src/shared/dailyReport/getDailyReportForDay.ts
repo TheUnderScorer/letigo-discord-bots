@@ -1,5 +1,6 @@
 import { Client } from 'discord.js';
-import { isDailyReport, isMessageFromDate, isValidAuthor } from './detect';
+import { isDailyReport, isValidAuthor } from './detect';
+import { isMessageFromDate } from '../messages/isMessageFromDate';
 
 export async function getDailyReportForDay(
   channelId: string,
