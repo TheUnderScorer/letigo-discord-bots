@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.4.0...v2.5.0) (2023-02-28)
+
+
+### Features
+
+* add beta OpenAI integration ([bd73536](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/bd73536f24986f383d330ea04bd6af8d36cfd113))
+
 # [2.4.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.3.0...v2.4.0) (2023-02-25)
 
 
