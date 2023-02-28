@@ -9,6 +9,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { insultSubCommandHandler } from './subCommands/insult';
 import { questionSubCommandHandler } from './subCommands/question';
 import { coTamSubCommandHandler } from './subCommands/cotam';
+import { pogadajmySubCommandHandler } from './subCommands/pogadajmy';
 
 export const kolegoCommand: CommandDefinition = {
   data: new SlashCommandBuilder()
@@ -40,6 +41,11 @@ export const kolegoCommand: CommandDefinition = {
       subcommand
         .setName(KolegoSubcommand.CoTam)
         .setDescription('Zapytaj Wojciecha co słychać u niego')
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName(KolegoSubcommand.Pogadajmy)
+        .setDescription('Pogadaj z Wojciechem, prawie jak żywy! Prawie...')
     ),
   execute: async (interaction, context) => {
     if (!interaction.isChatInputCommand()) {
@@ -49,6 +55,10 @@ export const kolegoCommand: CommandDefinition = {
     const subcommand = interaction.options.getSubcommand();
 
     switch (subcommand) {
+      case KolegoSubcommand.Pogadajmy:
+        await pogadajmySubCommandHandler(interaction, context);
+        break;
+
       case KolegoSubcommand.Insult:
         await insultSubCommandHandler(interaction, context);
 

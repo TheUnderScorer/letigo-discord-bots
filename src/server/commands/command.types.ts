@@ -5,6 +5,7 @@ import type {
   SlashCommandSubcommandsOnlyBuilder,
 } from '@discordjs/builders';
 import { ChannelPlayerManager } from './player/ChannelPlayerManager';
+import { OpenAIApi } from 'openai';
 
 export enum Commands {
   Kolego = 'kolego',
@@ -16,6 +17,7 @@ export enum KolegoSubcommand {
   Insult = 'obraź',
   CoTam = 'cotam',
   Player = 'dj',
+  Pogadajmy = 'pogadajmy',
 }
 
 export enum KolegoQuestionOptions {
@@ -34,6 +36,7 @@ export interface CommandHandlerContext {
   bot: Client<true>;
   messages: Messages;
   channelPlayerManager: ChannelPlayerManager;
+  openAiClient: OpenAIApi;
 }
 
 export type CommandHandler = (

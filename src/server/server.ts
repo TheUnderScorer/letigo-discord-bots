@@ -8,6 +8,7 @@ import { commandsCollection, registerSlashCommands } from './commands/commands';
 import { initScheduler } from './scheduler/scheduler';
 import pkg from '../../package.json';
 import { makeMessageCreateHandler } from './messageCreate/messageCreate';
+import { createOpenAiClient } from '../shared/openai/client';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ async function initBot(token: string) {
       'GuildEmojisAndStickers',
       'GuildIntegrations',
       'GuildMessageTyping',
+      'MessageContent',
     ],
   });
 
@@ -94,6 +96,7 @@ async function main() {
         bot,
         messages,
         channelPlayerManager,
+        openAiClient: createOpenAiClient(process.env.OPEN_AI_API_KEY as string),
       },
       commands: commandsCollection,
     })

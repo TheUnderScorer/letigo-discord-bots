@@ -48,3 +48,4 @@ jobs:
           DAILY_REPORT_TARGET_USER_ID: ${{ secrets.DAILY_REPORT_TARGET_USER_ID }}
           GREETING_CHANNEL_ID: ${{ secrets.GREETING_CHANNEL_ID }}
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
+          OPEN_AI_API_KEY: ${{ secrets.OPEN_AI_API_KEY }}
