@@ -1,21 +1,28 @@
 import { CommandHandler } from '../../command.types';
 import { isTextChannel } from '../../../../shared/utils/channel';
-import { OpenAiThread } from '../../../../shared/openai/OpenAiThread';
+import { createOpenAiThread } from '../../../../shared/openai/openAiThread';
+import { OpenAiDiscordChat } from '../../../../shared/openai/OpenAiDiscordChat';
+import { openAiContext } from '../../../../shared/openai/context';
 
 export const pogadajmySubCommandHandler: CommandHandler = async (
   interaction,
-  { messages, bot, openAiClient }
+  { bot, messages, openAiClient }
 ) => {
-  if (interaction.isRepliable()) {
+  if (interaction.isRepliable() && isTextChannel(interaction.channel)) {
     await interaction.reply('No dobra kolego');
 
-    if (interaction.channel && isTextChannel(interaction.channel)) {
-      const thread = await interaction.channel.threads.create({
-        name: 'Chat z Wojtkiem',
-        autoArchiveDuration: 60,
-      });
+    const thread = await interaction.channel.threads.create({
+      name: 'Chat z Wojtkiem',
+      autoArchiveDuration: 60,
+    });
 
-      new OpenAiThread(thread, bot, messages, openAiClient).init();
-    }
+    const chat = new OpenAiDiscordChat(openAiClient, bot, messages, [
+      {
+        content: openAiContext,
+        role: 'system',
+      },
+    ]);
+
+    createOpenAiThread(thread, bot, chat);
   }
 };

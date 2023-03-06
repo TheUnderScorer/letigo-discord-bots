@@ -1,18 +1,14 @@
-import { Client, Message, ThreadChannel } from 'discord.js';
+import { ChatCompletionRequestMessage, OpenAIApi } from 'openai';
+import { Client, Message } from 'discord.js';
 import { Messages } from '../../messages/messages';
-import { openAiContext } from './context';
-import { OpenAIApi } from 'openai';
-import { AxiosError } from 'axios';
+import { AxiosError } from 'axios/index';
 import { BotError } from '../errors/BotError';
-import { ChatCompletionRequestMessage } from 'openai/api';
+import { isTextChannel } from '../utils/channel';
 
-export class OpenAiThread {
-  private threadMessages: ChatCompletionRequestMessage[] = [
-    {
-      content: openAiContext,
-      role: 'system',
-    },
-  ];
+export class OpenAiDiscordChat {
+  private threadMessages: ChatCompletionRequestMessage[] = [];
+
+  private currentRequestAbortController?: AbortController;
 
   private static nicknameMap = {
     ['Taliön']: 'Przemek',
@@ -24,40 +20,27 @@ export class OpenAiThread {
     Amaterasu: 'Paulina',
   };
 
-  private currentRequestAbortController?: AbortController;
-
   constructor(
-    private readonly thread: ThreadChannel,
+    private readonly openAiClient: OpenAIApi,
     private readonly bot: Client<true>,
     private readonly messages: Messages,
-    private readonly openAiClient: OpenAIApi
-  ) {}
-
-  init() {
-    const messageCreateHandler = async (message: Message) => {
-      if (
-        message.channel.id === this.thread.id &&
-        message.author.id !== this.bot.user?.id
-      ) {
-        await this.handleIncomingMessage(message);
-      }
-    };
-
-    const threadDeletedHandler = (thread: ThreadChannel) => {
-      if (thread.id === this.thread.id) {
-        this.bot.off('messageCreate', messageCreateHandler);
-        this.bot.off('threadDelete', threadDeletedHandler);
-
-        console.info('OpenAiThread: Thread deleted, removing handlers');
-      }
-    };
-
-    this.bot.on('messageCreate', messageCreateHandler);
-    this.bot.on('threadDelete', threadDeletedHandler);
+    initialMessages: ChatCompletionRequestMessage[]
+  ) {
+    this.threadMessages = initialMessages;
   }
 
-  private async handleIncomingMessage(message: Message) {
+  clearMessages() {
+    this.threadMessages = [];
+  }
+
+  async replyToMessage(message: Message) {
     this.currentRequestAbortController?.abort();
+
+    const { channel } = message;
+
+    if (!isTextChannel(channel)) {
+      return;
+    }
 
     const formattedMessage =
       message.content.endsWith('?') ||
@@ -69,7 +52,7 @@ export class OpenAiThread {
     this.threadMessages.push({
       content: formattedMessage,
       name:
-        OpenAiThread.nicknameMap[message.author.username] ??
+        OpenAiDiscordChat.nicknameMap[message.author.username] ??
         message.author.username,
       role: 'user',
     });
@@ -77,7 +60,7 @@ export class OpenAiThread {
     const abortController = new AbortController();
     this.currentRequestAbortController = abortController;
 
-    await this.thread.sendTyping();
+    await channel.sendTyping();
 
     try {
       const response = await this.openAiClient.createChatCompletion(
@@ -99,7 +82,8 @@ export class OpenAiThread {
 
         if (choice?.message) {
           this.threadMessages.push(choice.message);
-          await this.thread.send(choice.message.content);
+
+          await channel.send(choice.message.content);
         } else {
           await message.react('❌');
         }
