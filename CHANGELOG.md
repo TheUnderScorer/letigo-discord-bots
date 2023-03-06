@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.5.0...v2.6.0) (2023-03-06)
+
+
+### Features
+
+* use new chat gpt model ([688f8ab](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/688f8ab531de251751dac74acec6f541d6560332))
+
 # [2.5.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.4.0...v2.5.0) (2023-02-28)
 
 
