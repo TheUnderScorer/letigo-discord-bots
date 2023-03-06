@@ -84,6 +84,7 @@ export class OpenAiThread {
         {
           messages: this.threadMessages,
           temperature: 1.2,
+          max_tokens: 1500,
           model: 'gpt-3.5-turbo',
         },
         {
