@@ -4,9 +4,24 @@ import { openAiContext } from './context';
 import { OpenAIApi } from 'openai';
 import { AxiosError } from 'axios';
 import { BotError } from '../errors/BotError';
+import { ChatCompletionRequestMessage } from 'openai/api';
 
 export class OpenAiThread {
-  private threadContext = [openAiContext];
+  private threadMessages: ChatCompletionRequestMessage[] = [
+    {
+      content: openAiContext,
+      role: 'system',
+    },
+  ];
+
+  private static nicknameMap = {
+    ['Taliön']: 'Przemek',
+    Husky: 'Marek',
+    PureGold: 'Wojtek',
+    Mawgan: 'Artur',
+    Walter_441: 'Zachariasz',
+    Ravutto: 'Rafał',
+  };
 
   private currentRequestAbortController?: AbortController;
 
@@ -43,13 +58,20 @@ export class OpenAiThread {
   private async handleIncomingMessage(message: Message) {
     this.currentRequestAbortController?.abort();
 
-    this.threadContext.push(
+    const formattedMessage =
       message.content.endsWith('?') ||
-        message.content.endsWith('!') ||
-        message.content.endsWith('.')
+      message.content.endsWith('!') ||
+      message.content.endsWith('.')
         ? message.content
-        : `${message.content}.`
-    );
+        : `${message.content}.`;
+
+    this.threadMessages.push({
+      content: formattedMessage,
+      name:
+        OpenAiThread.nicknameMap[message.author.username] ??
+        message.author.username,
+      role: 'user',
+    });
 
     const abortController = new AbortController();
     this.currentRequestAbortController = abortController;
@@ -57,12 +79,11 @@ export class OpenAiThread {
     await this.thread.sendTyping();
 
     try {
-      const response = await this.openAiClient.createCompletion(
+      const response = await this.openAiClient.createChatCompletion(
         {
-          prompt: this.threadContext.join('\n'),
-          max_tokens: 750,
+          messages: this.threadMessages,
           temperature: 0.5,
-          model: 'text-davinci-003',
+          model: 'gpt-3.5-turbo',
         },
         {
           signal: abortController.signal,
@@ -72,17 +93,17 @@ export class OpenAiThread {
       const choices = response.data.choices;
 
       if (choices.length) {
-        const [choice] = choices;
+        const choice = choices.find(choice => Boolean(choice.message?.content));
 
-        if (choice.text) {
-          this.threadContext.push(choice.text);
-          await this.thread.send(choice.text);
+        if (choice?.message) {
+          this.threadMessages.push(choice.message);
+          await this.thread.send(choice.message.content);
         } else {
           await message.react('❌');
         }
       }
     } catch (error) {
-      if (error.name === 'AbortError') {
+      if (error.name === 'AbortError' || error.message === 'canceled') {
         console.info('OpenAiThread: Request aborted');
 
         return;
