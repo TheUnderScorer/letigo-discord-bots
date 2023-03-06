@@ -18,6 +18,8 @@ export class ChannelPlayerManager {
 
   async getOrCreateChannelPlayer(channel: VoiceChannel) {
     if (this.players.has(channel.guildId)) {
+      console.info(`Found existing player for channel ${channel.name}`);
+
       return this.players.get(channel.guildId) as ChannelPlayer;
     }
 
@@ -40,6 +42,8 @@ export class ChannelPlayerManager {
 
     this.players.set(channel.guildId, player);
 
+    console.info(`Created new player for channel ${channel.name}`);
+
     return player;
   }
 
@@ -48,7 +52,7 @@ export class ChannelPlayerManager {
     connection: VoiceConnection,
     channel: VoiceChannel
   ) {
-    connection.once(VoiceConnectionStatus.Disconnected, async () => {
+    connection.once(VoiceConnectionStatus.Destroyed, async () => {
       console.log('Voice connection destroyed');
 
       await player.dispose();
