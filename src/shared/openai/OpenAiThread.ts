@@ -21,6 +21,7 @@ export class OpenAiThread {
     Mawgan: 'Artur',
     Walter_441: 'Zachariasz',
     Ravutto: 'Rafał',
+    Amaterasu: 'Paulina',
   };
 
   private currentRequestAbortController?: AbortController;
@@ -82,7 +83,8 @@ export class OpenAiThread {
       const response = await this.openAiClient.createChatCompletion(
         {
           messages: this.threadMessages,
-          temperature: 0.5,
+          temperature: 1.2,
+          max_tokens: 1500,
           model: 'gpt-3.5-turbo',
         },
         {

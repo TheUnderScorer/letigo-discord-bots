@@ -1,11 +1,11 @@
-name: Tests
+name: Preview deploy
 on:
   pull_request:
     branches:
       - '*'
 
 jobs:
-  test:
+  preview-deploy:
     name: Run tests
     runs-on: ubuntu-latest
     steps:
@@ -23,9 +23,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Lint
-        run: npm run lint
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -33,11 +30,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
-      - name: Test
-        run: npm run test
+      - name: Preview deployment
+        uses: pulumi/actions@v3
+        with:
+          command: preview
+          stack-name: production
+          comment-on-pr: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          work-dir: ./deploy
         env:
-          DAILY_REPORT_CHANNEL_ID: ${{ secrets.DAILY_REPORT_CHANNEL_ID }}
-          DAILY_REPORT_TARGET_USER_ID: ${{ secrets.DAILY_REPORT_TARGET_USER_ID }}
-          YT_API_KEY: ${{ secrets.YT_API_KEY }}
-          OPEN_AI_API_KEY: ${{ secrets.OPEN_AI_API_KEY }}
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
