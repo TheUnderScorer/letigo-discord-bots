@@ -1,3 +1,12 @@
+# [2.7.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.6.0...v2.7.0) (2023-03-06)
+
+
+### Features
+
+* improve ai context ([2662a7b](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/2662a7b2e18a5cd901eece09ba769d9d4a195c15))
+* increase model temperature ([e70e821](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/e70e821f35b1dfc2738f0a81841754d1ee9620b5))
+* set max_tokens ([d2c2d79](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/d2c2d7985b76f1a39159c71f8658caba5a8ded4e))
+
 # [2.6.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.5.0...v2.6.0) (2023-03-06)
 
 
