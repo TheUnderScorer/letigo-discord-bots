@@ -8,8 +8,8 @@ export function createOpenAiThread(
 ) {
   const messageCreateHandler = async (message: Message) => {
     if (
-      message.channel.id === this.thread.id &&
-      message.author.id !== this.bot.user?.id
+      message.channel.id === thread.id &&
+      message.author.id !== bot.user?.id
     ) {
       await openAiChat.replyToMessage(message);
     }

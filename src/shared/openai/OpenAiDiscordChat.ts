@@ -1,7 +1,7 @@
 import { ChatCompletionRequestMessage, OpenAIApi } from 'openai';
 import { Client, Message } from 'discord.js';
 import { Messages } from '../../messages/messages';
-import { AxiosError } from 'axios/index';
+import { AxiosError } from 'axios';
 import { BotError } from '../errors/BotError';
 import { isTextChannel } from '../utils/channel';
 
@@ -65,7 +65,7 @@ export class OpenAiDiscordChat {
     try {
       const response = await this.openAiClient.createChatCompletion(
         {
-          messages: this.threadMessages,
+          messages: [...this.threadMessages],
           temperature: 1.2,
           max_tokens: 1500,
           model: 'gpt-3.5-turbo',
@@ -75,7 +75,7 @@ export class OpenAiDiscordChat {
         }
       );
 
-      const choices = response.data.choices;
+      const { choices } = response.data;
 
       if (choices.length) {
         const choice = choices.find(choice => Boolean(choice.message?.content));
