@@ -31,7 +31,7 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
   }
 
   get songQueue() {
-    return this.playerQueue as ReadonlyArray<PlayerSong>;
+    return [...this.playerQueue] as ReadonlyArray<PlayerSong>;
   }
 
   private get playerState() {
@@ -142,6 +142,11 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
       this.playerSubscription.connection.state.status !==
       VoiceConnectionStatus.Destroyed
     ) {
+      console.info(
+        'Destroying player connection for channel:',
+        `${this.voiceChannel.id} (${this.voiceChannel.name})`
+      );
+
       this.removeAllListeners();
       this.playerSubscription.connection.destroy();
 
