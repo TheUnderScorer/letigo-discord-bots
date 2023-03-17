@@ -1,3 +1,11 @@
+## [2.7.1](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.7.0...v2.7.1) (2023-03-17)
+
+
+### Bug Fixes
+
+* correctly dispose voice connection after disconnect ([153ff11](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/153ff11e004263bce60132a9efedc12c29088186))
+* use channel id rather than guild id for managing players ([9ccb868](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/9ccb868110fb72ece262f96508f4c2e8cfdc6e20))
+
 # [2.7.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.6.0...v2.7.0) (2023-03-06)
 
 
