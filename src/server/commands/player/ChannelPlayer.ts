@@ -144,7 +144,7 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
     ) {
       console.info(
         'Destroying player connection for channel:',
-        `${this.voiceChannel.id} (${this.voiceChannel.name})`
+        `${this.voiceChannel.name}`
       );
 
       this.removeAllListeners();
