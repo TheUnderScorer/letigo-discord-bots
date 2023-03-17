@@ -47,7 +47,7 @@ export class ChannelPlayerManager {
     return player;
   }
 
-  setupEvents(
+  private setupEvents(
     player: ChannelPlayer,
     connection: VoiceConnection,
     channel: VoiceChannel
