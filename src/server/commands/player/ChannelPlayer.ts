@@ -1,4 +1,8 @@
-import { createAudioResource, PlayerSubscription } from '@discordjs/voice';
+import {
+  createAudioResource,
+  PlayerSubscription,
+  VoiceConnectionStatus,
+} from '@discordjs/voice';
 import { VoiceChannel } from 'discord.js';
 import { PlayerSong } from './player.types';
 import ytdl from 'ytdl-core';
@@ -134,9 +138,14 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
   }
 
   async dispose() {
-    await this.clearQueue();
+    if (
+      this.playerSubscription.connection.state.status !==
+      VoiceConnectionStatus.Destroyed
+    ) {
+      this.removeAllListeners();
+      this.playerSubscription.connection.destroy();
 
-    this.removeAllListeners();
-    this.playerSubscription.connection.destroy();
+      await this.clearQueue();
+    }
   }
 }

@@ -52,8 +52,16 @@ export class ChannelPlayerManager {
     connection: VoiceConnection,
     channel: VoiceChannel
   ) {
+    connection.once(VoiceConnectionStatus.Disconnected, async () => {
+      console.info('Voice connection disconnected');
+
+      await player.dispose();
+
+      this.players.delete(channel.id);
+    });
+
     connection.once(VoiceConnectionStatus.Destroyed, async () => {
-      console.log('Voice connection destroyed');
+      console.info('Voice connection destroyed');
 
       await player.dispose();
 
