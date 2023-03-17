@@ -17,10 +17,10 @@ export class ChannelPlayerManager {
   constructor(private readonly messages: Messages) {}
 
   async getOrCreateChannelPlayer(channel: VoiceChannel) {
-    if (this.players.has(channel.guildId)) {
+    if (this.players.has(channel.id)) {
       console.info(`Found existing player for channel ${channel.name}`);
 
-      return this.players.get(channel.guildId) as ChannelPlayer;
+      return this.players.get(channel.id) as ChannelPlayer;
     }
 
     const connection = await retrieveVoiceConnection(channel);
@@ -40,24 +40,32 @@ export class ChannelPlayerManager {
 
     this.setupEvents(player, connection, channel);
 
-    this.players.set(channel.guildId, player);
+    this.players.set(channel.id, player);
 
     console.info(`Created new player for channel ${channel.name}`);
 
     return player;
   }
 
-  setupEvents(
+  private setupEvents(
     player: ChannelPlayer,
     connection: VoiceConnection,
     channel: VoiceChannel
   ) {
-    connection.once(VoiceConnectionStatus.Destroyed, async () => {
-      console.log('Voice connection destroyed');
+    connection.once(VoiceConnectionStatus.Disconnected, async () => {
+      console.info(`Voice connection disconnected for ${channel.name}`);
 
       await player.dispose();
 
-      this.players.delete(channel.guildId);
+      this.players.delete(channel.id);
+    });
+
+    connection.once(VoiceConnectionStatus.Destroyed, async () => {
+      console.info(`Voice connection destroyed for ${channel.name}`);
+
+      await player.dispose();
+
+      this.players.delete(channel.id);
     });
 
     player.on('playStarted', async (song, channel) => {
