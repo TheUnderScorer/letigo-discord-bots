@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.7.1...v2.8.0) (2024-01-07)
+
+
+### Features
+
+* add more messages ([63adf73](https://github.com/TheUnderScorer/wojciech-discord-bot/commit/63adf73646b269393e3e9a147303274b5d7a3460))
+
 ## [2.7.1](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.7.0...v2.7.1) (2023-03-17)
 
 
