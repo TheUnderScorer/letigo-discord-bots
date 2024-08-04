@@ -20,6 +20,13 @@ func SendMessageAndForget(s *discordgo.Session, channelID string, content string
 	}
 }
 
+func SendMessageComplexAndForget(s *discordgo.Session, channelID string, content *discordgo.MessageSend) {
+	_, err := s.ChannelMessageSendComplex(channelID, content)
+	if err != nil {
+		logger.Error("failed to send message", zap.Error(err), zap.String("channelID", channelID))
+	}
+}
+
 func ReplyToInteractionAndForget(s *discordgo.Session, i *discordgo.Interaction, reply *InteractionReply) {
 	var flags discordgo.MessageFlags
 	if reply.Ephemeral {
@@ -55,6 +62,13 @@ func FollowupInteractionErrorAndForget(s *discordgo.Session, i *discordgo.Intera
 		Content: errToSend.Error(),
 	})
 
+	if err != nil {
+		logger.Error("failed to respond", zap.Error(err), zap.Any("interaction", i))
+	}
+}
+
+func RespondToInteractionAndForget(s *discordgo.Session, i *discordgo.Interaction, response *discordgo.InteractionResponse) {
+	err := s.InteractionRespond(i, response)
 	if err != nil {
 		logger.Error("failed to respond", zap.Error(err), zap.Any("interaction", i))
 	}

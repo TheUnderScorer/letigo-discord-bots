@@ -28,6 +28,7 @@ const (
 	DjSubCommandPause      DjSubCommand = "pauza"
 	DjSubCommandClearQueue DjSubCommand = "wyczysc-kolejke"
 	DjSubCommandQueue      DjSubCommand = "dodaj"
+	DjSubCommandPlayer     DjSubCommand = "odtwarzacz"
 
 	DjQueueOptionSong DjQueueOption = "piosenka"
 )
@@ -43,6 +44,11 @@ var commands = []*discordgo.ApplicationCommand{
 			{
 				Name:        string(DjSubCommandList),
 				Description: "Pokaż listę utworów",
+				Type:        discordgo.ApplicationCommandOptionSubCommand,
+			},
+			{
+				Name:        string(DjSubCommandPlayer),
+				Description: "Pokaż odtwarzacz",
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
 			},
 			{
@@ -107,26 +113,26 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			return
 		}
 
-		player, err := playerManager.GetOrCreate(s, i.ChannelID)
+		channelPlayer, err := playerManager.GetOrCreate(s, i.ChannelID)
 		if err != nil {
 			go discord.FollowupInteractionMessageAndForget(s, i.Interaction, &discord.InteractionReply{
 				Content:   messages.Messages.Player.FailedToQueue,
 				Ephemeral: true,
 			})
 
-			log.Error("failed to get player", zap.Error(err))
+			log.Error("failed to get channelPlayer", zap.Error(err))
 			return
 		}
 
 		switch options[0].Name {
 		case string(DjSubCommandClearQueue):
 			go discord.StartLoadingInteractionAndForget(s, i.Interaction)
-			player.ClearQueue()
+			channelPlayer.ClearQueue()
 			go discord.DeleteFollowupAndForget(s, i.Interaction)
 
 		case string(DjSubCommandPause):
 			go discord.StartLoadingInteractionAndForget(s, i.Interaction)
-			err = player.Pause()
+			err = channelPlayer.Pause()
 			if err != nil {
 				log.Error("failed to pause", zap.Error(err))
 			}
@@ -134,7 +140,7 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 
 		case string(DjSubCommandList):
 			discord.StartLoadingInteractionAndForget(s, i.Interaction)
-			message := player.ListQueueForDisplay()
+			message := channelPlayer.ListQueueForDisplay()
 			if message == "" {
 				message = messages.Messages.Player.NoMoreSongs
 			}
@@ -144,7 +150,7 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 
 		case string(DjSubCommandNext):
 			go discord.StartLoadingInteractionAndForget(s, i.Interaction)
-			err = player.Next()
+			err = channelPlayer.Next()
 
 			if err != nil {
 				log.Error("failed to play next", zap.Error(err))
@@ -159,9 +165,27 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			}
 			go discord.DeleteFollowupAndForget(s, i.Interaction)
 
+		case string(DjSubCommandPlayer):
+			go discord.StartLoadingInteractionAndForget(s, i.Interaction)
+			component, err := player.GetPlayerComponent(channelPlayer)
+			if err != nil {
+				log.Error("failed to get player component", zap.Error(err))
+
+				go discord.FollowupInteractionMessageAndForget(s, i.Interaction, &discord.InteractionReply{
+					Content: messages.Messages.UnknownError,
+				})
+
+				return
+			}
+
+			go discord.SendMessageComplexAndForget(s, i.Interaction.ChannelID, &discordgo.MessageSend{
+				Components: *component,
+			})
+			go discord.DeleteFollowupAndForget(s, i.Interaction)
+
 		case string(DjSubCommandPlay):
 			go discord.StartLoadingInteractionAndForget(s, i.Interaction)
-			err = player.Play()
+			err = channelPlayer.Play()
 			if err != nil {
 				log.Error("failed to play", zap.Error(err))
 
@@ -177,7 +201,6 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			go discord.DeleteFollowupAndForget(s, i.Interaction)
 
 		case string(DjSubCommandQueue):
-			// Or convert the slice into a map
 			optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options[0].Options))
 			for _, opt := range options[0].Options {
 				optionMap[opt.Name] = opt
@@ -186,7 +209,7 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			go discord.StartLoadingInteractionAndForget(s, i.Interaction)
 
 			if opt, ok := optionMap[string(DjQueueOptionSong)]; ok {
-				order, err := player.AddToQueue(opt.StringValue(), i.Member.User.ID)
+				order, err := channelPlayer.AddToQueue(opt.StringValue(), i.Member.User.ID)
 
 				if err != nil {
 					log.Error("failed to queue song", zap.Error(err))
@@ -217,6 +240,8 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 }
 
 func Init(s *discordgo.Session) {
+	unregisterCommands(s)
+
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
 	for i, v := range commands {
 		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, env.Cfg.GuildId, v)
@@ -225,9 +250,30 @@ func Init(s *discordgo.Session) {
 		}
 		registeredCommands[i] = cmd
 	}
+
+	logger.Info("registered commands", zap.Any("commands", registeredCommands))
+}
+
+func unregisterCommands(s *discordgo.Session) {
+	for _, v := range commands {
+		err := s.ApplicationCommandDelete(s.State.User.ID, env.Cfg.GuildId, v.ID)
+		if err != nil {
+			logger.Error("failed to delete command", zap.String("command", v.Name), zap.Error(err))
+		}
+	}
 }
 
 func Handle(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Context) {
+	if i.Type == discordgo.InteractionMessageComponent {
+		logger.Info("got component")
+
+		go discord.RespondToInteractionAndForget(s, i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseDeferredMessageUpdate,
+		})
+
+		return
+	}
+
 	data := i.ApplicationCommandData()
 	name := data.Name
 	log := logger.With(zap.String("command", name)).With(zap.Any("data", data))
