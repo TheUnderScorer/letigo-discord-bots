@@ -1,7 +1,6 @@
 package player
 
 import (
-	"errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	dca2 "github.com/jonas747/dca/v2"
@@ -10,7 +9,7 @@ import (
 	"io"
 	"src-go/dca"
 	"src-go/discord"
-	"src-go/env"
+	"src-go/domain/voice"
 	errors2 "src-go/errors"
 	"src-go/logging"
 	"src-go/messages"
@@ -22,18 +21,16 @@ import (
 )
 
 type ChannelPlayer struct {
-	queue           []*Song
-	session         *discordgo.Session
-	channelID       string
-	voiceConnection *discordgo.VoiceConnection
-	logger          *zap.Logger
-	isSpeaking      bool
-	nextSong        chan *Song
-	mu              sync.Mutex
-	stream          *dca2.EncodeSession
-	currentSong     *Song
-	cleanupFuns     []func()
-	Disposed        chan bool
+	queue       []*Song
+	session     *discordgo.Session
+	channelID   string
+	vm          *voice.Manager
+	logger      *zap.Logger
+	isSpeaking  bool
+	nextSong    chan *Song
+	mu          sync.Mutex
+	stream      *dca2.EncodeSession
+	currentSong *Song
 }
 
 var ChannelPlayerContextKey = "channelPlayer"
@@ -43,25 +40,24 @@ var logger = logging.Get().Named("channelPlayer")
 var ytClient = yt.Client{}
 
 func NewChannelPlayer(session *discordgo.Session, channelID string, onDisposed func()) (*ChannelPlayer, error) {
-	vc, err := session.ChannelVoiceJoin(env.Cfg.GuildId, channelID, false, true)
+	player := &ChannelPlayer{
+		session:     session,
+		channelID:   channelID,
+		logger:      logger.With(zap.String("channelID", channelID)),
+		queue:       make([]*Song, 0),
+		isSpeaking:  false,
+		nextSong:    make(chan *Song),
+		currentSong: nil,
+		stream:      nil,
+	}
+	vm, err := voice.NewManager(session, channelID, func() {
+		onDisposed()
+		player.Dispose()
+	})
 	if err != nil {
 		return nil, err
 	}
-
-	player := &ChannelPlayer{
-		session:         session,
-		channelID:       channelID,
-		voiceConnection: vc,
-		logger:          logger.With(zap.String("channelID", channelID)),
-		queue:           make([]*Song, 0),
-		isSpeaking:      false,
-		nextSong:        make(chan *Song),
-		currentSong:     nil,
-		stream:          nil,
-		cleanupFuns:     make([]func(), 0),
-	}
-	player.cleanupFuns = append(player.cleanupFuns, onDisposed)
-	go player.initVoiceConnectionListener()
+	player.vm = vm
 
 	return player, nil
 }
@@ -70,30 +66,15 @@ func (p *ChannelPlayer) Dispose() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if p.voiceConnection != nil {
-		err := p.voiceConnection.Disconnect()
-		if err != nil {
-			p.logger.Error("failed to disconnect from voice", zap.Error(err))
-		}
-
-		if p.stream != nil {
-			p.stream.Cleanup()
-			p.stream = nil
-		}
-
-		select {
-		case p.Disposed <- true:
-			p.logger.Info("send Disposed message to channel")
-		}
-
-		for _, fun := range p.cleanupFuns {
-			fun()
-			p.cleanupFuns = nil
-		}
-
-		p.voiceConnection = nil
-
+	if p.stream != nil {
+		p.stream.Cleanup()
+		p.stream = nil
 	}
+
+	p.queue = []*Song{}
+	p.currentSong = nil
+
+	p.vm.Dispose()
 }
 
 func (p *ChannelPlayer) Next() error {
@@ -129,77 +110,10 @@ func (p *ChannelPlayer) Next() error {
 	return nil
 }
 
-func (p *ChannelPlayer) initVoiceConnectionListener() {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	cleanup := p.session.AddHandler(func(s *discordgo.Session, r *discordgo.VoiceStateUpdate) {
-		if r.Member.User.ID == s.State.User.ID && (r.BeforeUpdate.ChannelID == p.channelID || r.ChannelID == p.channelID) {
-			p.logger.Info("got voice state update", zap.Any("r", r))
-
-			if r.ChannelID == "" {
-				p.logger.Info("disconnected from channel")
-				p.Dispose()
-
-				return
-			}
-
-			if r.ChannelID != p.channelID {
-				p.logger.Info("joined new channel", zap.String("channelID", r.ChannelID))
-				p.Dispose()
-
-				return
-			}
-
-			return
-		}
-	})
-	p.cleanupFuns = append(p.cleanupFuns, cleanup)
-}
-
-func (p *ChannelPlayer) ensureReadyVoice() error {
-	if p.voiceConnection == nil || !p.voiceConnection.Ready {
-		p.logger.Info("voice connection is not ready")
-
-		voice, err := p.session.ChannelVoiceJoin(env.Cfg.GuildId, p.channelID, false, true)
-
-		if err != nil {
-			p.logger.Error("failed to re-join voice", zap.Error(err))
-			return err
-		}
-
-		p.mu.Lock()
-		p.voiceConnection = voice
-		p.mu.Unlock()
-		go p.initVoiceConnectionListener()
-
-		for {
-			select {
-			case <-p.Disposed:
-				return nil
-
-			case <-time.After(1 * time.Minute):
-				return errors.New("timeout waiting for connection to be ready")
-
-			default:
-				if p.voiceConnection.Ready {
-					p.logger.Info("voice connection is ready")
-					return nil
-				}
-				time.Sleep(100 * time.Millisecond)
-			}
-		}
-	}
-
-	p.logger.Info("voice connection was already ready")
-
-	return nil
-}
-
 func (p *ChannelPlayer) PlaySong(song *Song) error {
 	log := p.logger.With(zap.String("song", song.Name)).With(zap.String("videoID", song.VideoID))
 
-	err := p.ensureReadyVoice()
+	err := p.vm.ReadyVoice()
 	if err != nil {
 		return err
 	}
@@ -227,7 +141,11 @@ func (p *ChannelPlayer) playSession() error {
 		}
 	}()
 
-	err := p.voiceConnection.Speaking(true)
+	vc, err := p.vm.VoiceConnection()
+	if err != nil {
+		return err
+	}
+	err = vc.Speaking(true)
 	if err != nil {
 		return err
 	}
@@ -243,7 +161,7 @@ func (p *ChannelPlayer) playSession() error {
 			p.logger.Info("next song requested, aborting current playback", zap.Any("song", p.currentSong))
 			return nil
 
-		case <-p.Disposed:
+		case <-p.vm.Disposed:
 			p.logger.Info("player Disposed, aborting current playback", zap.Any("song", p.currentSong))
 			return nil
 
@@ -253,7 +171,7 @@ func (p *ChannelPlayer) playSession() error {
 				return nil
 			}
 
-			if !p.voiceConnection.Ready {
+			if !vc.Ready {
 				p.logger.Info("voice connection not ready, pausing current playback", zap.Any("song", p.currentSong))
 				return nil
 			}
@@ -287,24 +205,29 @@ func (p *ChannelPlayer) playSession() error {
 				return nil
 			}
 
-			p.voiceConnection.OpusSend <- frame
+			vc.OpusSend <- frame
 		}
 	}
 
 }
 
 func (p *ChannelPlayer) Pause() error {
-	p.isSpeaking = false
-	return p.voiceConnection.Speaking(false)
-}
-
-func (p *ChannelPlayer) Play() error {
-	err := p.ensureReadyVoice()
+	vc, err := p.vm.VoiceConnection()
 	if err != nil {
 		return err
 	}
 
-	err = p.voiceConnection.Speaking(true)
+	p.isSpeaking = false
+	return vc.Speaking(false)
+}
+
+func (p *ChannelPlayer) Play() error {
+	vc, err := p.vm.VoiceConnection()
+	if err != nil {
+		return err
+	}
+
+	err = vc.Speaking(true)
 	if err != nil {
 		return err
 	}

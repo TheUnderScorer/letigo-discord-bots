@@ -20,7 +20,8 @@ type DjSubCommand string
 type DjQueueOption string
 
 const (
-	CommandDj Command = "dj"
+	CommandDj     Command = "dj"
+	CommandTrivia Command = "teleturniej"
 
 	DjSubCommandList       DjSubCommand = "list"
 	DjSubCommandNext       DjSubCommand = "next"
@@ -36,6 +37,11 @@ const (
 var logger = logging.Get().Named("interaction")
 
 var commands = []*discordgo.ApplicationCommand{
+	{
+		Name:        string(CommandTrivia),
+		Description: "Rozpocznij Jeden z dziesięciu (beta).",
+		Type:        discordgo.ChatApplicationCommand,
+	},
 	{
 		Name:        string(CommandDj),
 		Description: "Pobaw się w DJa!",
@@ -89,6 +95,9 @@ var commands = []*discordgo.ApplicationCommand{
 }
 
 var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Context){
+	string(CommandTrivia): func(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Context) {
+
+	},
 	string(CommandDj): func(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Context) {
 		playerManager := ctx.Value(player.ChannelPlayerContextKey).(*player.ChannelPlayerManager)
 		var log = logger.With(zap.String("command", string(CommandDj)))
