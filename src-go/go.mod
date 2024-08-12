@@ -13,6 +13,7 @@ require (
 )
 
 require (
+	github.com/avast/retry-go/v4 v4.6.0 // indirect
 	github.com/bitly/go-simplejson v0.5.1 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect

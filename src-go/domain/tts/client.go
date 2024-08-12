@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/avast/retry-go/v4"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
@@ -13,6 +14,8 @@ import (
 	"sync"
 	"time"
 )
+
+const maxAttempts = 3
 
 var logger = logging.Get().Named("tts")
 
@@ -48,23 +51,21 @@ func (c *Client) PreloadVoices(ctx context.Context, voices []*TextToVoiceRequest
 	wg.Add(len(voices))
 
 	for _, voice := range voices {
-		select {
-		case <-ctx.Done():
-			return
+		limiter <- true
 
-		default:
-			limiter <- true
-			// TODO This sometimes fails on TTS side, add retry logic
-			go func() {
+		go func() {
+			err := retry.Do(func() error {
 				_, err := c.TextToVoice(ctx, voice)
-				if err != nil {
-					logger.Error("failed to preload voice", zap.Error(err), zap.Any("voice", voice))
-				}
+				return err
+			}, retry.Context(ctx), retry.Attempts(maxAttempts))
 
-				wg.Done()
-				<-limiter
-			}()
-		}
+			if err != nil {
+				logger.Error("failed to preload voice", zap.Error(err), zap.Any("voice", voice))
+			}
+
+			wg.Done()
+			<-limiter
+		}()
 
 	}
 	wg.Wait()
