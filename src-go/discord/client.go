@@ -14,6 +14,8 @@ func NewClient(token string) *discordgo.Session {
 	if err != nil {
 		log.Fatal("failed to init discordgo", zap.Error(err))
 	}
+	discord.Identify.Intents = discordgo.IntentsAll
+	discord.StateEnabled = true
 
 	err = discord.Open()
 	if err != nil {

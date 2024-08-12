@@ -1,6 +1,7 @@
 package voice
 
 import (
+	"context"
 	"errors"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
@@ -13,17 +14,22 @@ import (
 var logger = logging.Get().Named("voiceManager")
 
 type Manager struct {
-	mu         sync.Mutex
-	channelID  string
-	session    *discordgo.Session
-	vc         *discordgo.VoiceConnection
-	Disposed   chan bool
-	logger     *zap.Logger
+	// Lock for voice connection. Should be used before speaking to avoid duplicate speakers
+	Lock sync.Mutex
+	// Channel that is emitted when voice connection is disposed
+	Disposed chan bool
+
+	// Voice channel ID
+	channelID string
+	session   *discordgo.Session
+	vc        *discordgo.VoiceConnection
+	logger    *zap.Logger
+	// Cleanup functions that are called when voice connection is disposed
 	cleanupFns []func()
 }
 
 func NewManager(session *discordgo.Session, channelID string, onDisposed func()) (*Manager, error) {
-	vc, err := session.ChannelVoiceJoin(env.Cfg.GuildId, channelID, false, true)
+	vc, err := session.ChannelVoiceJoin(env.Env.GuildId, channelID, false, true)
 	if err != nil {
 		return nil, err
 	}
@@ -41,8 +47,8 @@ func NewManager(session *discordgo.Session, channelID string, onDisposed func())
 }
 
 func (m *Manager) Dispose() {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.Lock.Lock()
+	defer m.Lock.Unlock()
 
 	if m.vc != nil {
 		err := m.vc.Disconnect()
@@ -78,8 +84,8 @@ func (m *Manager) VoiceConnection() (*discordgo.VoiceConnection, error) {
 }
 
 func (m *Manager) initVoiceConnectionListener() {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.Lock.Lock()
+	defer m.Lock.Unlock()
 
 	cleanup := m.session.AddHandler(func(s *discordgo.Session, r *discordgo.VoiceStateUpdate) {
 		if r.Member.User.ID == s.State.User.ID && (r.BeforeUpdate != nil && r.BeforeUpdate.ChannelID == m.channelID || r.ChannelID == m.channelID) {
@@ -110,16 +116,16 @@ func (m *Manager) ReadyVoice() error {
 	if m.vc == nil || !m.vc.Ready {
 		m.logger.Info("voice connection is not ready")
 
-		voice, err := m.session.ChannelVoiceJoin(env.Cfg.GuildId, m.channelID, false, true)
+		voice, err := m.session.ChannelVoiceJoin(env.Env.GuildId, m.channelID, false, true)
 
 		if err != nil {
 			m.logger.Error("failed to re-join voice", zap.Error(err))
 			return err
 		}
 
-		m.mu.Lock()
+		m.Lock.Lock()
 		m.vc = voice
-		m.mu.Unlock()
+		m.Lock.Unlock()
 
 		for {
 			select {
@@ -142,4 +148,54 @@ func (m *Manager) ReadyVoice() error {
 	m.logger.Info("voice connection was already ready")
 
 	return nil
+}
+
+// getSpeakerContext returns a context that is canceled when the manager is disposed
+func (m *Manager) getSpeakerContext(ctx context.Context) (context.Context, func()) {
+	ctx, cancel := context.WithCancel(ctx)
+
+	go func() {
+		select {
+		case <-m.Disposed:
+			cancel()
+
+			return
+
+		case <-ctx.Done():
+			return
+		}
+	}()
+
+	return ctx, cancel
+}
+
+// Speak sends a message to the voice channel that is managed by this manager. It blocks until the speaker finishes speaking.
+func (m *Manager) Speak(speaker Speaker) error {
+	return m.SpeakContext(context.Background(), speaker)
+}
+
+// SpeakContext sends a message to the voice channel that is managed by this manager. It blocks until the speaker finishes speaking.
+func (m *Manager) SpeakContext(ctx context.Context, speaker Speaker) error {
+	m.Lock.Lock()
+	defer m.Lock.Unlock()
+
+	return m.SpeakNonBlockingContext(ctx, speaker)
+}
+
+// SpeakNonBlocking is a non-blocking version of Speak
+func (m *Manager) SpeakNonBlocking(speaker Speaker) error {
+	return m.SpeakNonBlockingContext(context.Background(), speaker)
+}
+
+// SpeakNonBlockingContext is a non-blocking version of Speak
+func (m *Manager) SpeakNonBlockingContext(ctx context.Context, speaker Speaker) error {
+	vc, err := m.VoiceConnection()
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := m.getSpeakerContext(ctx)
+	defer cancel()
+
+	return speaker.Speak(ctx, vc)
 }

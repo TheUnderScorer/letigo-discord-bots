@@ -1,9 +1,30 @@
-version: '3'
 services:
-  server:
+  tts:
+    volumes:
+      - ./.tts:/root/.local/share/tts
+      - ./tts-server:/app
+    platform: linux/amd64
+    build:
+      context: tts-server
+      dockerfile: ../docker/tts/Dockerfile
+    ports:
+      - "8081:8080"
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/app:cached
+    network_mode: host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  devcontainer:
     build:
      context: .
      dockerfile: Dockerfile
-    env_file: .env
-    ports:
-      - "8080:8080"
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    network_mode: host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

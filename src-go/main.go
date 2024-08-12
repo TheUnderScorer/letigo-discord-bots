@@ -2,14 +2,18 @@ package main
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 	"net/http"
-	"src-go/discord"
+	"src-go/aws"
+	"src-go/bots"
 	"src-go/domain"
 	"src-go/domain/interaction"
 	"src-go/domain/player"
+	"src-go/domain/trivia"
+	"src-go/domain/tts"
 	"src-go/env"
 	"src-go/logging"
 	"src-go/messages"
@@ -55,13 +59,25 @@ func main() {
 		})
 	})
 
+	ttsClient := tts.NewClient()
+	cfg, err := aws.NewConfig(context.Background())
+	if err != nil {
+		log.Fatal("failed to create aws config", zap.Error(err))
+	}
+	s3Client := s3.NewFromConfig(cfg)
+
 	ctx := context.WithValue(context.Background(), player.ChannelPlayerContextKey, player.NewChannelPlayerManager())
+	ctx = context.WithValue(ctx, trivia.ManagerContextKey, trivia.NewManager(ttsClient))
+	ctx = context.WithValue(ctx, aws.S3ContextKey, aws.NewS3(s3Client))
 
-	discordClient := discord.NewClient(env.Cfg.BotToken)
-	interaction.Init(discordClient)
-	go domain.Init(discordClient, ctx)
+	// Bots
+	ctx = context.WithValue(ctx, bots.BotNameWojciech, bots.NewBot(bots.BotNameWojciech, env.Env.WojciechBotToken))
+	ctx = context.WithValue(ctx, bots.BotNameTadeuszSznuk, bots.NewBot(bots.BotNameTadeuszSznuk, env.Env.TadeuszBotToken))
 
-	err = r.Run()
+	interaction.Init(ctx)
+	go domain.Init(ctx)
+
+	err = r.Run(":8081")
 	if err != nil {
 		log.Fatal("failed to start server", zap.Error(err))
 	}
