@@ -10,6 +10,8 @@ import (
 	"src-go/domain"
 	"src-go/domain/interaction"
 	"src-go/domain/player"
+	"src-go/domain/trivia"
+	"src-go/domain/tts"
 	"src-go/env"
 	"src-go/logging"
 	"src-go/messages"
@@ -55,9 +57,12 @@ func main() {
 		})
 	})
 
-	ctx := context.WithValue(context.Background(), player.ChannelPlayerContextKey, player.NewChannelPlayerManager())
+	ttsClient := tts.NewClient()
 
-	discordClient := discord.NewClient(env.Cfg.BotToken)
+	ctx := context.WithValue(context.Background(), player.ChannelPlayerContextKey, player.NewChannelPlayerManager())
+	ctx = context.WithValue(ctx, trivia.ManagerContextKey, trivia.NewManager(ttsClient))
+
+	discordClient := discord.NewClient(env.Env.BotToken)
 	interaction.Init(discordClient)
 	go domain.Init(discordClient, ctx)
 

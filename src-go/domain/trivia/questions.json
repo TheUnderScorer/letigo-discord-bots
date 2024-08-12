@@ -1,0 +1,182 @@
+[
+  {
+    "type": "multiple",
+    "difficulty": "easy",
+    "category": "Rozrywka: Gry wideo",
+    "question": "Która z tych postaci NIE jest grywalna w grze wideo Overwatch z 2016 roku?",
+    "correct_answer": "Invoker",
+    "incorrect_answers": [
+      "Mercy",
+      "Winston",
+      "Zenyatta"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "medium",
+    "category": "Rozrywka: Musicale i Teatry",
+    "question": "W której sztuce Szekspira znajdziemy samobójstwo Ofelii?",
+    "correct_answer": "Hamlet",
+    "incorrect_answers": [
+      "Makbet",
+      "Otello",
+      "Król Lear"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "medium",
+    "category": "Rozrywka: Film",
+    "question": "Który z tych filmów jest nakręcony w całości jednym ujęciem?",
+    "correct_answer": "Rosyjska Arka",
+    "incorrect_answers": [
+      "Buntownik z wyboru",
+      "Birdman",
+      "Lista Schindlera"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "medium",
+    "category": "Nauka: Komputery",
+    "question": "Jaką nazwę nadano Androidowi 4.3?",
+    "correct_answer": "Jelly Bean",
+    "incorrect_answers": [
+      "Lollipop",
+      "Nutella",
+      "Froyo"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "easy",
+    "category": "Rozrywka: Kreskówki i animacje",
+    "question": "Który film Disneya jako pierwszy użył CGI?",
+    "correct_answer": "Czarny kocioł",
+    "incorrect_answers": [
+      "Tron",
+      "Toy Story",
+      "Fantazja"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "medium",
+    "category": "Rozrywka: Muzyka",
+    "question": "Którego z poniższych zespołów Tom DeLonge nie jest członkiem?",
+    "correct_answer": "+44",
+    "incorrect_answers": [
+      "Box Car Racer",
+      "Blink-182",
+      "Angels & Airwaves"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "medium",
+    "category": "Rozrywka: Gry wideo",
+    "question": "Kiedy wydano Nintendo Virtual Boy?",
+    "correct_answer": "1995",
+    "incorrect_answers": [
+      "1989",
+      "1997",
+      "1992"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "easy",
+    "category": "Rozrywka: Gry wideo",
+    "question": "W grze wideo Half-life, jakie wydarzenie zapoczątkowało świat Half-life jaki znamy dziś?",
+    "correct_answer": "Rezonansowa Kaskada",
+    "incorrect_answers": [
+      "III wojna światowa",
+      "Atak Xen",
+      "Eksplozja w Black Mesa"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "easy",
+    "category": "Rozrywka: Japońskie anime i manga",
+    "question": "Jaki jest motyw przewodni anime &quot;Neon Genesis Evangelion&quot;?",
+    "correct_answer": "A Cruel Angel's Thesis",
+    "incorrect_answers": [
+      "Stardust Crusaders",
+      "Requiem for a Dream",
+      "God Knows"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "easy",
+    "category": "Rozrywka: Gry wideo",
+    "question": "Która gra wideo wywołała kontrowersje z powodu ukrytej mini-gry &quot;Hot Coffee&quot;?",
+    "correct_answer": "Grand Theft Auto: San Andreas",
+    "incorrect_answers": [
+      "Grand Theft Auto: Vice City",
+      "Hitman: Blood Money",
+      "Cooking Mama"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "medium",
+    "category": "Celebryci",
+    "question": "Która z tych osób NIE jest członkiem internetowej grupy komediowej Mega64?",
+    "correct_answer": "Jon Jafari",
+    "incorrect_answers": [
+      "Rocco Botte",
+      "Derrick Acosta",
+      "Shawn Chatfield"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "hard",
+    "category": "Rozrywka: Muzyka",
+    "question": "Kto nie był członkiem zespołu &quot;The Smiths&quot;?",
+    "correct_answer": "Martin Chambers",
+    "incorrect_answers": [
+      "Morrissey",
+      "Andy Rourke",
+      "Mike Joyce"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "easy",
+    "category": "Rozrywka: Telewizja",
+    "question": "W kreskówce &quot;SpongeBob Kanciastoporty&quot;, co oznacza skrót E.V.I.L?",
+    "correct_answer": "Every Villain Is Lemons",
+    "incorrect_answers": [
+      "Every Villain Is Lemonade",
+      "Every Villain Is Limes",
+      "Each Villain Is Lemonade"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "medium",
+    "category": "Historia",
+    "question": "John Moses Browning, projektant M1918 BAR (Browning Automatic Rifle), należał do której religii?",
+    "correct_answer": "Mormon",
+    "incorrect_answers": [
+      "Katolik",
+      "Żyd",
+      "Ateista"
+    ]
+  },
+  {
+    "type": "multiple",
+    "difficulty": "easy",
+    "category": "Rozrywka: Muzyka",
+    "question": "Jak nazywa się hitowy singiel fińskiego DJ-a Darude, wydany w październiku 1999 roku?",
+    "correct_answer": "Sandstorm",
+    "incorrect_answers": [
+      "Dust Devil",
+      "Sirocco",
+      "Khamsin"
+    ]
+  }
+]

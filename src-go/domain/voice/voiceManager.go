@@ -23,7 +23,7 @@ type Manager struct {
 }
 
 func NewManager(session *discordgo.Session, channelID string, onDisposed func()) (*Manager, error) {
-	vc, err := session.ChannelVoiceJoin(env.Cfg.GuildId, channelID, false, true)
+	vc, err := session.ChannelVoiceJoin(env.Env.GuildId, channelID, false, true)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (m *Manager) ReadyVoice() error {
 	if m.vc == nil || !m.vc.Ready {
 		m.logger.Info("voice connection is not ready")
 
-		voice, err := m.session.ChannelVoiceJoin(env.Cfg.GuildId, m.channelID, false, true)
+		voice, err := m.session.ChannelVoiceJoin(env.Env.GuildId, m.channelID, false, true)
 
 		if err != nil {
 			m.logger.Error("failed to re-join voice", zap.Error(err))

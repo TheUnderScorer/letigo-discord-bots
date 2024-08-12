@@ -29,6 +29,64 @@
     ]
   },
   "invalidUrl": "kolego co ty mi tu za bledne linki przesylasz",
+  "trivia": {
+    "true": "Prawda",
+    "false": "Fałsz",
+    "answer": "Odpowiedź",
+    "questionMessages": [
+      "{{MENTION}} pytanie brzmi: {{QUESTION}}"
+    ],
+    "noMoreQuestionsWinner": [
+      "No dobrze, wygląda na to że skończyły nam się pytania. Gratulacje {{MENTION}}, jesteś najmniejszym dzbanem!"
+    ],
+    "noMoreQuestionsNoWinner": [
+      "No dobrze, wygląda na to że skończyły nam się pytania. Niestety, zwycięzcy brak, co oznacza że wszyscy jesteście dzbanami."
+    ],
+    "noMoreQuestionsDraw": [
+      "No dobrze, wygląda na to że skończyły nam się pytania. Mamy remis, gratulacje {{MENTION}}, jesteście najmniejszymi dzbanami!"
+    ],
+    "nextPlayerQuestion": [
+      "No dobrze, {{NAME}}, kolej na Ciebie. Pytanie brzmi: {{QUESTION}}",
+      "{{NAME}}, twoja kolej. Pytanie brzmi: {{QUESTION}}",
+      "{{NAME}}, twoja kolej. {{QUESTION}}"
+    ],
+    "currentPlayerNextQuestion": [
+      "{{NAME}}, kolejne pytanie dla Ciebie: {{QUESTION}}",
+      "Kolejne pytanie: {{QUESTION}}"
+    ],
+    "start": [
+      "Witamy w kolejnym odcinku jeden dzban z dziesięciu! Dzisiaj mamy {{MEMBERS_COUNT}} uczestników!"
+    ],
+    "pickNextPlayer": "{{MENTION}}, wybierz następnego uczestnika lub siebie.",
+    "validAnswer": {
+      "multiple": [
+        "Tak!",
+        "To się zgadza.",
+        "Zgadza się.",
+        "{{NAME}}, masz rację.",
+        "Tak, to dobra odpowiedź."
+      ],
+      "boolean": [
+        "Tak, kolego!",
+        "To się zgadza.",
+        "Zgadza się.",
+        "{{NAME}}, masz rację.",
+        "Tak, to dobra odpowiedź."
+      ]
+    },
+    "invalidAnswer": {
+      "multiple": [
+        "Kolego, nie masz racji. Oczywiście że odpowiedzią było: {{ANSWER}}",
+        "{{NAME}}, głupoty pierdolisz. Prawidłowa odpowiedź to: {{ANSWER}}",
+        "Niestety, chodziło o: {{ANSWER}}"
+      ],
+      "boolean": [
+        "Kolego, nie masz racji. Odpowiedź to: {{ANSWER}}",
+        "{{NAME}}, głupoty pierdolisz. Prawidłowa odpowiedź to: {{ANSWER}}",
+        "Nie. Prawidłowa odpowiedź brzmi: {{ANSWER}}"
+      ]
+    }
+  },
   "player": {
     "noMoreSongs": "kolego nie ma nic wiecej w kolejce, moze dodaj cos??",
     "clearedQueue": "dobra kolego kolejka wyczyszczona",

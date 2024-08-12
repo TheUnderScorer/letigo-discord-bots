@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"src-go/discord"
 	"src-go/domain/player"
+	"src-go/domain/trivia"
 	"src-go/env"
 	errors2 "src-go/errors"
 	"src-go/logging"
@@ -96,7 +97,31 @@ var commands = []*discordgo.ApplicationCommand{
 
 var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Context){
 	string(CommandTrivia): func(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Context) {
+		triviaManager := ctx.Value(trivia.ManagerContextKey).(*trivia.Manager)
+		if triviaManager == nil {
+			logger.Error("trivia manager is nil")
+			return
+		}
 
+		trivia, err := triviaManager.GetOrCreate(s, i.ChannelID)
+		if err != nil {
+			logger.Error("failed to get trivia", zap.Error(err))
+			return
+		}
+
+		go discord.StartLoadingInteractionAndForget(s, i.Interaction)
+
+		err = trivia.Start()
+		if err != nil {
+			var userFriendly *errors2.UserFriendlyError
+			if errors.As(err, &userFriendly) {
+				discord.FollowupInteractionErrorAndForget(s, i.Interaction, err)
+			} else {
+				discord.DeleteFollowupAndForget(s, i.Interaction)
+			}
+
+			return
+		}
 	},
 	string(CommandDj): func(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Context) {
 		playerManager := ctx.Value(player.ChannelPlayerContextKey).(*player.ChannelPlayerManager)
@@ -253,7 +278,7 @@ func Init(s *discordgo.Session) {
 
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
 	for i, v := range commands {
-		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, env.Cfg.GuildId, v)
+		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, env.Env.GuildId, v)
 		if err != nil {
 			logger.Fatal("failed to create command", zap.String("command", v.Name), zap.Error(err))
 		}
@@ -265,7 +290,7 @@ func Init(s *discordgo.Session) {
 
 func unregisterCommands(s *discordgo.Session) {
 	for _, v := range commands {
-		err := s.ApplicationCommandDelete(s.State.User.ID, env.Cfg.GuildId, v.ID)
+		err := s.ApplicationCommandDelete(s.State.User.ID, env.Env.GuildId, v.ID)
 		if err != nil {
 			logger.Error("failed to delete command", zap.String("command", v.Name), zap.Error(err))
 		}
@@ -279,6 +304,8 @@ func Handle(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Co
 		go discord.RespondToInteractionAndForget(s, i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseDeferredMessageUpdate,
 		})
+
+		HandleComponentInteraction(ctx, s, i.ChannelID, i)
 
 		return
 	}

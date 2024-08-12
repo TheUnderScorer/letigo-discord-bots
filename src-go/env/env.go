@@ -14,12 +14,13 @@ type appEnv struct {
 	DailyReportTargetUserId string `env:"DAILY_REPORT_TARGET_USER_ID"`
 	Env                     string `env:"GO_ENV"`
 	YouTubeApiKey           string `env:"YT_API_KEY"`
+	TTSHost                 string `env:"TTS_HOST"`
 }
 
-var Cfg appEnv
+var Env appEnv
 
 func Init() {
-	if err := env.Parse(&Cfg); err != nil {
+	if err := env.Parse(&Env); err != nil {
 		panic(err)
 	}
 }
