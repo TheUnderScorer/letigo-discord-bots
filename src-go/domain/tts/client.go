@@ -37,27 +37,35 @@ func NewClient() *Client {
 }
 
 // PreloadVoices loads all available voices into the cache
-func (c *Client) PreloadVoices(context context.Context, voices []*TextToVoiceRequest) {
+func (c *Client) PreloadVoices(ctx context.Context, voices []*TextToVoiceRequest) {
 	if len(voices) == 0 {
 		return
 	}
 
-	limiter := make(chan bool, 2)
+	limiter := make(chan bool, 5)
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(voices))
 
 	for _, voice := range voices {
-		limiter <- true
-		go func() {
-			_, err := c.TextToVoice(context, voice)
-			if err != nil {
-				logger.Error("failed to preload voice", zap.Error(err), zap.Any("voice", voice))
-			}
+		select {
+		case <-ctx.Done():
+			return
 
-			wg.Done()
-			<-limiter
-		}()
+		default:
+			limiter <- true
+			// TODO This sometimes fails on TTS side, add retry logic
+			go func() {
+				_, err := c.TextToVoice(ctx, voice)
+				if err != nil {
+					logger.Error("failed to preload voice", zap.Error(err), zap.Any("voice", voice))
+				}
+
+				wg.Done()
+				<-limiter
+			}()
+		}
+
 	}
 	wg.Wait()
 }
@@ -98,8 +106,4 @@ func (c *Client) TextToVoice(context context.Context, payload *TextToVoiceReques
 	}
 
 	return body, nil
-}
-
-func (c *Client) GetAvailableVoices(context context.Context) ([]*TextToVoiceRequest, error) {
-	return nil, nil
 }
