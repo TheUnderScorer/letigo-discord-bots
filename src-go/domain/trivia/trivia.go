@@ -170,7 +170,9 @@ func (t *Trivia) NextQuestion() {
 	}
 	questionPhrase := util.ApplyTokens(questionPhraseTemplate, tokens)
 
-	t.tts.PreloadVoices(context.Background(), []*tts.TextToVoiceRequest{
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second*30))
+	defer cancel()
+	t.tts.PreloadVoices(ctx, []*tts.TextToVoiceRequest{
 		{
 			Speaker: tts.SpeakerTadeusz,
 			Text:    questionPhrase,
