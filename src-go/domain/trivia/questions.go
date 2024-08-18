@@ -25,12 +25,15 @@ var (
 )
 
 type Question struct {
-	Type       QuestionType       `json:"type"`
-	Difficulty QuestionDifficulty `json:"difficulty"`
-	Category   string             `json:"category"`
-	Question   string             `json:"question"`
-	Correct    string             `json:"correct_answer"`
-	Incorrect  []string           `json:"incorrect_answers"`
+	Type                    QuestionType       `json:"type"`
+	Difficulty              QuestionDifficulty `json:"difficulty"`
+	Category                string             `json:"category"`
+	Question                string             `json:"question"`
+	Correct                 string             `json:"correct_answer"`
+	Incorrect               []string           `json:"incorrect_answers"`
+	IncorrectAnswerMessages []string           `json:"incorrect_anwser_messages"`
+	CorrectAnswerMessages   []string           `json:"correct_answer_messages"`
+	FunFacts                []string           `json:"fun_facts"`
 }
 
 func GetQuestions() []Question {
