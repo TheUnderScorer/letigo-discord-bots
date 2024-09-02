@@ -1,0 +1,8 @@
+###
+POST http://localhost:8080/generate
+Content-Type: application/json
+
+{
+  "speaker": "tadeusz",
+  "sentence": "Witaj świecie!"
+}

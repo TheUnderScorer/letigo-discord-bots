@@ -33,13 +33,13 @@ type Trivia struct {
 	isStarted       bool
 }
 
-//go:embed intro.mp3
+//go:embed static/intro.mp3
 var intro []byte
 
-//go:embed good.mp3
+//go:embed static/good.mp3
 var good []byte
 
-//go:embed wrong.mp3
+//go:embed static/wrong.mp3
 var wrong []byte
 
 const questionTimeout = time.Second * 30

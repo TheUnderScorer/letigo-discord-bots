@@ -2,6 +2,7 @@ package dca
 
 import (
 	"github.com/jonas747/dca/v2"
+	"io"
 )
 
 func Convert(path string) (*dca.EncodeSession, error) {
@@ -11,4 +12,30 @@ func Convert(path string) (*dca.EncodeSession, error) {
 	}
 
 	return session, nil
+}
+
+func ConvertReader(data io.Reader) (*dca.EncodeSession, error) {
+	session, err := dca.EncodeMem(data, dca.StdEncodeOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	return session, nil
+}
+
+func ReadSession(session *dca.EncodeSession) ([]byte, error) {
+	var frames []byte
+
+	for {
+		frame, err := session.OpusFrame()
+		if err != nil {
+			if err == io.EOF {
+				return frames, nil
+			}
+
+			return nil, err
+		}
+
+		frames = append(frames, frame...)
+	}
 }

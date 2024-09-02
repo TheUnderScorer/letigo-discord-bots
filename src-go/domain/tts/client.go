@@ -73,7 +73,6 @@ func (c *Client) PreloadVoices(ctx context.Context, voices []*TextToVoiceRequest
 
 func (c *Client) TextToVoice(context context.Context, payload *TextToVoiceRequest) ([]byte, error) {
 	url := fmt.Sprintf("%s%s", c.host, "/generate")
-	logger.Info("converting text to voice", zap.Any("payload", payload), zap.String("url", url))
 
 	requestBody, err := json.Marshal(payload)
 	if err != nil {
@@ -90,12 +89,7 @@ func (c *Client) TextToVoice(context context.Context, payload *TextToVoiceReques
 	if err != nil {
 		return nil, err
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			logger.Error("failed to close response body", zap.Error(err))
-		}
-	}(res.Body)
+	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
 		return nil, fmt.Errorf("failed to convert text to voice, status code: %d", res.StatusCode)

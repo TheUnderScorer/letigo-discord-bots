@@ -3,10 +3,12 @@ package trivia
 import (
 	_ "embed"
 	"encoding/json"
+	"src-go/messages"
+	"src-go/util"
 	"strings"
 )
 
-//go:embed questions.json
+//go:embed static/questions.json
 var questions []byte
 
 type QuestionType string
@@ -42,12 +44,26 @@ func GetQuestions() []Question {
 	return result
 }
 
+func (q *Question) ID() string {
+	return util.Hash(strings.ReplaceAll(q.Question, " ", ""))
+}
+
 func (q *Question) Options() []string {
 	var options []string
 	options = append(options, q.Incorrect...)
 	options = append(options, q.Correct)
 
 	return options
+}
+
+func (q *Question) GetValidAnswerMessages() (m []string) {
+	if q.Type == TrueFalse {
+		m = messages.Messages.Trivia.ValidAnswer.Boolean
+	} else {
+		m = messages.Messages.Trivia.ValidAnswer.Multiple
+	}
+
+	return m
 }
 
 func (q *Question) QuestionForSpeaking() string {

@@ -13,14 +13,14 @@ import (
 	"src-go/logging"
 	"src-go/util"
 	"time"
-	openai2 "tools/openai"
-	"tools/opentdb"
+	openai2 "tools/shared/openai"
+	"tools/shared/opentdb"
 )
 
 var logger = logging.Get()
 
 func main() {
-	err := godotenv.Load(".env")
+	err := godotenv.Load("../.env")
 	if err != nil {
 		logger.Warn("error loading .env file", zap.Error(err))
 	}

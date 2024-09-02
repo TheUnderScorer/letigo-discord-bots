@@ -16,9 +16,9 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	openai2 "tools/openai"
-	trivia2 "tools/trivia"
-	util2 "tools/util"
+	openai2 "tools/shared/openai"
+	trivia2 "tools/shared/trivia"
+	util2 "tools/shared/util"
 )
 
 var mu sync.Mutex
@@ -26,7 +26,7 @@ var mu sync.Mutex
 func main() {
 	messages.Init()
 
-	err := godotenv.Load(".env")
+	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Warn("error loading .env file", err)
 	}
