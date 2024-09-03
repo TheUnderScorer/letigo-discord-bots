@@ -25,7 +25,7 @@ log.info(f"using device: {device}")
 
 
 speakers_map = {
-    'tadeusz': ["tadeusz1.wav", "2.wav", "3.wav"]
+    'tadeusz': ["speakers/tadeusz/1.wav", "speakers/tadeusz/2.wav", "speakers/tadeusz/3.wav"],
 }
 
 files_map = {}
