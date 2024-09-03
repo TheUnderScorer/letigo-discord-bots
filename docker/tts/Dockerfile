@@ -10,5 +10,8 @@ COPY . /app
 
 ENV COQUI_TOS_AGREED=1
 
+# Download model first
+#RUN python3 main.py --init
+
 ENTRYPOINT ["python3"]
 CMD ["main.py"]
