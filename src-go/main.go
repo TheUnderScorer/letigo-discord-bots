@@ -66,7 +66,7 @@ func main() {
 	interaction.Init(discordClient)
 	go domain.Init(discordClient, ctx)
 
-	err = r.Run()
+	err = r.Run(":8081")
 	if err != nil {
 		log.Fatal("failed to start server", zap.Error(err))
 	}

@@ -38,7 +38,7 @@ func main() {
 	defer cancel()
 
 	var threadMsg []openai.ThreadMessage
-	questions := util2.ReadStepResult[trivia.Question]("questions-grammar")
+	questions := util2.ReadStepResult[trivia.Question]("2-questions-grammar")
 
 	for i, q := range questions {
 		qStr, err := json.Marshal(q)

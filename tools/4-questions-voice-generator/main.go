@@ -35,7 +35,9 @@ func main() {
 	var wg sync.WaitGroup
 	limit := make(chan bool, 2)
 
-	questions := util.ReadStepResult[trivia.Question]("questions-enhancer")
+	questions := util.ReadStepResult[trivia.Question]("3-questions-enhancer")
+	// TODO Remove
+	questions = questions[:3]
 
 	wg.Add(len(questions))
 

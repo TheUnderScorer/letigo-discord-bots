@@ -44,7 +44,7 @@ func main() {
 	defer cancel()
 
 	var threadMsg []openai.ThreadMessage
-	questions := util2.ReadStepResult[trivia.Question]("questions-translator")
+	questions := util2.ReadStepResult[trivia.Question]("1-questions-translator")
 
 	for i, q := range questions {
 		if q.Type == "" {
