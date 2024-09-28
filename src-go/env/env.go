@@ -6,8 +6,10 @@ import (
 )
 
 type appEnv struct {
-	BotToken                string `env:"BOT_TOKEN"`
-	AppId                   string `env:"APP_ID"`
+	WojciechBotToken        string `env:"WOJCIECH_BOT_TOKEN"`
+	TadeuszBotToken         string `env:"TADEUSZ_BOT_TOKEN"`
+	WojciechBotAppId        string `env:"WOJCIECH_BOT_APP_ID"`
+	TadeuszBotAppId         string `env:"TADEUSZ_BOT_APP_ID"`
 	GuildId                 string `env:"GUILD_ID"`
 	GreetingChannelId       string `env:"GREETING_CHANNEL_ID"`
 	DailyReportChannelId    string `env:"DAILY_REPORT_CHANNEL_ID"`

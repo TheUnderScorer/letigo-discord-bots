@@ -35,8 +35,8 @@ async function initBot(token: string) {
 }
 
 async function main() {
-  const botToken = process.env.BOT_TOKEN as string;
-  const appId = process.env.APP_ID as string;
+  const botToken = process.env.WOJCIECH_BOT_TOKEN as string;
+  const appId = process.env.WOJCIECH_BOT_APP_ID as string;
   const guildId = process.env.GUILD_ID as string;
   const bot = await initBot(botToken);
   const channelPlayerManager = new ChannelPlayerManager(messages);

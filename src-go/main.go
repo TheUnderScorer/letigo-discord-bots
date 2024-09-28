@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"src-go/aws"
-	"src-go/discord"
+	"src-go/bots"
 	"src-go/domain"
 	"src-go/domain/interaction"
 	"src-go/domain/player"
@@ -70,9 +70,12 @@ func main() {
 	ctx = context.WithValue(ctx, trivia.ManagerContextKey, trivia.NewManager(ttsClient))
 	ctx = context.WithValue(ctx, aws.S3ContextKey, aws.NewS3(s3Client))
 
-	discordClient := discord.NewClient(env.Env.BotToken)
-	interaction.Init(discordClient)
-	go domain.Init(discordClient, ctx)
+	// Bots
+	ctx = context.WithValue(ctx, bots.BotNameWojciech, bots.NewBot(bots.BotNameWojciech, env.Env.WojciechBotToken))
+	ctx = context.WithValue(ctx, bots.BotNameTadeuszSznuk, bots.NewBot(bots.BotNameTadeuszSznuk, env.Env.TadeuszBotToken))
+
+	interaction.Init(ctx)
+	go domain.Init(ctx)
 
 	err = r.Run(":8081")
 	if err != nil {

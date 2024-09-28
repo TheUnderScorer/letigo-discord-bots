@@ -21,7 +21,7 @@ export function initDiscord({
 
   const greetingChannelId = process.env.GREETING_CHANNEL_ID as string;
 
-  const client = new DiscordClient(process.env.BOT_TOKEN as string, axios);
+  const client = new DiscordClient(process.env.WOJCIECH_BOT_TOKEN as string, axios);
 
   return {
     dailyReportChannelId,
