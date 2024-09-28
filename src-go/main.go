@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 	"net/http"
+	"src-go/aws"
 	"src-go/discord"
 	"src-go/domain"
 	"src-go/domain/interaction"
@@ -58,9 +60,15 @@ func main() {
 	})
 
 	ttsClient := tts.NewClient()
+	cfg, err := aws.NewConfig(context.Background())
+	if err != nil {
+		log.Fatal("failed to create aws config", zap.Error(err))
+	}
+	s3Client := s3.NewFromConfig(cfg)
 
 	ctx := context.WithValue(context.Background(), player.ChannelPlayerContextKey, player.NewChannelPlayerManager())
 	ctx = context.WithValue(ctx, trivia.ManagerContextKey, trivia.NewManager(ttsClient))
+	ctx = context.WithValue(ctx, aws.S3ContextKey, aws.NewS3(s3Client))
 
 	discordClient := discord.NewClient(env.Env.BotToken)
 	interaction.Init(discordClient)
