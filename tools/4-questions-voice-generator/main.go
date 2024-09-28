@@ -4,22 +4,25 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/avast/retry-go/v4"
 	"github.com/charmbracelet/log"
 	"github.com/joho/godotenv"
 	"os"
 	"src-go/dca"
+	"src-go/discord"
 	"src-go/domain/trivia"
 	tts2 "src-go/domain/tts"
 	"src-go/env"
 	"src-go/messages"
 	util2 "src-go/util"
+	"strconv"
 	"sync"
 	"time"
 	"tools/shared/util"
 )
+
+var resultPath = "4-questions-voice-generator/result"
 
 func main() {
 	messages.Init()
@@ -33,14 +36,29 @@ func main() {
 	client := tts2.NewClient()
 
 	var wg sync.WaitGroup
-	limit := make(chan bool, 2)
+	limit := make(chan bool, 5)
 
 	questions := util.ReadStepResult[trivia.Question]("3-questions-enhancer")
 
 	wg.Add(len(questions))
 
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Hour*1))
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Hour*3))
 	defer cancel()
+
+	err = os.MkdirAll(resultPath, 0777)
+	if err != nil {
+		if os.IsExist(err) {
+			log.Info("result directory already exists")
+		} else {
+			log.Fatal("failed to create result directory", err)
+		}
+	}
+
+	go func() {
+		wg.Add(1)
+		defer wg.Done()
+		generateMiscPhrases(ctx, client)
+	}()
 
 	length := len(questions)
 	for i, q := range questions {
@@ -53,30 +71,59 @@ func main() {
 
 			pos := i + 1
 			log.Infof("Generating %d/%d", pos, length)
-			err := generate(ctx, q, client)
-			if err != nil {
-				log.Errorf("Failed to generate %d/%d: %v", pos, length, err)
-			}
+
+			generateForQuestion(ctx, q, client)
+
 			log.Infof("Generated %d/%d", pos, length)
 		}()
 	}
 
 	wg.Wait()
-
 }
 
-func generate(ctx context.Context, question *trivia.Question, client *tts2.Client) error {
+func generateForQuestion(ctx context.Context, question *trivia.Question, client *tts2.Client) {
 	input := trivia.NewQuestionSentencesInput(question)
 	sentences := input.Sentences()
 
-	questionDirectoryPath := fmt.Sprintf("questions-voice-generator/result/%s", question.ID())
-	err := os.MkdirAll(questionDirectoryPath, 0777)
-	if err != nil && !os.IsExist(err) {
-		return err
+	generateSentences(ctx, sentences, client)
+}
+
+func generateMiscPhrases(ctx context.Context, client *tts2.Client) {
+	var phrases []string
+
+	phrases = append(phrases)
+	phrases = append(phrases, messages.Messages.Trivia.NoMoreQuestionsDraw...)
+	phrases = append(phrases, messages.Messages.Trivia.NoMoreQuestionsNoWinner...)
+
+	for _, m := range messages.Messages.Trivia.Start {
+		for i := range 10 {
+			phrases = append(phrases, util2.ApplyTokens(m, map[string]string{
+				"MEMBERS_COUNT": strconv.Itoa(i),
+			}))
+		}
 	}
 
+	for _, friend := range discord.Friends {
+		var todoPhrases []string
+		todoPhrases = append(todoPhrases, messages.Messages.Trivia.NoMoreQuestionsWinner...)
+
+		tokens := map[string]string{
+			"MENTION": friend.Nickname,
+		}
+
+		for _, phrase := range todoPhrases {
+			phrases = append(phrases, util2.ApplyTokens(phrase, tokens))
+		}
+
+		phrases = append(phrases, util2.ApplyTokens(messages.Messages.Trivia.PickNextPlayer, tokens))
+	}
+
+	generateSentences(ctx, phrases, client)
+}
+
+func generateSentences(ctx context.Context, sentences []string, client *tts2.Client) {
 	var wg sync.WaitGroup
-	limit := make(chan bool, 2)
+	limit := make(chan bool, 3)
 
 	for _, sentence := range sentences {
 		wg.Add(1)
@@ -86,16 +133,14 @@ func generate(ctx context.Context, question *trivia.Question, client *tts2.Clien
 				<-limit
 				wg.Done()
 			}()
-			err := generateSentence(ctx, sentence, questionDirectoryPath, client)
+			err := generateSentence(ctx, sentence, resultPath, client)
 			if err != nil {
-				log.Errorf("Failed to generate sentence: %s", err)
+				log.Errorf("Failed to generateForQuestion sentence: %s", err)
 			}
 		}()
 	}
 
 	wg.Wait()
-
-	return nil
 }
 
 // generateSentence generates a sentence as a .dca file
@@ -111,34 +156,51 @@ func generateSentence(ctx context.Context, sentence string, dir string, client *
 	sentenceDirPath := fmt.Sprintf("%s/%s", dir, hash)
 	err := os.Mkdir(sentenceDirPath, 0777)
 	if err != nil {
-		if errors.Is(err, os.ErrExist) {
+		if os.IsExist(err) {
+			dirContents, err := os.ReadDir(dir)
+			if err != nil {
+				return err
+			}
+
+			// 4 .dca. files and .meta file
+			if len(dirContents) == 5 {
+				log.Infof("sentence already exists with all required files: %s", sentence)
+
+				return nil
+			}
+
 			log.Warnf("sentence already exists: %s", sentence)
-
-			return nil
+		} else {
+			return err
 		}
-
-		return err
 	}
 
 	onRetry := retry.OnRetry(func(attempt uint, err error) {
-		logger.Warnf("Attempt %d to generate voice failed: %v", attempt, err)
+		logger.Warnf("Attempt %d to generateForQuestion voice failed: %v", attempt, err)
 	})
 
 	for i < sentenceCount {
+		fileName := fmt.Sprintf("%s/%d.dca", sentenceDirPath, i)
+
+		if _, err := os.Stat(fileName); err == nil {
+			i++
+			logger.Warnf("File already exists: %s", fileName)
+			continue
+		}
+
 		voice, err := retry.DoWithData(func() ([]byte, error) {
 			return client.TextToVoice(ctx, &tts2.TextToVoiceRequest{
 				Text:    sentence,
 				Speaker: tts2.SpeakerTadeusz,
 			})
-		}, retry.Context(ctx), retry.Attempts(maxAttempts), retry.Delay(time.Second*5), onRetry)
+		}, retry.Context(ctx), retry.Attempts(maxAttempts), retry.Delay(time.Second*10), onRetry)
 
 		if err != nil {
 			i++
-			logger.Errorf("Failed to generate voice: %v", err)
+			logger.Errorf("Failed to generateForQuestion voice: %v", err)
 			continue
 		}
 
-		fileName := fmt.Sprintf("%s/%d.dca", sentenceDirPath, i)
 		err = writeVoice(voice, sentence, fileName)
 		if err != nil {
 			log.Errorf("Failed to write voice: %v", err)

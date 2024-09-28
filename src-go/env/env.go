@@ -15,6 +15,7 @@ type appEnv struct {
 	Env                     string `env:"GO_ENV"`
 	YouTubeApiKey           string `env:"YT_API_KEY"`
 	TTSHost                 string `env:"TTS_HOST"`
+	S3Bucket                string `env:"S3_BUCKET"`
 }
 
 var Env appEnv

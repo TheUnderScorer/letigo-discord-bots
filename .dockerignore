@@ -7,3 +7,8 @@ dist
 .eslintignore
 CHANGELOD.md
 .prettierc
+venv
+.tts
+.venv
+.git
+tools/**/result/**

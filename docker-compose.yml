@@ -11,8 +11,17 @@ services:
       - "8081:8080"
   dev:
     build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/app:cached
+    network_mode: host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  devcontainer:
+    build:
      context: .
-     dockerfile: .devcontainer/Dockerfile
+     dockerfile: Dockerfile
     volumes:
       - ../..:/workspaces:cached
     command: sleep infinity

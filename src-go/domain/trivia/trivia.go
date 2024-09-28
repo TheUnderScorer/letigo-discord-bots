@@ -339,7 +339,6 @@ func (t *Trivia) playIntro() error {
 }
 
 func (t *Trivia) speak(text string) error {
-
 	ttsVoice, err := t.tts.TextToVoice(context.Background(), &tts.TextToVoiceRequest{
 		Speaker: tts.SpeakerTadeusz,
 		Text:    text,

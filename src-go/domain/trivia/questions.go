@@ -2,14 +2,13 @@ package trivia
 
 import (
 	_ "embed"
-	"encoding/json"
+	"src-go/logging"
 	"src-go/messages"
 	"src-go/util"
 	"strings"
 )
 
-//go:embed static/questions.json
-var questions []byte
+var log = logging.Get().Named("questions")
 
 type QuestionType string
 
@@ -36,12 +35,6 @@ type Question struct {
 	IncorrectAnswerMessages []string           `json:"incorrect_anwser_messages"`
 	CorrectAnswerMessages   []string           `json:"correct_answer_messages"`
 	FunFacts                []string           `json:"fun_facts"`
-}
-
-func GetQuestions() []Question {
-	var result []Question
-	_ = json.Unmarshal(questions, &result)
-	return result
 }
 
 func (q *Question) ID() string {
