@@ -16,7 +16,7 @@ func Init(ctx context.Context) {
 		session := bot.Session
 
 		session.AddHandler(func(s *discordgo.Session, m *discordgo.InteractionCreate) {
-			go interaction.Handle(s, m, ctx)
+			go interaction.Handle(s, bot.Name, m, ctx)
 		})
 
 		session.AddHandler(func(s *discordgo.Session, r *discordgo.GuildMembersChunk) {

@@ -1,7 +1,6 @@
 package trivia
 
 import (
-	_ "embed"
 	"src-go/logging"
 	"src-go/messages"
 	"src-go/util"

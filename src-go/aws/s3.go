@@ -10,19 +10,25 @@ import (
 const S3ContextKey = "S3"
 
 type S3 struct {
-	S3Client *s3.Client
+	Client *s3.Client
 }
 
 func NewS3(client *s3.Client) *S3 {
 	return &S3{
-		S3Client: client,
+		Client: client,
 	}
 }
 
+// Bucket returns the name of the S3 bucket
+func (s *S3) Bucket() string {
+	return env.Env.S3Bucket
+}
+
 func (s *S3) Get(ctx context.Context, key string) (io.ReadCloser, error) {
-	result, err := s.S3Client.GetObject(ctx, &s3.GetObjectInput{
+	bucket := s.Bucket()
+	result, err := s.Client.GetObject(ctx, &s3.GetObjectInput{
 		Key:    &key,
-		Bucket: &env.Env.S3Bucket,
+		Bucket: &bucket,
 	})
 	if err != nil {
 		return nil, err

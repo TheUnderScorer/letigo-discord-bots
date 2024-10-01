@@ -1,6 +1,7 @@
 package trivia
 
 import (
+	"context"
 	"errors"
 	"github.com/bwmarrin/discordgo"
 	"src-go/util"
@@ -17,10 +18,10 @@ type State struct {
 	points          map[string]int
 }
 
-func NewState(players []*discordgo.User) *State {
+func NewState(ctx context.Context, players []*discordgo.User) *State {
 	return &State{
 		players:       players,
-		questions:     util.Shuffle(GetQuestions()),
+		questions:     GetQuestions(ctx),
 		currentPlayer: util.RandomElement(players),
 		points:        make(map[string]int),
 	}

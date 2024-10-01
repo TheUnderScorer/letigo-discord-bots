@@ -8,6 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	dca2 "github.com/jonas747/dca/v2"
 	"go.uber.org/zap"
+	"io"
 	"src-go/discord"
 	"src-go/domain/tts"
 	"src-go/domain/voice"
@@ -31,6 +32,7 @@ type Trivia struct {
 	AnswerReceived  chan string
 	PlayerNominated chan *discordgo.User
 	isStarted       bool
+	ctx             context.Context
 }
 
 //go:embed static/intro.mp3
@@ -44,7 +46,7 @@ var wrong []byte
 
 const questionTimeout = time.Second * 30
 
-func New(session *discordgo.Session, tts *tts.Client, channelID string, onDisposed func()) (*Trivia, error) {
+func New(ctx context.Context, session *discordgo.Session, tts *tts.Client, channelID string, onDisposed func()) (*Trivia, error) {
 	vm, err := voice.NewManager(session, channelID, onDisposed)
 	if err != nil {
 		return nil, err
@@ -71,9 +73,10 @@ func New(session *discordgo.Session, tts *tts.Client, channelID string, onDispos
 		vm:              vm,
 		tts:             tts,
 		logger:          logging.Get().Named("trivia").With(zap.String("channelID", channelID)),
-		state:           NewState(players),
+		state:           NewState(ctx, players),
 		AnswerReceived:  make(chan string),
 		PlayerNominated: make(chan *discordgo.User),
+		ctx:             ctx,
 	}
 
 	return trivia, nil
@@ -84,29 +87,19 @@ func (t *Trivia) Start() error {
 		return nil
 	}
 
-	wg := sync.WaitGroup{}
-	wg.Add(2)
-
 	msg := util.RandomElement(messages.Messages.Trivia.Start)
 	welcomeSentence := util.ApplyTokens(msg, map[string]string{
 		"MEMBERS_COUNT": util.PlayerCountSentence(len(t.state.players)),
 	})
 
-	go func() {
-		t.tts.PreloadVoices(context.Background(), []*tts.TextToVoiceRequest{{Text: welcomeSentence, Speaker: tts.SpeakerTadeusz}})
-		wg.Done()
-	}()
-
-	go func() {
-		t.playIntro()
-		wg.Done()
-	}()
-
-	wg.Wait()
-
-	err := t.speak(welcomeSentence)
+	err := t.playIntro()
 	if err != nil {
-		return err
+		t.logger.Error("failed to play intro", zap.Error(err))
+	}
+
+	err = t.speak(welcomeSentence)
+	if err != nil {
+		t.logger.Error("failed to speak welcome sentence", zap.Error(err))
 	}
 
 	startingPlayer := util.RandomElement(t.state.players)
@@ -170,22 +163,8 @@ func (t *Trivia) NextQuestion() {
 	}
 	questionPhrase := util.ApplyTokens(questionPhraseTemplate, tokens)
 
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second*30))
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(questionTimeout))
 	defer cancel()
-	t.tts.PreloadVoices(ctx, []*tts.TextToVoiceRequest{
-		{
-			Speaker: tts.SpeakerTadeusz,
-			Text:    questionPhrase,
-		},
-		{
-			Speaker: tts.SpeakerTadeusz,
-			Text:    validAnswerPhrase,
-		},
-		{
-			Speaker: tts.SpeakerTadeusz,
-			Text:    invalidPhraseAnswer,
-		},
-	})
 
 	err = t.speak(questionPhrase)
 	if err != nil {
@@ -219,7 +198,7 @@ func (t *Trivia) NextQuestion() {
 			go t.handleIncorrectAnswer(invalidPhraseAnswer)
 		}
 
-	case <-time.After(questionTimeout):
+	case <-ctx.Done():
 		t.logger.Info("answer timeout")
 		go t.handleQuestionTimeout()
 
@@ -335,30 +314,28 @@ func (t *Trivia) nominateForNextQuestion() {
 }
 
 func (t *Trivia) playIntro() error {
-	return t.speakBytes(intro)
+	return t.speakNonDcaBytes(intro)
 }
 
 func (t *Trivia) speak(text string) error {
-	ttsVoice, err := t.tts.TextToVoice(context.Background(), &tts.TextToVoiceRequest{
-		Speaker: tts.SpeakerTadeusz,
-		Text:    text,
-	})
+	v, err := GetVoice(t.ctx, text)
+
 	if err != nil {
 		return err
 	}
 
-	return t.speakBytes(ttsVoice)
+	return t.speakDca(v)
 }
 
 func (t *Trivia) playGoodSound() error {
-	return t.speakBytes(good)
+	return t.speakNonDcaBytes(good)
 }
 
 func (t *Trivia) playBadSound() error {
-	return t.speakBytes(wrong)
+	return t.speakNonDcaBytes(wrong)
 }
 
-func (t *Trivia) speakBytes(ttsVoice []byte) error {
+func (t *Trivia) speakDca(voice io.ReadCloser) error {
 	t.speakerLock.Lock()
 	defer t.speakerLock.Unlock()
 
@@ -367,7 +344,44 @@ func (t *Trivia) speakBytes(ttsVoice []byte) error {
 		return err
 	}
 
-	buf := bytes.NewBuffer(ttsVoice)
+	decoder := dca2.NewDecoder(voice)
+
+	err = vc.Speaking(true)
+	defer vc.Speaking(false)
+	if err != nil {
+		return err
+	}
+
+	for {
+		frame, err := decoder.OpusFrame()
+
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+
+			return err
+		}
+
+		select {
+		case vc.OpusSend <- frame:
+			continue
+		case <-t.vm.Disposed:
+			return nil
+		}
+	}
+}
+
+func (t *Trivia) speakNonDcaBytes(voice []byte) error {
+	t.speakerLock.Lock()
+	defer t.speakerLock.Unlock()
+
+	vc, err := t.vm.VoiceConnection()
+	if err != nil {
+		return err
+	}
+
+	buf := bytes.NewBuffer(voice)
 	stream, err := dca2.EncodeMem(buf, dca2.StdEncodeOptions)
 	if err != nil {
 		return err

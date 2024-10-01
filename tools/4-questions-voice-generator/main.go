@@ -8,6 +8,7 @@ import (
 	"github.com/avast/retry-go/v4"
 	"github.com/charmbracelet/log"
 	"github.com/joho/godotenv"
+	"io"
 	"os"
 	"src-go/dca"
 	"src-go/discord"
@@ -16,7 +17,6 @@ import (
 	"src-go/env"
 	"src-go/messages"
 	util2 "src-go/util"
-	"strconv"
 	"sync"
 	"time"
 	"tools/shared/util"
@@ -96,9 +96,9 @@ func generateMiscPhrases(ctx context.Context, client *tts2.Client) {
 	phrases = append(phrases, messages.Messages.Trivia.NoMoreQuestionsNoWinner...)
 
 	for _, m := range messages.Messages.Trivia.Start {
-		for i := range 10 {
+		for i := range 12 {
 			phrases = append(phrases, util2.ApplyTokens(m, map[string]string{
-				"MEMBERS_COUNT": strconv.Itoa(i),
+				"MEMBERS_COUNT": util2.PlayerCountSentence(i),
 			}))
 		}
 	}
@@ -235,19 +235,19 @@ func writeMetadata(sentence string, dir string) error {
 func writeVoice(voice []byte, sentence string, filePath string) error {
 	log.Infof("Writing voice for sentence '%s' at '%s'", sentence, filePath)
 
-	buffer := bytes.NewBuffer(voice)
+	buffer := bytes.NewReader(voice)
 	session, err := dca.ConvertReader(buffer)
 	if err != nil {
 		return err
 	}
 	defer session.Cleanup()
 
-	opusFrames, err := dca.ReadSession(session)
+	b, err := io.ReadAll(session)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(filePath, opusFrames, 0777)
+	err = os.WriteFile(filePath, b, 0777)
 	if err != nil {
 		return err
 	}

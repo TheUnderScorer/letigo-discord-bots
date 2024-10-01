@@ -1,6 +1,7 @@
 package trivia
 
 import (
+	"context"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
 	"src-go/domain/tts"
@@ -27,7 +28,7 @@ func (m *Manager) Get(channelID string) *Trivia {
 	return m.trivias[channelID]
 }
 
-func (m *Manager) GetOrCreate(session *discordgo.Session, channelID string) (*Trivia, error) {
+func (m *Manager) GetOrCreate(ctx context.Context, session *discordgo.Session, channelID string) (*Trivia, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -36,7 +37,7 @@ func (m *Manager) GetOrCreate(session *discordgo.Session, channelID string) (*Tr
 	player, ok := m.trivias[channelID]
 
 	if !ok {
-		player, err := New(session, m.tts, channelID, func() {
+		player, err := New(ctx, session, m.tts, channelID, func() {
 			logger.Info("trivia disposed, removing reference", zap.String("channelID", channelID))
 			delete(m.trivias, channelID)
 		})

@@ -22,20 +22,3 @@ func ConvertReader(data io.Reader) (*dca.EncodeSession, error) {
 
 	return session, nil
 }
-
-func ReadSession(session *dca.EncodeSession) ([]byte, error) {
-	var frames []byte
-
-	for {
-		frame, err := session.OpusFrame()
-		if err != nil {
-			if err == io.EOF {
-				return frames, nil
-			}
-
-			return nil, err
-		}
-
-		frames = append(frames, frame...)
-	}
-}

@@ -62,7 +62,7 @@ func unregisterCommands(s *discordgo.Session, commands []*discordgo.ApplicationC
 	}
 }
 
-func Handle(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Context) {
+func Handle(s *discordgo.Session, botName bots.BotName, i *discordgo.InteractionCreate, ctx context.Context) {
 	if i.Type == discordgo.InteractionMessageComponent {
 		logger.Info("got component")
 
@@ -80,7 +80,7 @@ func Handle(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Co
 	log := logger.With(zap.String("command", name)).With(zap.Any("data", data))
 
 	log.Info("got command")
-	if h, ok := commandHandlers[name]; ok {
+	if h, ok := commandHandlers[botName][name]; ok {
 		h(s, i, ctx)
 	} else {
 		log.Error("unknown command")

@@ -27,8 +27,12 @@ func Find[T any](arr []T, predicate func(T) bool) (T, bool) {
 	return *new(T), false
 }
 
-func RandomInt(min int, max int) int {
-	return min + rand.Intn(max-min)
+func RandomElements[T any](arr []T, count int) []T {
+	if count >= len(arr) {
+		return arr
+	}
+
+	return Shuffle(arr)[:count]
 }
 
 func RandomElement[T any](arr []T) T {
