@@ -119,6 +119,12 @@ var commandHandlers = map[bots.BotName]CommandHandlers{
 			}
 
 			err = trivia.Start()
+
+			logger.Info("started trivia")
+
+			if err == nil {
+				discord.DeleteFollowupAndForget(s, i.Interaction)
+			}
 		},
 	},
 	bots.BotNameWojciech: {

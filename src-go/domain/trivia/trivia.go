@@ -6,9 +6,7 @@ import (
 	_ "embed"
 	"errors"
 	"github.com/bwmarrin/discordgo"
-	dca2 "github.com/jonas747/dca/v2"
 	"go.uber.org/zap"
-	"io"
 	"src-go/discord"
 	"src-go/domain/tts"
 	"src-go/domain/voice"
@@ -124,16 +122,13 @@ func (t *Trivia) NextQuestion() {
 		return
 	}
 	var validAnswers []string
-	var invalidAnwsers []string
 
 	switch question.Type {
 	case TrueFalse:
 		validAnswers = messages.Messages.Trivia.ValidAnswer.Boolean
-		invalidAnwsers = messages.Messages.Trivia.InvalidAnswer.Boolean
 
 	case MultipleChoice:
 		validAnswers = messages.Messages.Trivia.ValidAnswer.Multiple
-		invalidAnwsers = messages.Messages.Trivia.InvalidAnswer.Multiple
 
 	default:
 		t.logger.Error("invalid question type", zap.String("type", string(question.Type)))
@@ -143,15 +138,24 @@ func (t *Trivia) NextQuestion() {
 	q := question.QuestionForSpeaking()
 	options := strings.Join(util.Shuffle(question.Options()), ", ")
 
+	var name string
+	friend, ok := discord.Friends[t.state.currentPlayer.ID]
+	if ok {
+		name = friend.Nickname
+	} else {
+		name = t.state.currentPlayer.GlobalName
+	}
+
 	tokens := map[string]string{
 		"ANSWER":   question.Correct,
-		"NAME":     t.state.currentPlayer.GlobalName,
+		"NAME":     name,
 		"QUESTION": q,
 		"OPTIONS":  options,
 		"MENTION":  t.state.currentPlayer.Mention(),
 	}
+
 	validAnswerPhrase := util.ApplyTokens(util.RandomElement(validAnswers), tokens)
-	invalidPhraseAnswer := util.ApplyTokens(util.RandomElement(invalidAnwsers), tokens)
+	invalidPhraseAnswer := util.ApplyTokens(util.RandomElement(question.IncorrectAnswerMessages), tokens)
 
 	var questionPhraseTemplate string
 	if t.state.previousPlayer != nil && t.state.currentPlayer.ID == t.state.previousPlayer.ID {
@@ -193,19 +197,36 @@ func (t *Trivia) NextQuestion() {
 		t.logger.Info("answer received", zap.String("answer", answer))
 
 		if answer == question.Correct {
-			go t.handleCorrectAnswer(validAnswerPhrase)
+			t.handleCorrectAnswer(validAnswerPhrase)
 		} else {
-			go t.handleIncorrectAnswer(invalidPhraseAnswer)
+			t.handleIncorrectAnswer(invalidPhraseAnswer)
 		}
+
+		return
 
 	case <-ctx.Done():
 		t.logger.Info("answer timeout")
-		go t.handleQuestionTimeout()
+		t.handleQuestionTimeout()
+
+		return
 
 	case <-t.vm.Disposed:
 		t.logger.Info("voice connection disposed")
+
+		return
 	}
 
+}
+
+func (t *Trivia) maybeSayFunFact() {
+	q := t.state.currentQuestion
+
+	if q != nil && util.RandomBool() && len(q.FunFacts) > 0 {
+		err := t.speak(util.RandomElement(q.FunFacts))
+		if err != nil {
+			t.logger.Error("failed to speak fun fact", zap.Error(err))
+		}
+	}
 }
 
 // TODO Implement
@@ -245,23 +266,26 @@ func (t *Trivia) finish() {
 	t.Dispose()
 }
 
-func (t *Trivia) handleIncorrectAnswer(invalidPhraseAnswer string) {
+func (t *Trivia) handleIncorrectAnswer(phrase string) {
+	t.logger.Info("handling incorrect answer", zap.String("answer", phrase))
 	err := t.playBadSound()
 	if err != nil {
 		t.logger.Error("failed to play bad sound", zap.Error(err))
 	}
 
 	t.logger.Info("incorrect answer")
-	err = t.speak(invalidPhraseAnswer)
+	err = t.speak(phrase)
 	if err != nil {
 		t.logger.Error("failed to speak incorrect answer", zap.Error(err))
 	}
 
+	t.maybeSayFunFact()
 	t.state.ChangePlayerToRandom()
-	t.NextQuestion()
+	go t.NextQuestion()
 }
 
-func (t *Trivia) handleCorrectAnswer(validAnswerPhrase string) {
+func (t *Trivia) handleCorrectAnswer(phrase string) {
+	t.logger.Info("handling correct answer", zap.String("answer", phrase))
 	err := t.playGoodSound()
 	if err != nil {
 		t.logger.Error("failed to play good sound", zap.Error(err))
@@ -270,13 +294,13 @@ func (t *Trivia) handleCorrectAnswer(validAnswerPhrase string) {
 	t.state.AddPointToCurrentPlayer()
 
 	t.logger.Info("correct answer")
-	err = t.speak(validAnswerPhrase)
+	err = t.speak(phrase)
 	if err != nil {
 		t.logger.Error("failed to speak correct answer", zap.Error(err))
 	}
 
+	t.maybeSayFunFact()
 	t.nominateForNextQuestion()
-
 }
 
 func (t *Trivia) nominateForNextQuestion() {
@@ -302,10 +326,14 @@ func (t *Trivia) nominateForNextQuestion() {
 		t.state.ChangePlayer(player)
 		go t.NextQuestion()
 
+		return
+
 	case <-time.After(time.Minute * 1):
 		t.logger.Info("nomination timeout")
 		t.state.ChangePlayerToRandom()
 		go t.NextQuestion()
+
+		return
 
 	case <-t.vm.Disposed:
 		return
@@ -324,7 +352,9 @@ func (t *Trivia) speak(text string) error {
 		return err
 	}
 
-	return t.speakDca(v)
+	speaker := voice.NewDcaSpeaker(v)
+
+	return t.vm.Speak(speaker)
 }
 
 func (t *Trivia) playGoodSound() error {
@@ -335,80 +365,10 @@ func (t *Trivia) playBadSound() error {
 	return t.speakNonDcaBytes(wrong)
 }
 
-func (t *Trivia) speakDca(voice io.ReadCloser) error {
-	t.speakerLock.Lock()
-	defer t.speakerLock.Unlock()
+func (t *Trivia) speakNonDcaBytes(v []byte) error {
+	speaker := voice.NewNonDcaSpeaker(bytes.NewReader(v))
 
-	vc, err := t.vm.VoiceConnection()
-	if err != nil {
-		return err
-	}
-
-	decoder := dca2.NewDecoder(voice)
-
-	err = vc.Speaking(true)
-	defer vc.Speaking(false)
-	if err != nil {
-		return err
-	}
-
-	for {
-		frame, err := decoder.OpusFrame()
-
-		if err != nil {
-			if err == io.EOF {
-				return nil
-			}
-
-			return err
-		}
-
-		select {
-		case vc.OpusSend <- frame:
-			continue
-		case <-t.vm.Disposed:
-			return nil
-		}
-	}
-}
-
-func (t *Trivia) speakNonDcaBytes(voice []byte) error {
-	t.speakerLock.Lock()
-	defer t.speakerLock.Unlock()
-
-	vc, err := t.vm.VoiceConnection()
-	if err != nil {
-		return err
-	}
-
-	buf := bytes.NewBuffer(voice)
-	stream, err := dca2.EncodeMem(buf, dca2.StdEncodeOptions)
-	if err != nil {
-		return err
-	}
-	defer stream.Cleanup()
-
-	err = vc.Speaking(true)
-	defer vc.Speaking(false)
-	if err != nil {
-		return err
-	}
-
-	for {
-		frame, err := stream.OpusFrame()
-		if err != nil {
-			break
-		}
-
-		select {
-		case vc.OpusSend <- frame:
-			continue
-		case <-t.vm.Disposed:
-			return nil
-		}
-	}
-
-	return nil
+	return t.vm.Speak(speaker)
 }
 
 func (t *Trivia) Dispose() {
