@@ -1,3 +1,10 @@
+## [2.8.1](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.8.0...v2.8.1) (2024-10-19)
+
+
+### Bug Fixes
+
+* fix player ([cf84b6e](https://github.com/TheUnderScorer/letigo-discord-bots/commit/cf84b6ee6c614371128faab46cbd222ebda4686c))
+
 # [2.8.0](https://github.com/TheUnderScorer/wojciech-discord-bot/compare/v2.7.1...v2.8.0) (2024-01-07)
 
 
