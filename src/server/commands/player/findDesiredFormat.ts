@@ -1,4 +1,4 @@
-import type ytdl from 'ytdl-core';
+import type ytdl from '@distube/ytdl-core';
 
 const desiredQualityOrder = [
   'AUDIO_QUALITY_MEDIUM',

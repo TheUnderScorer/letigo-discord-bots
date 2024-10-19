@@ -1,11 +1,7 @@
-import {
-  createAudioResource,
-  PlayerSubscription,
-  VoiceConnectionStatus,
-} from '@discordjs/voice';
+import { createAudioResource, PlayerSubscription, VoiceConnectionStatus } from '@discordjs/voice';
 import { VoiceChannel } from 'discord.js';
 import { PlayerSong } from './player.types';
-import ytdl from 'ytdl-core';
+import ytdl from '@distube/ytdl-core';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { Messages } from '../../../messages/messages';
 import { BotError } from '../../../shared/errors/BotError';
@@ -56,7 +52,7 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
     let isPlaying = false;
 
     const state = this.playerState;
-    const info = await ytdl.getBasicInfo(url);
+    const info = await ytdl.getInfo(url);
 
     const bestFormat = findDesiredFormat(info);
 

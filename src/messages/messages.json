@@ -32,6 +32,7 @@
   "player": {
     "noMoreSongs": "kolego nie ma nic wiecej w kolejce, moze dodaj cos??",
     "clearedQueue": "dobra kolego kolejka wyczyszczona",
+    "failedToQueue": "kolego nie udalo sie dodac do kolejki :(",
     "alreadyQueued": "kolego to juz jest w kolejce",
     "ended": [
       "koledzy muzyka sie skonczyla",
