@@ -135,7 +135,7 @@ func (t *Trivia) NextQuestion() {
 		return
 	}
 
-	q := question.QuestionForSpeaking()
+	q := question.ForSpeaking()
 	options := strings.Join(util.Shuffle(question.Options()), ", ")
 
 	var name string
@@ -157,20 +157,10 @@ func (t *Trivia) NextQuestion() {
 	validAnswerPhrase := util.ApplyTokens(util.RandomElement(validAnswers), tokens)
 	invalidPhraseAnswer := util.ApplyTokens(util.RandomElement(question.IncorrectAnswerMessages), tokens)
 
-	var questionPhraseTemplate string
-	if t.state.previousPlayer != nil && t.state.currentPlayer.ID == t.state.previousPlayer.ID {
-		t.logger.Info("current player is previous player")
-		questionPhraseTemplate = util.RandomElement(messages.Messages.Trivia.CurrentPlayerNextQuestion)
-	} else {
-		t.logger.Info("current player is not previous player")
-		questionPhraseTemplate = util.RandomElement(messages.Messages.Trivia.NextPlayerQuestion)
-	}
-	questionPhrase := util.ApplyTokens(questionPhraseTemplate, tokens)
-
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(questionTimeout))
 	defer cancel()
 
-	err = t.speak(questionPhrase)
+	err = t.speakQuestion()
 	if err != nil {
 		t.logger.Error("failed to speak question", zap.Error(err))
 		return
@@ -355,6 +345,35 @@ func (t *Trivia) speak(text string) error {
 	speaker := voice.NewDcaSpeaker(v)
 
 	return t.vm.Speak(speaker)
+}
+
+func (t *Trivia) speakMultiple(texts ...string) error {
+	for _, text := range texts {
+		err := t.speak(text)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *Trivia) speakQuestion() error {
+	tokens := map[string]string{
+		"MENTION": t.state.currentPlayer.Mention(),
+	}
+
+	var questionPhraseTemplate string
+	if t.state.previousPlayer != nil && t.state.currentPlayer.ID == t.state.previousPlayer.ID {
+		t.logger.Info("current player is previous player")
+		questionPhraseTemplate = util.RandomElement(messages.Messages.Trivia.CurrentPlayerNextQuestion)
+	} else {
+		t.logger.Info("current player is not previous player")
+		questionPhraseTemplate = util.RandomElement(messages.Messages.Trivia.NextPlayerQuestion)
+	}
+	questionPhrase := util.ApplyTokens(questionPhraseTemplate, tokens)
+
+	return t.speakMultiple(questionPhrase, t.state.currentQuestion.ForSpeaking())
 }
 
 func (t *Trivia) playGoodSound() error {

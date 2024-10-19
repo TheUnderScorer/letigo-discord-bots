@@ -16,25 +16,38 @@ type TwinTailsReminder struct {
 	Night []string `json:"night"`
 }
 
-type Answers struct {
-	Multiple []string `json:"multiple"`
-	Boolean  []string `json:"boolean"`
+type InvalidAnswers struct {
+	// Left part of sentence, usually containing mention of the person asked
+	MultipleLeft []string `json:"multipleLeft"`
+	// Right part of sentence, usually containing the answer
+	MultipleRight []string `json:"multipleRight"`
+	// Valid answer sentences for true/false questions
+	BooleanTrue []string `json:"booleanTrue"`
+	// Valid answer sentences for true/false questions
+	BooleanFalse []string `json:"booleanFalse"`
+}
+
+type ValidAnswers struct {
+	// Valid answer sentences for multiple choice questions
+	Multiple []string `json:"multipleLeft"`
+	// Valid answer sentences for true/false questions
+	Boolean []string `json:"boolean"`
 }
 
 type Trivia struct {
-	ValidAnswer               Answers  `json:"validAnswer"`
-	InvalidAnswer             Answers  `json:"invalidAnswer"`
-	NextPlayerQuestion        []string `json:"nextPlayerQuestion"`
-	CurrentPlayerNextQuestion []string `json:"currentPlayerNextQuestion"`
-	Start                     []string `json:"start"`
-	True                      string   `json:"true"`
-	False                     string   `json:"false"`
-	Answer                    string   `json:"answer"`
-	QuestionMessages          []string `json:"questionMessages"`
-	PickNextPlayer            string   `json:"pickNextPlayer"`
-	NoMoreQuestionsDraw       []string `json:"noMoreQuestionsDraw"`
-	NoMoreQuestionsNoWinner   []string `json:"noMoreQuestionsNoWinner"`
-	NoMoreQuestionsWinner     []string `json:"noMoreQuestionsWinner"`
+	ValidAnswer               ValidAnswers   `json:"validAnswer"`
+	InvalidAnswer             InvalidAnswers `json:"invalidAnswer"`
+	NextPlayerQuestion        []string       `json:"nextPlayerQuestion"`
+	CurrentPlayerNextQuestion []string       `json:"currentPlayerNextQuestion"`
+	Start                     []string       `json:"start"`
+	True                      string         `json:"true"`
+	False                     string         `json:"false"`
+	Answer                    string         `json:"answer"`
+	QuestionMessages          []string       `json:"questionMessages"`
+	PickNextPlayer            string         `json:"pickNextPlayer"`
+	NoMoreQuestionsDraw       []string       `json:"noMoreQuestionsDraw"`
+	NoMoreQuestionsNoWinner   []string       `json:"noMoreQuestionsNoWinner"`
+	NoMoreQuestionsWinner     []string       `json:"noMoreQuestionsWinner"`
 }
 
 type Player struct {

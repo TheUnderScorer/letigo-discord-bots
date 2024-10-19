@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/sashabaranov/go-openai"
@@ -116,28 +115,4 @@ func createMessages() (messages []openai.ThreadMessage, err error) {
 	}
 
 	return messages, err
-}
-
-func waitForThread(ctx context.Context, threadId string, runId string, client *openai.Client) error {
-	for {
-		run, err := client.RetrieveRun(ctx, threadId, runId)
-		if err != nil {
-			return err
-		}
-
-		switch run.Status {
-		case openai.RunStatusCompleted:
-			return nil
-
-		case openai.RunStatusFailed:
-			return errors.New(run.LastError.Message)
-		}
-
-		select {
-		case <-time.After(time.Second * 5):
-			continue
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
 }

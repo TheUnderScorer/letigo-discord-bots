@@ -16,6 +16,9 @@ var (
 	TrueFalse      QuestionType = "boolean"
 )
 
+const True = "Prawda"
+const False = "Fałsz"
+
 type QuestionDifficulty string
 
 var (
@@ -58,8 +61,12 @@ func (q *Question) GetValidAnswerMessages() (m []string) {
 	return m
 }
 
-func (q *Question) QuestionForSpeaking() string {
-	return strings.ReplaceAll(q.Question, "&quot;", "\"")
+// ForSpeaking returns the question in a format that can be spoken
+func (q *Question) ForSpeaking() string {
+	question := strings.ReplaceAll(q.Question, "&quot;", "\"")
+	question = strings.TrimSuffix(question, "?")
+
+	return question
 }
 
 func (q *Question) MarkdownQuestion() string {

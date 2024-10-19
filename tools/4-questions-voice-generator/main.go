@@ -54,12 +54,6 @@ func main() {
 		}
 	}
 
-	go func() {
-		wg.Add(1)
-		defer wg.Done()
-		generateMiscPhrases(ctx, client)
-	}()
-
 	length := len(questions)
 	for i, q := range questions {
 		go func() {
@@ -78,12 +72,25 @@ func main() {
 		}()
 	}
 
+	go func() {
+		wg.Add(1)
+		defer wg.Done()
+		generateMiscPhrases(ctx, client)
+	}()
+
 	wg.Wait()
 }
 
 func generateForQuestion(ctx context.Context, question *trivia.Question, client *tts2.Client) {
-	input := trivia.NewQuestionSentencesInput(question)
-	sentences := input.Sentences()
+	var sentences []string
+
+	if question.Type == trivia.MultipleChoice {
+		for _, m := range question.IncorrectAnswerMessages {
+			sentences = append(sentences, m)
+		}
+	}
+
+	sentences = append(sentences, question.ForSpeaking())
 
 	generateSentences(ctx, sentences, client)
 }
@@ -106,9 +113,16 @@ func generateMiscPhrases(ctx context.Context, client *tts2.Client) {
 	for _, friend := range discord.Friends {
 		var todoPhrases []string
 		todoPhrases = append(todoPhrases, messages.Messages.Trivia.NoMoreQuestionsWinner...)
+		todoPhrases = append(todoPhrases, messages.Messages.Trivia.InvalidAnswer.MultipleLeft...)
+		todoPhrases = append(todoPhrases, messages.Messages.Trivia.InvalidAnswer.BooleanTrue...)
+		todoPhrases = append(todoPhrases, messages.Messages.Trivia.InvalidAnswer.BooleanFalse...)
+		todoPhrases = append(todoPhrases, messages.Messages.Trivia.ValidAnswer.Boolean...)
+		todoPhrases = append(todoPhrases, messages.Messages.Trivia.NextPlayerQuestion...)
+		todoPhrases = append(todoPhrases, messages.Messages.Trivia.CurrentPlayerNextQuestion...)
 
 		tokens := map[string]string{
 			"MENTION": friend.Nickname,
+			"NAME":    friend.Nickname,
 		}
 
 		for _, phrase := range todoPhrases {

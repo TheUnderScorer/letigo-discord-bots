@@ -2,7 +2,6 @@ package opentdb
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"src-go/domain/trivia"
 )
@@ -52,17 +51,4 @@ func GetQuestions() ([]Question, error) {
 	}
 
 	return r.Results, nil
-}
-
-func GetQuestionsBytes() ([]byte, error) {
-	resp, err := client.Get(url)
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	bytes, err := io.ReadAll(resp.Body)
-
-	return bytes, err
 }

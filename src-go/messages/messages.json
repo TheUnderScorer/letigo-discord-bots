@@ -46,13 +46,13 @@
       "No dobrze, wygląda na to że skończyły nam się pytania. Mamy remis, gratulacje wybrancy, jesteście najmniejszymi dzbanami!"
     ],
     "nextPlayerQuestion": [
-      "No dobrze, {{NAME}}, kolej na Ciebie. Pytanie brzmi: {{QUESTION}}",
-      "{{NAME}}, twoja kolej. Pytanie brzmi: {{QUESTION}}",
-      "{{NAME}}, twoja kolej. {{QUESTION}}"
+      "No dobrze, {{NAME}}, kolej na Ciebie. Pytanie brzmi: ",
+      "{{NAME}}, twoja kolej. Pytanie brzmi: ",
+      "{{NAME}}, twoja kolej: "
     ],
     "currentPlayerNextQuestion": [
-      "{{NAME}}, kolejne pytanie dla Ciebie: {{QUESTION}}",
-      "Kolejne pytanie: {{QUESTION}}"
+      "{{NAME}}, kolejne pytanie dla Ciebie: ",
+      "Kolejne pytanie: "
     ],
     "start": [
       "Witamy w kolejnym odcinku jeden dzban z dziesięciu! Dzisiaj mamy {{MEMBERS_COUNT}} uczestników!"
@@ -75,15 +75,25 @@
       ]
     },
     "invalidAnswer": {
-      "multiple": [
-        "Kolego, nie masz racji. Oczywiście że odpowiedzią było: {{ANSWER}}",
-        "{{NAME}}, głupoty pierdolisz. Prawidłowa odpowiedź to: {{ANSWER}}",
+      "multipleLeft": [
+        "Kolego, nie masz racji.",
+        "{{NAME}}, głupoty pierdolisz.",
+        "Błąd."
+      ],
+      "multipleRight": [
+        "Oczywiście że odpowiedzią było: {{ANSWER}}",
+        "Prawidłowa odpowiedź to: {{ANSWER}}",
         "Niestety, chodziło o: {{ANSWER}}"
       ],
-      "boolean": [
-        "Kolego, nie masz racji. Odpowiedź to: {{ANSWER}}",
-        "{{NAME}}, głupoty pierdolisz. Prawidłowa odpowiedź to: {{ANSWER}}",
-        "Nie. Prawidłowa odpowiedź brzmi: {{ANSWER}}"
+      "booleanTrue": [
+        "Kolego, nie masz racji. To była prawda.",
+        "{{NAME}}, głupoty pierdolisz. Oczywiście że to prawda.",
+        "Nie. To akurat jest prawda."
+      ],
+      "booleanFalse": [
+        "Kolego, nie masz racji. To był fałsz.",
+        "{{NAME}}, głupoty pierdolisz. Oczywiście że to fałsz.",
+        "Nie. To akurat jest fałsz."
       ]
     }
   },

@@ -22,8 +22,8 @@ func HandleInteraction(context context.Context, cid string, i *discordgo.Interac
 		return errors.New("trivia manager is nil")
 	}
 
-	trivia := manager.Get(cid)
-	if trivia == nil {
+	trivia, ok := manager.Get(cid)
+	if !ok {
 		return errors.New("trivia is nil")
 	}
 

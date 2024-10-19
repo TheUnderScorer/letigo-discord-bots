@@ -9,6 +9,7 @@ import (
 	"sync"
 )
 
+// Manager manages trivias per voice channel
 type Manager struct {
 	mu      sync.Mutex
 	trivias map[string]*Trivia
@@ -24,8 +25,10 @@ func NewManager(tts *tts.Client) *Manager {
 	}
 }
 
-func (m *Manager) Get(channelID string) *Trivia {
-	return m.trivias[channelID]
+func (m *Manager) Get(channelID string) (*Trivia, bool) {
+	trivia, ok := m.trivias[channelID]
+
+	return trivia, ok
 }
 
 func (m *Manager) GetOrCreate(ctx context.Context, session *discordgo.Session, channelID string) (*Trivia, error) {
