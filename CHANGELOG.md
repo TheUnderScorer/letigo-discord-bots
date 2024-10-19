@@ -1,3 +1,10 @@
+## [2.8.2](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.8.1...v2.8.2) (2024-10-19)
+
+
+### Bug Fixes
+
+* use custom agent in ytdl ([0c79dfc](https://github.com/TheUnderScorer/letigo-discord-bots/commit/0c79dfcd0b52ec36e18f5c318b99a12909522e84))
+
 ## [2.8.1](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.8.0...v2.8.1) (2024-10-19)
 
 
