@@ -1,11 +1,18 @@
-import { createAudioResource, PlayerSubscription, VoiceConnectionStatus } from '@discordjs/voice';
+import {
+  createAudioResource,
+  PlayerSubscription,
+  VoiceConnectionStatus,
+} from '@discordjs/voice';
 import { VoiceChannel } from 'discord.js';
 import { PlayerSong } from './player.types';
 import ytdl from '@distube/ytdl-core';
+
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { Messages } from '../../../messages/messages';
 import { BotError } from '../../../shared/errors/BotError';
 import { findDesiredFormat } from './findDesiredFormat';
+
+import { getRandomIPv6 } from '@distube/ytdl-core/lib/utils';
 
 export interface PlayerQueueEvents {
   finished: (channel: VoiceChannel) => unknown;
@@ -52,7 +59,9 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
     let isPlaying = false;
 
     const state = this.playerState;
-    const info = await ytdl.getInfo(url);
+    const info = await ytdl.getInfo(url, {
+      agent: this.getAgent(),
+    });
 
     const bestFormat = findDesiredFormat(info);
 
@@ -116,6 +125,7 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
       // 32mb
       highWaterMark: 1 << 25,
       quality: song.format?.itag,
+      agent: this.getAgent(),
     });
 
     const { player } = this.playerSubscription;
@@ -148,5 +158,11 @@ export class ChannelPlayer extends TypedEmitter<PlayerQueueEvents> {
 
       await this.clearQueue();
     }
+  }
+
+  private getAgent() {
+    return ytdl.createAgent(undefined, {
+      localAddress: getRandomIPv6('2001:2::/48'),
+    } as any);
   }
 }
