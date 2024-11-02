@@ -1,6 +1,9 @@
 package main
 
 import (
+	"app/domain/trivia"
+	"app/messages"
+	"app/util"
 	"context"
 	"encoding/json"
 	"errors"
@@ -9,9 +12,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sashabaranov/go-openai"
 	"os"
-	"src-go/domain/trivia"
-	"src-go/messages"
-	"src-go/util"
 	"strconv"
 	"sync"
 	"time"

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"app/domain/trivia"
+	"app/messages"
+	"app/util"
 	"encoding/json"
 	"fmt"
 	"github.com/charmbracelet/log"
@@ -8,9 +11,6 @@ import (
 	"github.com/sashabaranov/go-openai"
 	"golang.org/x/net/context"
 	"os"
-	"src-go/domain/trivia"
-	"src-go/messages"
-	"src-go/util"
 	"strconv"
 	"time"
 	openai2 "tools/shared/openai"

@@ -6,10 +6,10 @@ RUN apt-get -y upgrade
 RUN apt-get install -y ffmpeg
 
 COPY go.work go.work.sum ./
-COPY src-go ./src-go
+COPY src ./src
 COPY tools ./tools
 RUN go mod download
 
-RUN cd src-go && CGO_ENABLED=0 GOOS=linux go build -o /src-go
+RUN cd src && CGO_ENABLED=0 GOOS=linux go build -o /src
 
 EXPOSE 8080

@@ -1,13 +1,13 @@
 package tts
 
 import (
+	"app/domain/tts"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path"
-	"src-go/domain/tts"
 )
 
 type Manifest map[string]ManifestEntry

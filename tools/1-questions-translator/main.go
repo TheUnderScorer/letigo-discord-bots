@@ -1,6 +1,9 @@
 package main
 
 import (
+	"app/domain/trivia"
+	"app/logging"
+	"app/util"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,9 +11,6 @@ import (
 	"github.com/sashabaranov/go-openai"
 	"go.uber.org/zap"
 	"os"
-	"src-go/domain/trivia"
-	"src-go/logging"
-	"src-go/util"
 	"time"
 	openai2 "tools/shared/openai"
 	"tools/shared/opentdb"

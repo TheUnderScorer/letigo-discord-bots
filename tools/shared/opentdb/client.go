@@ -1,9 +1,9 @@
 package opentdb
 
 import (
+	"app/domain/trivia"
 	"encoding/json"
 	"net/http"
-	"src-go/domain/trivia"
 )
 
 type Question struct {

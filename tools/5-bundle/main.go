@@ -1,6 +1,10 @@
 package main
 
 import (
+	"app/aws"
+	"app/domain/trivia"
+	"app/env"
+	util2 "app/util"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -12,10 +16,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"src-go/aws"
-	"src-go/domain/trivia"
-	"src-go/env"
-	util2 "src-go/util"
 	"strings"
 	"time"
 	"tools/shared/util"

@@ -4,7 +4,28 @@ on:
     branches:
       - '*'
 
+permissions:
+  contents: read
+  # Optional: allow read access to pull request. Use with `only-new-issues` option.
+  pull-requests: read
+
 jobs:
+  golangci-lint:
+    needs: detect-modules
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        modules: ${{ fromJSON(needs.detect-modules.outputs.modules) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: golangci-lint ${{ matrix.modules }}
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
+          working-directory: ${{ matrix.modules }}
   test:
     name: Run tests
     runs-on: ubuntu-latest
@@ -21,15 +42,8 @@ jobs:
         with:
           go-version: '1.23'
 
-      - name: Install npm dependencies
-        run: |
-          npm ci --prefix deploy && npx playwright install --with-deps
-
       - name: Build
-        run: go build src-go/main.go
-
-      - name: Lint
-        run: npm run lint
+        run: go build src/main.go
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -39,7 +53,7 @@ jobs:
           aws-region: eu-west-1
 
       - name: Test
-        run: npm run test
+        run: go test src
         env:
           DAILY_REPORT_CHANNEL_ID: ${{ secrets.DAILY_REPORT_CHANNEL_ID }}
           DAILY_REPORT_TARGET_USER_ID: ${{ secrets.DAILY_REPORT_TARGET_USER_ID }}

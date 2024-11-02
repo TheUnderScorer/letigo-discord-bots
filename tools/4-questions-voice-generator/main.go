@@ -1,6 +1,13 @@
 package main
 
 import (
+	"app/dca"
+	"app/discord"
+	"app/domain/trivia"
+	tts2 "app/domain/tts"
+	"app/env"
+	"app/messages"
+	util2 "app/util"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -10,13 +17,6 @@ import (
 	"github.com/joho/godotenv"
 	"io"
 	"os"
-	"src-go/dca"
-	"src-go/discord"
-	"src-go/domain/trivia"
-	tts2 "src-go/domain/tts"
-	"src-go/env"
-	"src-go/messages"
-	util2 "src-go/util"
 	"sync"
 	"time"
 	"tools/shared/util"

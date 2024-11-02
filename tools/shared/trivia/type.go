@@ -1,6 +1,6 @@
 package trivia
 
-import "src-go/domain/trivia"
+import "app/domain/trivia"
 
 func FigureOutType(q *trivia.Question) {
 	if q.Type != "" {

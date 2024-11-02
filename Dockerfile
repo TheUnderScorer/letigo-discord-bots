@@ -7,7 +7,7 @@ RUN apt-get -y upgrade
 RUN apt-get install -y ffmpeg
 
 COPY ./tools /app/tools
-COPY ./src-go /app/src-go
+COPY src /app/src
 COPY ./go.work ./go.work.sum /app/
 
 RUN go mod download
