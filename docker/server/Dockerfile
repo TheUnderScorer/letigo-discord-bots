@@ -12,4 +12,4 @@ RUN go mod download
 
 RUN cd src && CGO_ENABLED=0 GOOS=linux go build -o /src
 
-EXPOSE 8080
+EXPOSE 3000
