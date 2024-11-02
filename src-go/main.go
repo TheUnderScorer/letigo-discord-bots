@@ -83,7 +83,7 @@ func main() {
 		log.Fatal("failed to init scheduler", zap.Error(err))
 	}
 
-	err = r.Run(":8081")
+	err = r.Run(":3000")
 	if err != nil {
 		log.Fatal("failed to start server", zap.Error(err))
 	}
