@@ -27,7 +27,7 @@ func schedule(c *cron.Cron, name string, spec string, f func()) error {
 	_, err := c.AddFunc(spec, f)
 	if err != nil {
 		log.Error("failed to schedule job", zap.String("name", name), zap.String("spec", spec), zap.Error(err))
-		return errors.Join(err, errors.New(fmt.Sprintf("failed to schedule job %s", name)))
+		return errors.Join(err, fmt.Errorf("failed to schedule job %s", name))
 	}
 
 	return nil

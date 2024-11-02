@@ -19,7 +19,9 @@ func (d *DcaSpeaker) Speak(ctx context.Context, vc *discordgo.VoiceConnection) e
 	decoder := dca2.NewDecoder(d.voice)
 
 	err := vc.Speaking(true)
-	defer vc.Speaking(false)
+	defer func() {
+		_ = vc.Speaking(false)
+	}()
 	if err != nil {
 		return err
 	}

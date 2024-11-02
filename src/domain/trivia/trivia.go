@@ -14,7 +14,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -25,7 +24,6 @@ type Trivia struct {
 	vm              *voice.Manager
 	tts             *tts.Client
 	logger          *zap.Logger
-	speakerLock     sync.Mutex
 	state           *State
 	AnswerReceived  chan string
 	PlayerNominated chan *discordgo.User

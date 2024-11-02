@@ -1,6 +1,7 @@
 package trivia
 
 import (
+	context2 "app/context"
 	"app/domain/tts"
 	"app/logging"
 	"context"
@@ -16,7 +17,7 @@ type Manager struct {
 	tts     *tts.Client
 }
 
-var ManagerContextKey = "triviaManager"
+var ManagerContextKey = context2.Key("triviaManager")
 
 func NewManager(tts *tts.Client) *Manager {
 	return &Manager{

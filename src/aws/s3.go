@@ -1,13 +1,14 @@
 package aws
 
 import (
+	context2 "app/context"
 	"app/env"
 	"context"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"io"
 )
 
-const S3ContextKey = "S3"
+const S3ContextKey = context2.Key("S3")
 
 type S3 struct {
 	Client *s3.Client

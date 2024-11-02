@@ -23,7 +23,9 @@ func (b NonDcaSpeaker) Speak(ctx context.Context, vc *discordgo.VoiceConnection)
 	defer stream.Cleanup()
 
 	err = vc.Speaking(true)
-	defer vc.Speaking(false)
+	defer func() {
+		_ = vc.Speaking(false)
+	}()
 	if err != nil {
 		return err
 	}

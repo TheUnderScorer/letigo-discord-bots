@@ -152,8 +152,7 @@
       "na spokojnie koledzy, teraz czas na prawdziwy hicior \"{{SONG_NAME}}\"!",
       "nie wiem kto to dodał ale niech będzie, teraz poleci \"{{SONG_NAME}}\"!"
     ],
-    "availableCommands": "kolego tutaj mamy takie cos: {{COMMANDS}}, ale wiecej o tym nie chce mi sie pisac",
-    "failedToQueue": "kolego nie udało się puscic to"
+    "availableCommands": "kolego tutaj mamy takie cos: {{COMMANDS}}, ale wiecej o tym nie chce mi sie pisac"
   },
   "answers": [
     "who can say where the road goes",

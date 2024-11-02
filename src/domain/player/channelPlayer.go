@@ -1,6 +1,7 @@
 package player
 
 import (
+	"app/context"
 	"app/dca"
 	"app/discord"
 	"app/domain/voice"
@@ -33,7 +34,7 @@ type ChannelPlayer struct {
 	currentSong *Song
 }
 
-var ChannelPlayerContextKey = "channelPlayer"
+var ChannelPlayerContextKey = context.Key("channelPlayer")
 
 var logger = logging.Get().Named("channelPlayer")
 

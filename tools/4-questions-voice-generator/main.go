@@ -72,8 +72,9 @@ func main() {
 		}()
 	}
 
+	wg.Add(1)
+
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		generateMiscPhrases(ctx, client)
 	}()
@@ -85,9 +86,7 @@ func generateForQuestion(ctx context.Context, question *trivia.Question, client 
 	var sentences []string
 
 	if question.Type == trivia.MultipleChoice {
-		for _, m := range question.IncorrectAnswerMessages {
-			sentences = append(sentences, m)
-		}
+		sentences = append(sentences, question.IncorrectAnswerMessages...)
 	}
 
 	sentences = append(sentences, question.ForSpeaking())
@@ -102,7 +101,6 @@ func generateForQuestion(ctx context.Context, question *trivia.Question, client 
 func generateMiscPhrases(ctx context.Context, client *tts2.Client) {
 	var phrases []string
 
-	phrases = append(phrases)
 	phrases = append(phrases, messages.Messages.Trivia.NoMoreQuestionsDraw...)
 	phrases = append(phrases, messages.Messages.Trivia.NoMoreQuestionsNoWinner...)
 

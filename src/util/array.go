@@ -38,6 +38,7 @@ func RandomElements[T any](arr []T, count int) []T {
 // IsValidArray checks if the provided array is non-nil and has a length greater than zero.
 // It returns true if the array is valid, otherwise false.
 func IsValidArray[T any](arr []T) bool {
+	//nolint:all
 	return arr != nil && len(arr) > 0
 }
 
