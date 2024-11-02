@@ -12,6 +12,7 @@ import (
 	"src-go/domain"
 	"src-go/domain/interaction"
 	"src-go/domain/player"
+	"src-go/domain/scheduler"
 	"src-go/domain/trivia"
 	"src-go/domain/tts"
 	"src-go/env"
@@ -76,6 +77,11 @@ func main() {
 
 	interaction.Init(ctx)
 	go domain.Init(ctx)
+
+	err = scheduler.Init(ctx)
+	if err != nil {
+		log.Fatal("failed to init scheduler", zap.Error(err))
+	}
 
 	err = r.Run(":8081")
 	if err != nil {
