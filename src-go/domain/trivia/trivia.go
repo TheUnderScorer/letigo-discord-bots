@@ -273,10 +273,14 @@ func (t *Trivia) finish() {
 		t.logger.Error("failed to speak winner", zap.Error(err))
 	}
 
-	discord.SendMessageAndForget(t.session, t.channelID, t.state.GetPointsMessageContents())
+	t.SendPointsMessage()
 
 	t.isStarted = false
 	t.Dispose()
+}
+
+func (t *Trivia) SendPointsMessage() {
+	discord.SendMessageAndForget(t.session, t.channelID, t.state.GetPointsMessageContents())
 }
 
 func (t *Trivia) handleIncorrectAnswer() {

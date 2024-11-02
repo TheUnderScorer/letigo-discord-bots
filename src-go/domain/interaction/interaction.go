@@ -13,6 +13,7 @@ import (
 type Command string
 type DjSubCommand string
 type DjQueueOption string
+type TriviaSubCommand string
 
 const (
 	CommandDj     Command = "dj"
@@ -25,6 +26,9 @@ const (
 	DjSubCommandClearQueue DjSubCommand = "wyczysc-kolejke"
 	DjSubCommandQueue      DjSubCommand = "dodaj"
 	DjSubCommandPlayer     DjSubCommand = "odtwarzacz"
+
+	TriviaSubCommandStart  TriviaSubCommand = "start"
+	TriviaSubCommandPoints TriviaSubCommand = "punkty"
 
 	DjQueueOptionSong DjQueueOption = "piosenka"
 )

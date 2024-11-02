@@ -20,8 +20,20 @@ var commands = map[bots.BotName][]*discordgo.ApplicationCommand{
 	bots.BotNameTadeuszSznuk: {
 		{
 			Name:        string(CommandTrivia),
-			Description: "Rozpocznij Jeden z dziesięciu (beta).",
+			Description: "Jeden z dziesięciu (beta).",
 			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        string(TriviaSubCommandStart),
+					Description: "Rozpocznij 1 dzban z 10 (beta).",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
+				{
+					Name:        string(TriviaSubCommandPoints),
+					Description: "Pokaż ilość punktów.",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
+			},
 		},
 	},
 	bots.BotNameWojciech: {
@@ -86,7 +98,10 @@ var commandHandlers = map[bots.BotName]CommandHandlers{
 			var err error
 			defer ReplyToError(err, s, i.Interaction)
 
-			go discord.StartLoadingInteractionAndForget(s, i.Interaction)
+			discord.StartLoadingInteractionAndForget(s, i.Interaction)
+
+			options := i.ApplicationCommandData().Options
+			log.Info("handling trivia command", zap.Any("options", options))
 
 			channel, err := s.Channel(i.ChannelID)
 			if err != nil {
@@ -118,11 +133,19 @@ var commandHandlers = map[bots.BotName]CommandHandlers{
 				return
 			}
 
-			err = trivia.Start()
+			switch options[0].Name {
+			case string(TriviaSubCommandStart):
+				err = trivia.Start()
 
-			logger.Info("started trivia")
+				logger.Info("started trivia")
 
-			if err == nil {
+				if err == nil {
+					discord.DeleteFollowupAndForget(s, i.Interaction)
+				}
+
+			case string(TriviaSubCommandPoints):
+				trivia.SendPointsMessage()
+
 				discord.DeleteFollowupAndForget(s, i.Interaction)
 			}
 		},
