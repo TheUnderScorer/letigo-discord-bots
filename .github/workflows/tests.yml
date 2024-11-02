@@ -64,7 +64,7 @@ jobs:
           aws-region: eu-west-1
 
       - name: Test
-        run: go test src
+        run: go test app
         env:
           DAILY_REPORT_CHANNEL_ID: ${{ secrets.DAILY_REPORT_CHANNEL_ID }}
           DAILY_REPORT_TARGET_USER_ID: ${{ secrets.DAILY_REPORT_TARGET_USER_ID }}

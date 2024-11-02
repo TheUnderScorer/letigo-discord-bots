@@ -62,7 +62,7 @@ jobs:
         run: go build src/main.go
 
       - name: Test
-        run: go test src
+        run: go test app
 
       - name: Release
         env:
