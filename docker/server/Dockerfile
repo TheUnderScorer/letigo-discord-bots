@@ -3,13 +3,18 @@ WORKDIR /app
 
 RUN apt-get -y update
 RUN apt-get -y upgrade
-RUN apt-get install -y ffmpeg
+RUN apt-get install -y ffmpeg jq
 
+COPY package.json ./
+COPY scripts ./scripts
 COPY go.work go.work.sum ./
 COPY src ./src
 COPY tools ./tools
+
 RUN go mod download
 
-RUN cd src && CGO_ENABLED=0 GOOS=linux go build -o /src
+RUN cd src && bash ../scripts/build-prod.sh && cd ..
 
 EXPOSE 3000
+
+CMD ["./src/app"]

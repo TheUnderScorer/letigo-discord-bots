@@ -18,6 +18,14 @@ services:
     network_mode: host
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  prod:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: ./docker/server/Dockerfile
+    ports:
+      - "3000:3000"
   devcontainer:
     build:
      context: .
