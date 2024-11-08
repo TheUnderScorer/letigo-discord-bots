@@ -1,3 +1,11 @@
+# [2.9.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.8.2...v2.9.0) (2024-11-08)
+
+
+### Features
+
+* Add "1 dzban z dziesieciu" in beta ([62f7243](https://github.com/TheUnderScorer/letigo-discord-bots/commit/62f724332a822c9fd9378b06391e99374971974b))
+* use GO lang ([a665cbf](https://github.com/TheUnderScorer/letigo-discord-bots/commit/a665cbf0f7b2dbc6a4d26032a1892f2285db004c))
+
 ## [2.8.2](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.8.1...v2.8.2) (2024-10-19)
 
 
