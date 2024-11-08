@@ -124,3 +124,10 @@ dist
 
 # Compiled code
 lib/
+
+# Python
+**/.venv
+**/venv
+.tts
+
+tools/**/result/**

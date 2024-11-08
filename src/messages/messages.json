@@ -29,6 +29,86 @@
     ]
   },
   "invalidUrl": "kolego co ty mi tu za bledne linki przesylasz",
+  "trivia": {
+    "pointsSummary": "Suma punktów:",
+    "true": "Prawda",
+    "false": "Fałsz",
+    "answer": "Odpowiedź",
+    "questionMessages": [
+      "{{MENTION}} pytanie brzmi: {{QUESTION}}"
+    ],
+    "noMoreQuestionsWinner": [
+      "No dobrze, wygląda na to że skończyły nam się pytania. Gratulacje {{MENTION}}, jesteś najmniejszym dzbanem!"
+    ],
+    "noMoreQuestionsNoWinner": [
+      "No dobrze, wygląda na to że skończyły nam się pytania. Niestety, zwycięzcy brak, co oznacza że wszyscy jesteście dzbanami."
+    ],
+    "noMoreQuestionsDraw": [
+      "No dobrze, wygląda na to że skończyły nam się pytania. Mamy remis, gratulacje wybrancy, jesteście najmniejszymi dzbanami!"
+    ],
+    "nextPlayerQuestion": [
+      "No dobrze, {{NAME}}, kolej na Ciebie. Pytanie brzmi: ",
+      "{{NAME}}, twoja kolej. Pytanie brzmi: ",
+      "{{NAME}}, twoja kolej: "
+    ],
+    "currentPlayerNextQuestion": [
+      "{{NAME}}, kolejne pytanie dla Ciebie: ",
+      "Kolejne pytanie: "
+    ],
+    "start": [
+      "Witamy w kolejnym odcinku jeden dzban z dziesięciu! Dzisiaj mamy {{MEMBERS_COUNT}} uczestników!"
+    ],
+    "pickNextPlayer": "{{MENTION}}, wybierz następnego uczestnika lub siebie.",
+    "validAnswer": {
+      "multiple": [
+        "Tak.",
+        "To racja.",
+        "To się zgadza.",
+        "Zgadza się.",
+        "Jak najbardziej, jeszcze jak.",
+        "{{NAME}}, masz rację.",
+        "Tak, to dobra odpowiedź."
+      ],
+      "boolean": [
+        "Tak, kolego!",
+        "Tak.",
+        "To racja.",
+        "Jak najbardziej, jeszcze jak.",
+        "To się zgadza.",
+        "Zgadza się.",
+        "{{NAME}}, masz rację.",
+        "Tak, to dobra odpowiedź."
+      ]
+    },
+    "invalidAnswer": {
+      "multipleLeft": [
+        "No tak średnio bym powiedział.",
+        "Kolego, nie masz racji.",
+        "{{NAME}}, głupoty pierdolisz.",
+        "Błąd.",
+        "Otóż nie."
+      ],
+      "multipleRight": [
+        "Oczywiście że odpowiedzią było: {{ANSWER}}",
+        "Prawidłowa odpowiedź to: {{ANSWER}}",
+        "Niestety, chodziło o: {{ANSWER}}"
+      ],
+      "booleanTrue": [
+        "Kolego, nie masz racji. To była prawda.",
+        "No tak średnio bym powiedział. To była prawda.",
+        "{{NAME}}, głupoty pierdolisz. Oczywiście że to prawda.",
+        "Nie. To akurat jest prawda.",
+        "Otóż nie. To była prawda."
+      ],
+      "booleanFalse": [
+        "Kolego, nie masz racji. To był fałsz.",
+        "{{NAME}}, głupoty pierdolisz. Oczywiście że to fałsz.",
+        "Nie. To akurat jest fałsz.",
+        "No tak średnio bym powiedział. To był fałsz.",
+        "Otóż nie. To był fałsz."
+      ]
+    }
+  },
   "player": {
     "noMoreSongs": "kolego nie ma nic wiecej w kolejce, moze dodaj cos??",
     "clearedQueue": "dobra kolego kolejka wyczyszczona",

@@ -36,8 +36,8 @@ const containerService = new aws.lightsail.ContainerService(serviceName, {
 
 const port = 3000;
 const containerEnvKeys = [
-  'BOT_TOKEN',
-  'APP_ID',
+  'WOJCIECH_BOT_TOKEN',
+  'WOJCIECH_BOT_APP_ID',
   'PUBLIC_KEY',
   'DAILY_REPORT_CHANNEL_ID',
   'DAILY_REPORT_TARGET_USER_ID',
