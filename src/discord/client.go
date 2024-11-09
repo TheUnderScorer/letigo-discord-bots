@@ -9,6 +9,10 @@ import (
 var log = logging.Get().Named("discord")
 
 func NewClient(token string) *discordgo.Session {
+	if token == "" {
+		log.Fatal("token is empty")
+	}
+
 	discord, err := discordgo.New("Bot " + token)
 
 	if err != nil {

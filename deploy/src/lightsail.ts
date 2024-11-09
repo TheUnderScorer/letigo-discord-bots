@@ -37,6 +37,8 @@ const containerService = new aws.lightsail.ContainerService(serviceName, {
 const port = 3000;
 const containerEnvKeys = [
   'WOJCIECH_BOT_TOKEN',
+  'TADEUSZ_BOT_APP_ID',
+  'TADEUSZ_BOT_TOKEN',
   'WOJCIECH_BOT_APP_ID',
   'PUBLIC_KEY',
   'DAILY_REPORT_CHANNEL_ID',
@@ -49,6 +51,7 @@ const containerEnvKeys = [
 const containerEnv = containerEnvKeys.reduce((acc, key) => {
   return {
     ...acc,
+    GIN_MODE: 'release',
     [key]: process.env[key] as string,
   };
 }, {});

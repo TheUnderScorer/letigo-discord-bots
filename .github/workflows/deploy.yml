@@ -42,6 +42,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           WOJCIECH_BOT_APP_ID: ${{ secrets.WOJCIECH_BOT_APP_ID }}
+          TADEUSZ_BOT_TOKEN: ${{ secrets.TADEUSZ_BOT_TOKEN }}
+          TADEUSZ_BOT_APP_ID: ${{ secrets.TADEUSZ_BOT_APP_ID }}
           GUILD_ID: ${{ secrets.GUILD_ID }}
           WOJCIECH_BOT_TOKEN: ${{ secrets.WOJCIECH_BOT_TOKEN }}
           DAILY_REPORT_CHANNEL_ID: ${{ secrets.DAILY_REPORT_CHANNEL_ID }}
