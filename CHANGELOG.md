@@ -1,3 +1,20 @@
+# [2.10.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.9.0...v2.10.0) (2024-11-14)
+
+
+### Bug Fixes
+
+* don't panic when command fails to create ([232cecf](https://github.com/TheUnderScorer/letigo-discord-bots/commit/232cecfadf3ffe2bc1982d10664a8dda980cb91b))
+
+
+### Features
+
+* add endpoint for registering interactions ([f2f75bd](https://github.com/TheUnderScorer/letigo-discord-bots/commit/f2f75bd2fef1d97d10f74623450f76dc4fa5f3ab))
+
+
+### Performance Improvements
+
+* init interactions in separate go routine ([c0ecd75](https://github.com/TheUnderScorer/letigo-discord-bots/commit/c0ecd75db60f7cfc61d6e6febb8ff18a035c7260))
+
 # [2.9.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.8.2...v2.9.0) (2024-11-08)
 
 
