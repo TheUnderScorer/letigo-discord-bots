@@ -9,13 +9,16 @@ var logger *zap.Logger
 
 func Init() {
 	var err error
+	var cfg zap.Config
 
 	if env.IsProd() {
-		logger, err = zap.NewProduction()
+		cfg = zap.NewProductionConfig()
+		cfg.OutputPaths = []string{"out.log", "stderr"}
 	} else {
-		logger, err = zap.NewDevelopment()
+		cfg = zap.NewDevelopmentConfig()
 	}
 
+	logger, err = cfg.Build()
 	if err != nil {
 		panic(err)
 	}
