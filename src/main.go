@@ -75,7 +75,7 @@ func main() {
 	ctx = context.WithValue(ctx, bots.BotNameWojciech, bots.NewBot(bots.BotNameWojciech, env.Env.WojciechBotToken))
 	ctx = context.WithValue(ctx, bots.BotNameTadeuszSznuk, bots.NewBot(bots.BotNameTadeuszSznuk, env.Env.TadeuszBotToken))
 
-	interaction.Init(ctx)
+	go interaction.Init(ctx)
 	go domain.Init(ctx)
 
 	err = scheduler.Init(ctx)
