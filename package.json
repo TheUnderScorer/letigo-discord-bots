@@ -14,7 +14,8 @@
   "license": "MIT",
   "devDependencies": {
     "@semantic-release/changelog": "6.0.1",
-    "@semantic-release/git": "10.0.1",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "8.0.4",
     "@semantic-release/npm": "9.0.1",
     "commitizen": "4.2.4",
@@ -53,6 +54,12 @@
       ],
       "@semantic-release/npm",
       [
+        "@semantic-release/exec",
+        {
+          "publishCmd": "cd src && bash ../scripts/build-prod.sh && mv app app_linux && cd .."
+        }
+      ],
+      [
         "@semantic-release/git",
         {
           "assets": [
@@ -62,7 +69,14 @@
           ]
         }
       ],
-      "@semantic-release/github"
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            { "path": "src/app_linux", "label": "Linux build" }
+          ]
+        }
+      ]
     ]
   }
 }
