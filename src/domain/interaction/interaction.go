@@ -47,7 +47,7 @@ func Init(ctx context.Context) {
 		for _, v := range commands {
 			cmd, err := bot.Session.ApplicationCommandCreate(bot.Session.State.User.ID, env.Env.GuildId, v)
 			if err != nil {
-				logger.Fatal("failed to create command", zap.String("command", v.Name), zap.Error(err))
+				logger.Error("failed to create command", zap.String("command", v.Name), zap.Error(err))
 			}
 			registeredCommands = append(registeredCommands, cmd)
 		}
