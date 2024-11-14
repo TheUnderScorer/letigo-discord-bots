@@ -18,7 +18,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
-	"time"
 )
 
 var version string
@@ -56,16 +55,6 @@ func main() {
 	ctx = context.WithValue(ctx, bots.BotNameTadeuszSznuk, bots.NewBot(bots.BotNameTadeuszSznuk, env.Env.TadeuszBotToken))
 
 	app.Use(gin.Recovery())
-	app.Use(func(c *gin.Context) {
-		start := time.Now()
-
-		c.Next()
-
-		end := time.Now()
-		duration := end.Sub(start)
-
-		log.Info("Processed request", zap.String("method", c.Request.Method), zap.String("path", c.Request.URL.Path), zap.Int("status", c.Writer.Status()), zap.Duration("duration", duration))
-	})
 
 	server.CreateRouter(ctx, app, version)
 
