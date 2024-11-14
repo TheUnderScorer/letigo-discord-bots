@@ -1,3 +1,15 @@
+# [2.11.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.10.0...v2.11.0) (2024-11-14)
+
+
+### Bug Fixes
+
+* remove logs for processed requests ([d953da6](https://github.com/TheUnderScorer/letigo-discord-bots/commit/d953da6f3307e6165d57f0eb11ff612c811b2854))
+
+
+### Features
+
+* add linux build to release ([d75ef58](https://github.com/TheUnderScorer/letigo-discord-bots/commit/d75ef5837db82368099fd6f565ecd9088048f568))
+
 # [2.10.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.9.0...v2.10.0) (2024-11-14)
 
 

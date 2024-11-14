@@ -1,6 +1,6 @@
 {
   "name": "letigo-discord-bots",
-  "version": "2.10.0",
+  "version": "2.11.0",
   "description": "Bots for letigo group",
   "private": true,
   "scripts": {
@@ -73,7 +73,10 @@
         "@semantic-release/github",
         {
           "assets": [
-            { "path": "src/app_linux", "label": "Linux build" }
+            {
+              "path": "src/app_linux",
+              "label": "Linux build"
+            }
           ]
         }
       ]
