@@ -10,4 +10,6 @@ COPY ./tools /app/tools
 COPY src /app/src
 COPY ./go.work ./go.work.sum /app/
 
+EXPOSE 3000
+
 RUN go mod download

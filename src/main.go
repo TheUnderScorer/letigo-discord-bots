@@ -12,13 +12,12 @@ import (
 	"app/env"
 	"app/logging"
 	"app/messages"
-	"app/server/responses"
+	"app/server"
 	"context"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
-	"net/http"
 	"time"
 )
 
@@ -35,30 +34,11 @@ func main() {
 	env.Init()
 	messages.Init()
 
-	r := gin.New()
+	app := gin.New()
 
 	if env.IsProd() {
 		gin.SetMode(gin.ReleaseMode)
 	}
-
-	r.Use(gin.Recovery())
-	r.Use(func(c *gin.Context) {
-		start := time.Now()
-
-		c.Next()
-
-		end := time.Now()
-		duration := end.Sub(start)
-
-		log.Info("Processed request", zap.String("method", c.Request.Method), zap.String("path", c.Request.URL.Path), zap.Int("status", c.Writer.Status()), zap.Duration("duration", duration))
-	})
-
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, &responses.VersionInfo{
-			Version: version,
-			Result:  true,
-		})
-	})
 
 	ttsClient := tts.NewClient()
 	cfg, err := aws.NewConfig(context.Background())
@@ -75,6 +55,20 @@ func main() {
 	ctx = context.WithValue(ctx, bots.BotNameWojciech, bots.NewBot(bots.BotNameWojciech, env.Env.WojciechBotToken))
 	ctx = context.WithValue(ctx, bots.BotNameTadeuszSznuk, bots.NewBot(bots.BotNameTadeuszSznuk, env.Env.TadeuszBotToken))
 
+	app.Use(gin.Recovery())
+	app.Use(func(c *gin.Context) {
+		start := time.Now()
+
+		c.Next()
+
+		end := time.Now()
+		duration := end.Sub(start)
+
+		log.Info("Processed request", zap.String("method", c.Request.Method), zap.String("path", c.Request.URL.Path), zap.Int("status", c.Writer.Status()), zap.Duration("duration", duration))
+	})
+
+	server.CreateRouter(ctx, app, version)
+
 	go interaction.Init(ctx)
 	go domain.Init(ctx)
 
@@ -83,7 +77,7 @@ func main() {
 		log.Fatal("failed to init scheduler", zap.Error(err))
 	}
 
-	err = r.Run(":3000")
+	err = app.Run(":3000")
 	if err != nil {
 		log.Fatal("failed to start server", zap.Error(err))
 	}
