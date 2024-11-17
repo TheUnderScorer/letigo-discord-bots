@@ -12,6 +12,7 @@ import (
 	"app/env"
 	"app/logging"
 	"app/messages"
+	"app/metadata"
 	"app/server"
 	"context"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -19,8 +20,6 @@ import (
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 )
-
-var version string
 
 var log = logging.Get().Named("server")
 
@@ -56,7 +55,7 @@ func main() {
 
 	app.Use(gin.Recovery())
 
-	server.CreateRouter(ctx, app, version)
+	server.CreateRouter(ctx, app, metadata.GetVersion())
 
 	go interaction.Init(ctx)
 	go domain.Init(ctx)
