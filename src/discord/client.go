@@ -25,6 +25,7 @@ func NewClient(token string) *discordgo.Session {
 	if err != nil {
 		log.Fatal("failed to open discord connection", zap.Error(err))
 	}
+	log.Info("discord connection opened")
 
 	return discord
 }
