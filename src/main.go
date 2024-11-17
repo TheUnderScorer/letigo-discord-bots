@@ -24,6 +24,9 @@ import (
 var log = logging.Get().Named("server")
 
 func main() {
+	log.Info("Booting app")
+	log.Info("App version", zap.String("version", metadata.GetVersion()))
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Warn("error loading .env file", zap.Error(err))

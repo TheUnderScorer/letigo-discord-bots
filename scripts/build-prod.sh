@@ -16,4 +16,4 @@ fi
 echo "Building with version: $VERSION"
 
 # Build the Go application
-CGO_ENABLED=0 GOOS=linux go build -ldflags "-X main.version=${VERSION}" -o ./app
+CGO_ENABLED=0 GOOS=linux go build -ldflags "-X app/metadata.Version=${VERSION}" -o ./app
