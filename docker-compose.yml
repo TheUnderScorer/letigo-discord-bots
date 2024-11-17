@@ -21,6 +21,7 @@ services:
   prod:
     environment:
       GO_ENV: production
+      GIN_MODE: release
     env_file:
       - .env
     build:
