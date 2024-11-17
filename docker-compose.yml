@@ -19,6 +19,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
   prod:
+    environment:
+      GO_ENV: production
     env_file:
       - .env
     build:
