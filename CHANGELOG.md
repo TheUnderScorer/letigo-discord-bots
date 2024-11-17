@@ -1,3 +1,10 @@
+# [2.12.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.11.0...v2.12.0) (2024-11-17)
+
+
+### Features
+
+* add logging to file ([3f664e2](https://github.com/TheUnderScorer/letigo-discord-bots/commit/3f664e27ceb510fb2076553f25a103fc9c2eeee7))
+
 # [2.11.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.10.0...v2.11.0) (2024-11-14)
 
 
