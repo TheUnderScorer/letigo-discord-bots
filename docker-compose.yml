@@ -28,6 +28,8 @@ services:
       dockerfile: ./docker/server/Dockerfile
     ports:
       - "3000:3000"
+    volumes:
+      - ./out.log:/app/out.log
   devcontainer:
     build:
      context: .
