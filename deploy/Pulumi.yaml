@@ -1,5 +1,0 @@
-name: wojciech-discord-bot
-runtime: nodejs
-description: Wojciech Bot, duh
-config:
-  aws:region: eu-west-1
