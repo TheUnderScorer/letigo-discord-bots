@@ -1,3 +1,10 @@
+# [2.13.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.12.0...v2.13.0) (2024-11-24)
+
+
+### Features
+
+* add logging to scheduler ([15ce228](https://github.com/TheUnderScorer/letigo-discord-bots/commit/15ce228fdb2ca54d77c98caaa04a7c39c5b3d6e7))
+
 # [2.12.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.11.0...v2.12.0) (2024-11-17)
 
 
