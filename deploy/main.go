@@ -74,7 +74,7 @@ func stopService() {
 }
 
 func runDockerComposeCommand() {
-	cmd := exec.Command("docker", "compose", "--build", "up", "-d", service)
+	cmd := exec.Command("docker", "compose", "up", "--build", "-d", service)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
