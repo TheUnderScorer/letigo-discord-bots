@@ -15,6 +15,9 @@ func main() {
 	currentVersion := getCurrentVersion()
 	runningVersion := getRunningVersion()
 
+	log.Infof("current version: %s", currentVersion)
+	log.Infof("running version: %s", runningVersion)
+
 	if currentVersion == runningVersion {
 		log.Info("version is up to date")
 		return
@@ -31,12 +34,12 @@ func getCurrentVersion() string {
 
 	file, err := os.Open("../package.json")
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to open package.json: %s", err)
 	}
 
 	err = json.NewDecoder(file).Decode(&packageJson)
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to decode package.json: %s", err)
 	}
 
 	return packageJson.Version
@@ -46,12 +49,12 @@ func getRunningVersion() string {
 	var result responses.VersionInfo
 	response, err := http.Get("http://localhost:3000")
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to get version: %s", err)
 	}
 
 	err = json.NewDecoder(response.Body).Decode(&result)
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to decode version: %s", err)
 	}
 
 	return result.Version
@@ -64,7 +67,7 @@ func stopService() {
 
 	err := cmd.Run()
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to stop service: %s", err)
 	}
 }
 
@@ -75,6 +78,6 @@ func runDockerComposeCommand() {
 
 	err := cmd.Run()
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to run docker compose command: %s", err)
 	}
 }
