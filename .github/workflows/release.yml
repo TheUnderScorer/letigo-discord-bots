@@ -59,7 +59,7 @@ jobs:
 
       - name: Install npm dependencies
         run: |
-          npm ci && npm ci --prefix deploy
+          npm ci
 
       - name: Build
         run: go build src/main.go
