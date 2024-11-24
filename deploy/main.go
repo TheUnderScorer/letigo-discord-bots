@@ -69,6 +69,8 @@ func stopService() {
 	if err != nil {
 		log.Fatalf("failed to stop service: %s", err)
 	}
+
+	log.Info("service stopped")
 }
 
 func runDockerComposeCommand() {
@@ -80,4 +82,6 @@ func runDockerComposeCommand() {
 	if err != nil {
 		log.Fatalf("failed to run docker compose command: %s", err)
 	}
+
+	log.Info("service started")
 }
