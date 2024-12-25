@@ -10,6 +10,7 @@ COPY scripts ./scripts
 COPY go.work go.work.sum ./
 COPY src ./src
 COPY tools ./tools
+COPY deploy ./deploy
 
 RUN go mod download
 
