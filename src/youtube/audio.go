@@ -19,7 +19,10 @@ func findBestFormat(formats yt.FormatList) *yt.Format {
 		}
 	}
 
-	return nil
+	fallback := formats[0]
+	logger.Warn("opus format not found, using first one as fallback", zap.Any("format", fallback))
+
+	return &fallback
 }
 
 func GetAudioURL(videoID string) (string, *yt.Format, error) {
