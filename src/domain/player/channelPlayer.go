@@ -247,12 +247,12 @@ func (p *ChannelPlayer) Queue() []*Song {
 func (p *ChannelPlayer) AddToQueue(url string, userID string) (int, error) {
 	info, err := ytClient.GetVideo(url)
 	if err != nil {
-		return 0, err
+		return 0, errors2.Wrap(err, "failed to get video")
 	}
 
 	streamUrl, format, err := youtube.GetAudioURL(info.ID)
 	if err != nil {
-		return 0, err
+		return 0, errors2.Wrap(err, "failed to get audio url")
 	}
 
 	song := &Song{
