@@ -1,3 +1,10 @@
+## [2.13.1](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.13.0...v2.13.1) (2024-12-27)
+
+
+### Bug Fixes
+
+* use fallback format if opus is not found ([80cc9ea](https://github.com/TheUnderScorer/letigo-discord-bots/commit/80cc9ea75b446124e45fc2fa9826b5bd23813a7e))
+
 # [2.13.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.12.0...v2.13.0) (2024-11-24)
 
 
