@@ -15,7 +15,7 @@ import (
 var log = logging.Get().Named("DailyGreeting")
 
 func DailyGreeting(ctx context.Context) {
-	cid := env.Env.DailyReportChannelId
+	cid := env.Env.GreetingChannelId
 	if cid == "" {
 		log.Error("no daily report channel id set")
 		return
