@@ -1,3 +1,10 @@
+## [2.13.2](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.13.1...v2.13.2) (2025-03-05)
+
+
+### Bug Fixes
+
+* use correct channel for greeting ([3f41279](https://github.com/TheUnderScorer/letigo-discord-bots/commit/3f412796517e0032adbc87e60fbdc62145f547b4))
+
 ## [2.13.1](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.13.0...v2.13.1) (2024-12-27)
 
 
