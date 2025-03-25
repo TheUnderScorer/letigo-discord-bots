@@ -24,7 +24,7 @@ func Init(container *Container) {
 		session := bot.Session
 
 		session.AddHandler(func(s *discordgo.Session, m *discordgo.InteractionCreate) {
-			go interaction.Handle(s, bot.Name, m, container.CommandsContainer)
+			interaction.Handle(s, bot.Name, m, container.CommandsContainer)
 		})
 
 		session.AddHandler(func(s *discordgo.Session, r *discordgo.GuildMembersChunk) {
@@ -44,6 +44,6 @@ func Init(container *Container) {
 
 func InitWojciechBot(session *discordgo.Session, manager *chat.Manager, llmApi *llm.API) {
 	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		go chat.HandleMessageCreate(manager, llmApi, m)
+		chat.HandleMessageCreate(manager, llmApi, m)
 	})
 }

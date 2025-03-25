@@ -14,6 +14,7 @@ func NewClient(token string) *discordgo.Session {
 	}
 
 	discord, err := discordgo.New("Bot " + token)
+	discord.SyncEvents = false
 
 	if err != nil {
 		log.Fatal("failed to init discordgo", zap.Error(err))
