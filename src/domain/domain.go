@@ -44,6 +44,6 @@ func Init(container *Container) {
 
 func InitWojciechBot(session *discordgo.Session, manager *chat.Manager, llmApi *llm.API) {
 	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		chat.HandleMessageCreate(manager, llmApi, m)
+		go chat.HandleMessageCreate(manager, llmApi, m)
 	})
 }
