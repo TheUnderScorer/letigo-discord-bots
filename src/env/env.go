@@ -18,6 +18,9 @@ type appEnv struct {
 	YouTubeApiKey           string `env:"YT_API_KEY"`
 	TTSHost                 string `env:"TTS_HOST"`
 	S3Bucket                string `env:"S3_BUCKET"`
+	GPTServerHost           string `env:"GPT_SERVER_HOST"`
+	OllamaHost              string `env:"OLLAMA_HOST"`
+	OllamaModel             string `env:"OLLAMA_MODEL"`
 }
 
 var Env appEnv

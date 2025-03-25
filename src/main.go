@@ -4,12 +4,15 @@ import (
 	"app/aws"
 	"app/bots"
 	"app/domain"
+	"app/domain/chat"
 	"app/domain/interaction"
 	"app/domain/player"
 	"app/domain/scheduler"
 	"app/domain/trivia"
 	"app/domain/tts"
 	"app/env"
+	"app/health"
+	"app/llm"
 	"app/logging"
 	"app/messages"
 	"app/metadata"
@@ -19,6 +22,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
+	"math/rand"
+	"net/http"
+	"net/url"
+	"time"
 )
 
 var log = logging.Get().Named("server")
@@ -31,6 +38,8 @@ func main() {
 	if err != nil {
 		log.Warn("error loading .env file", zap.Error(err))
 	}
+
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	env.Init()
 	messages.Init()
@@ -52,6 +61,20 @@ func main() {
 	ctx = context.WithValue(ctx, trivia.ManagerContextKey, trivia.NewManager(ttsClient))
 	ctx = context.WithValue(ctx, aws.S3ContextKey, aws.NewS3(s3Client))
 
+	httpClient := &http.Client{
+		Timeout: time.Minute * 5,
+	}
+
+	// Chat
+	ollamaUrl, err := url.Parse(env.Env.OllamaHost)
+	if err != nil {
+		log.Fatal("failed to parse ollama host", zap.Error(err))
+	}
+
+	ollamaAdapter := llm.NewOllamaAdapter(env.Env.OllamaModel, ollamaUrl, httpClient)
+	ctx = context.WithValue(ctx, llm.LlmOllamaClientContextKey, llm.NewAPI(ollamaAdapter, "ollama"))
+	ctx = context.WithValue(ctx, chat.ManagerContextKey, chat.NewManager())
+
 	// Bots
 	ctx = context.WithValue(ctx, bots.BotNameWojciech, bots.NewBot(bots.BotNameWojciech, env.Env.WojciechBotToken))
 	ctx = context.WithValue(ctx, bots.BotNameTadeuszSznuk, bots.NewBot(bots.BotNameTadeuszSznuk, env.Env.TadeuszBotToken))
@@ -59,6 +82,8 @@ func main() {
 	app.Use(gin.Recovery())
 
 	server.CreateRouter(ctx, app, metadata.GetVersion())
+
+	health.CheckApis(ctx)
 
 	go interaction.Init(ctx)
 	go domain.Init(ctx)

@@ -2,6 +2,7 @@ package domain
 
 import (
 	"app/bots"
+	"app/domain/chat"
 	"app/domain/interaction"
 	"app/logging"
 	"context"
@@ -28,4 +29,14 @@ func Init(ctx context.Context) {
 		})
 	}
 
+	InitWojciechBot(ctx)
+}
+
+func InitWojciechBot(ctx context.Context) {
+	bot := ctx.Value(bots.BotNameWojciech).(*bots.Bot)
+	session := bot.Session
+
+	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		chat.HandleMessageCreate(ctx, m)
+	})
 }
