@@ -4,20 +4,27 @@ import (
 	"app/bots"
 	"app/domain/chat"
 	"app/domain/interaction"
+	"app/llm"
 	"app/logging"
-	"context"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
 )
 
 var logger = logging.Get().Named("domain")
 
-func Init(ctx context.Context) {
-	for _, bot := range bots.GetAllFromContext(ctx) {
+type Container struct {
+	*interaction.CommandsContainer
+	Bots        []*bots.Bot
+	ChatManager *chat.Manager
+	LlmApi      *llm.API
+}
+
+func Init(container *Container) {
+	for _, bot := range container.Bots {
 		session := bot.Session
 
 		session.AddHandler(func(s *discordgo.Session, m *discordgo.InteractionCreate) {
-			go interaction.Handle(s, bot.Name, m, ctx)
+			go interaction.Handle(s, bot.Name, m, container.CommandsContainer)
 		})
 
 		session.AddHandler(func(s *discordgo.Session, r *discordgo.GuildMembersChunk) {
@@ -27,16 +34,16 @@ func Init(ctx context.Context) {
 		session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 			logger.Info("connected")
 		})
+
+		if bot.Name == bots.BotNameWojciech {
+			InitWojciechBot(bot.Session, container.ChatManager, container.LlmApi)
+		}
 	}
 
-	InitWojciechBot(ctx)
 }
 
-func InitWojciechBot(ctx context.Context) {
-	bot := ctx.Value(bots.BotNameWojciech).(*bots.Bot)
-	session := bot.Session
-
+func InitWojciechBot(session *discordgo.Session, manager *chat.Manager, llmApi *llm.API) {
 	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		chat.HandleMessageCreate(ctx, m)
+		chat.HandleMessageCreate(manager, llmApi, m)
 	})
 }

@@ -1,6 +1,7 @@
 package interaction
 
 import (
+	"app/aws"
 	"app/bots"
 	"app/discord"
 	"app/domain/player"
@@ -8,13 +9,18 @@ import (
 	"app/errors"
 	"app/messages"
 	"app/util"
-	"context"
 	errors2 "errors"
 	"github.com/bwmarrin/discordgo"
 	"github.com/charmbracelet/log"
 	"go.uber.org/zap"
 	"strconv"
 )
+
+type CommandsContainer struct {
+	TriviaManager        *trivia.Manager
+	S3                   *aws.S3
+	ChannelPlayerManager *player.ChannelPlayerManager
+}
 
 var commands = map[bots.BotName][]*discordgo.ApplicationCommand{
 	bots.BotNameTadeuszSznuk: {
@@ -90,11 +96,11 @@ var commands = map[bots.BotName][]*discordgo.ApplicationCommand{
 	},
 }
 
-type CommandHandlers map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Context)
+type CommandHandlers map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, container *CommandsContainer)
 
 var commandHandlers = map[bots.BotName]CommandHandlers{
 	bots.BotNameTadeuszSznuk: {
-		string(CommandTrivia): func(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Context) {
+		string(CommandTrivia): func(s *discordgo.Session, i *discordgo.InteractionCreate, container *CommandsContainer) {
 			var err error
 			defer ReplyToError(err, s, i.Interaction)
 
@@ -120,13 +126,8 @@ var commandHandlers = map[bots.BotName]CommandHandlers{
 				return
 			}
 
-			triviaManager := ctx.Value(trivia.ManagerContextKey).(*trivia.Manager)
-			if triviaManager == nil {
-				logger.Error("trivia manager is nil")
-				return
-			}
-
-			trivia, err := triviaManager.GetOrCreate(ctx, s, i.ChannelID)
+			triviaManager := container.TriviaManager
+			trivia, err := triviaManager.GetOrCreate(container.S3, s, i.ChannelID)
 			if err != nil {
 				logger.Error("failed to get trivia", zap.Error(err))
 
@@ -151,13 +152,13 @@ var commandHandlers = map[bots.BotName]CommandHandlers{
 		},
 	},
 	bots.BotNameWojciech: {
-		string(CommandDj): func(s *discordgo.Session, i *discordgo.InteractionCreate, ctx context.Context) {
+		string(CommandDj): func(s *discordgo.Session, i *discordgo.InteractionCreate, container *CommandsContainer) {
 			var err error
 			defer ReplyToError(err, s, i.Interaction)
 
 			discord.StartLoadingInteractionAndForget(s, i.Interaction)
 
-			playerManager := ctx.Value(player.ChannelPlayerContextKey).(*player.ChannelPlayerManager)
+			playerManager := container.ChannelPlayerManager
 			var log = logger.With(zap.String("command", string(CommandDj)))
 
 			options := i.ApplicationCommandData().Options

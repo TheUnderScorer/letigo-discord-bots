@@ -1,19 +1,19 @@
 package scheduler
 
 import (
+	"app/bots"
 	"app/logging"
-	"context"
 	"errors"
 	"fmt"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
 
-func Init(ctx context.Context) error {
+func Init(bot *bots.Bot) error {
 	c := cron.New()
 
 	err := schedule(c, "DailyGreeting", "0 9 * * *", func() {
-		DailyGreeting(ctx)
+		DailyGreeting(bot)
 	})
 	if err != nil {
 		return err

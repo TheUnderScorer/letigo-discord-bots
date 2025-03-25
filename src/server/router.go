@@ -1,18 +1,22 @@
 package server
 
 import (
+	"app/bots"
 	"app/domain/interaction"
 	"app/server/responses"
-	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type Ctx = gin.Context
 
-func CreateRouter(ctx context.Context, gin *gin.Engine, version string) {
+type RouterContainer struct {
+	Bots []*bots.Bot
+}
+
+func CreateRouter(container *RouterContainer, gin *gin.Engine, version string) {
 	gin.POST("/interactions/register", func(c *Ctx) {
-		go interaction.Init(ctx)
+		go interaction.Init(container.Bots)
 
 		c.Status(http.StatusAccepted)
 	})

@@ -5,19 +5,18 @@ import (
 	"app/domain/trivia"
 	errors2 "app/errors"
 	"app/messages"
-	"context"
 	"errors"
 	"github.com/bwmarrin/discordgo"
 	"strings"
 )
 
-func HandleComponentInteraction(context context.Context, s *discordgo.Session, cid string, i *discordgo.InteractionCreate) {
+func HandleComponentInteraction(triviaManager *trivia.Manager, s *discordgo.Session, cid string, i *discordgo.InteractionCreate) {
 	var ufe *errors2.UserFriendlyError
 
 	customID := i.MessageComponentData().CustomID
 
 	if strings.HasPrefix(customID, "trivia") {
-		err := trivia.HandleInteraction(context, cid, i)
+		err := trivia.HandleInteraction(triviaManager, cid, i)
 		if err != nil {
 			if errors.As(err, &ufe) {
 				go discord.FollowupInteractionErrorAndForget(s, i.Interaction, err)

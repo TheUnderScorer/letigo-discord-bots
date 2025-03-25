@@ -10,10 +10,13 @@ import (
 	"go.uber.org/zap"
 	"io"
 	"path/filepath"
+	"time"
 )
 
-func GetQuestions(ctx context.Context) (result []Question) {
-	s3 := ctx.Value(aws.S3ContextKey).(*aws.S3)
+func GetQuestions(s3 *aws.S3) (result []Question) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
 	bucket := s3.Bucket()
 	prefix := filepath.Join("trivia", "questions")
 	response, err := s3.Client.ListObjectsV2(ctx, &awss3.ListObjectsV2Input{
@@ -48,12 +51,13 @@ func GetQuestions(ctx context.Context) (result []Question) {
 	return util.Shuffle(result)
 }
 
-func GetVoice(ctx context.Context, sentence string) (io.ReadCloser, error) {
-	return GetVoiceByHash(ctx, util.Hash(sentence))
+func GetVoice(s3 *aws.S3, sentence string) (io.ReadCloser, error) {
+	return GetVoiceByHash(s3, util.Hash(sentence))
 }
 
-func GetVoiceByHash(ctx context.Context, hash string) (io.ReadCloser, error) {
-	s3 := ctx.Value(aws.S3ContextKey).(*aws.S3)
+func GetVoiceByHash(s3 *aws.S3, hash string) (io.ReadCloser, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 
 	i := util.RandomInt(0, 3)
 	key := fmt.Sprintf("trivia/%s/%d.dca", hash, i)

@@ -11,7 +11,6 @@ import (
 	"app/domain/trivia"
 	"app/domain/tts"
 	"app/env"
-	"app/health"
 	"app/llm"
 	"app/logging"
 	"app/messages"
@@ -50,6 +49,12 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
+	app.Use(gin.Recovery())
+
+	httpClient := &http.Client{
+		Timeout: time.Minute * 5,
+	}
+
 	ttsClient := tts.NewClient()
 	cfg, err := aws.NewConfig(context.Background())
 	if err != nil {
@@ -57,13 +62,9 @@ func main() {
 	}
 	s3Client := s3.NewFromConfig(cfg)
 
-	ctx := context.WithValue(context.Background(), player.ChannelPlayerContextKey, player.NewChannelPlayerManager())
-	ctx = context.WithValue(ctx, trivia.ManagerContextKey, trivia.NewManager(ttsClient))
-	ctx = context.WithValue(ctx, aws.S3ContextKey, aws.NewS3(s3Client))
-
-	httpClient := &http.Client{
-		Timeout: time.Minute * 5,
-	}
+	channelPlayerManager := player.NewChannelPlayerManager()
+	triviaManager := trivia.NewManager(ttsClient)
+	awsS3 := aws.NewS3(s3Client)
 
 	// Chat
 	ollamaUrl, err := url.Parse(env.Env.OllamaHost)
@@ -72,23 +73,33 @@ func main() {
 	}
 
 	ollamaAdapter := llm.NewOllamaAdapter(env.Env.OllamaModel, ollamaUrl, httpClient)
-	ctx = context.WithValue(ctx, llm.LlmOllamaClientContextKey, llm.NewAPI(ollamaAdapter, "ollama"))
-	ctx = context.WithValue(ctx, chat.ManagerContextKey, chat.NewManager())
+	ollamaApi := llm.NewAPI(ollamaAdapter, "ollama")
+	chatManager := chat.NewManager()
 
 	// Bots
-	ctx = context.WithValue(ctx, bots.BotNameWojciech, bots.NewBot(bots.BotNameWojciech, env.Env.WojciechBotToken))
-	ctx = context.WithValue(ctx, bots.BotNameTadeuszSznuk, bots.NewBot(bots.BotNameTadeuszSznuk, env.Env.TadeuszBotToken))
+	wojciechBot := bots.NewBot(bots.BotNameWojciech, env.Env.WojciechBotToken)
+	tadeuszBot := bots.NewBot(bots.BotNameTadeuszSznuk, env.Env.TadeuszBotToken)
 
-	app.Use(gin.Recovery())
+	botsArr := []*bots.Bot{wojciechBot, tadeuszBot}
 
-	server.CreateRouter(ctx, app, metadata.GetVersion())
+	server.CreateRouter(&server.RouterContainer{
+		Bots: botsArr,
+	}, app, metadata.GetVersion())
 
-	health.CheckApis(ctx)
+	go interaction.Init(botsArr)
 
-	go interaction.Init(ctx)
-	go domain.Init(ctx)
+	go domain.Init(&domain.Container{
+		ChatManager: chatManager,
+		LlmApi:      ollamaApi,
+		Bots:        botsArr,
+		CommandsContainer: &interaction.CommandsContainer{
+			TriviaManager:        triviaManager,
+			ChannelPlayerManager: channelPlayerManager,
+			S3:                   awsS3,
+		},
+	})
 
-	err = scheduler.Init(ctx)
+	err = scheduler.Init(wojciechBot)
 	if err != nil {
 		log.Fatal("failed to init scheduler", zap.Error(err))
 	}

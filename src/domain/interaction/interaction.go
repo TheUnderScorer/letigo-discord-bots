@@ -5,7 +5,6 @@ import (
 	"app/discord"
 	"app/env"
 	"app/logging"
-	"context"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
 )
@@ -35,11 +34,10 @@ const (
 
 var logger = logging.Get().Named("interaction")
 
-func Init(ctx context.Context) {
+func Init(bots []*bots.Bot) {
 	var registeredCommands []*discordgo.ApplicationCommand
 
-	for _, botName := range bots.Bots {
-		bot := ctx.Value(botName).(*bots.Bot)
+	for _, bot := range bots {
 		commands := commands[bot.Name]
 
 		unregisterCommands(bot.Session, commands)
@@ -66,7 +64,7 @@ func unregisterCommands(s *discordgo.Session, commands []*discordgo.ApplicationC
 	}
 }
 
-func Handle(s *discordgo.Session, botName bots.BotName, i *discordgo.InteractionCreate, ctx context.Context) {
+func Handle(s *discordgo.Session, botName bots.BotName, i *discordgo.InteractionCreate, container *CommandsContainer) {
 	if i.Type == discordgo.InteractionMessageComponent {
 		logger.Info("got component")
 
@@ -74,7 +72,7 @@ func Handle(s *discordgo.Session, botName bots.BotName, i *discordgo.Interaction
 			Type: discordgo.InteractionResponseDeferredMessageUpdate,
 		})
 
-		HandleComponentInteraction(ctx, s, i.ChannelID, i)
+		HandleComponentInteraction(container.TriviaManager, s, i.ChannelID, i)
 
 		return
 	}
@@ -85,7 +83,7 @@ func Handle(s *discordgo.Session, botName bots.BotName, i *discordgo.Interaction
 
 	log.Info("got command")
 	if h, ok := commandHandlers[botName][name]; ok {
-		h(s, i, ctx)
+		h(s, i, container)
 	} else {
 		log.Error("unknown command")
 	}

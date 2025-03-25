@@ -7,21 +7,18 @@ import (
 	"app/logging"
 	"app/messages"
 	"app/util"
-	"context"
 	"go.uber.org/zap"
 	"time"
 )
 
 var log = logging.Get().Named("DailyGreeting")
 
-func DailyGreeting(ctx context.Context) {
+func DailyGreeting(bot *bots.Bot) {
 	cid := env.Env.GreetingChannelId
 	if cid == "" {
 		log.Error("no daily report channel id set")
 		return
 	}
-
-	bot := ctx.Value(bots.BotNameWojciech).(*bots.Bot)
 
 	day := int(time.Now().Weekday())
 	dayMessages := messages.Messages.Greetings[day]

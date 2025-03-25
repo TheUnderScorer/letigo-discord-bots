@@ -1,6 +1,7 @@
 package trivia
 
 import (
+	"app/aws"
 	"app/discord"
 	"app/domain/tts"
 	"app/domain/voice"
@@ -28,7 +29,7 @@ type Trivia struct {
 	AnswerReceived  chan string
 	PlayerNominated chan *discordgo.User
 	isStarted       bool
-	ctx             context.Context
+	s3              *aws.S3
 }
 
 //go:embed static/intro.mp3
@@ -42,7 +43,7 @@ var wrong []byte
 
 const questionTimeout = time.Second * 30
 
-func New(ctx context.Context, session *discordgo.Session, tts *tts.Client, channelID string, onDisposed func()) (*Trivia, error) {
+func New(s3 *aws.S3, session *discordgo.Session, tts *tts.Client, channelID string, onDisposed func()) (*Trivia, error) {
 	vm, err := voice.NewManager(session, channelID, onDisposed)
 	if err != nil {
 		return nil, err
@@ -69,10 +70,10 @@ func New(ctx context.Context, session *discordgo.Session, tts *tts.Client, chann
 		vm:              vm,
 		tts:             tts,
 		logger:          logging.Get().Named("trivia").With(zap.String("channelID", channelID)),
-		state:           NewState(ctx, players),
+		state:           NewState(s3, players),
 		AnswerReceived:  make(chan string),
 		PlayerNominated: make(chan *discordgo.User),
-		ctx:             ctx,
+		s3:              s3,
 	}
 
 	return trivia, nil
@@ -379,7 +380,7 @@ func (t *Trivia) playIntro() error {
 }
 
 func (t *Trivia) speak(text string) error {
-	v, err := GetVoice(t.ctx, text)
+	v, err := GetVoice(t.s3, text)
 
 	if err != nil {
 		return err
@@ -394,7 +395,7 @@ func (t *Trivia) speakMultiple(texts ...string) error {
 	var voices []*voice.DcaSpeaker
 
 	for _, text := range texts {
-		v, err := GetVoice(t.ctx, text)
+		v, err := GetVoice(t.s3, text)
 		if err != nil {
 			return err
 		}

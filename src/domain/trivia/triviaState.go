@@ -1,10 +1,10 @@
 package trivia
 
 import (
+	"app/aws"
 	"app/discord"
 	"app/messages"
 	"app/util"
-	"context"
 	"errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
@@ -22,10 +22,10 @@ type State struct {
 	points          map[string]int
 }
 
-func NewState(ctx context.Context, players []*discordgo.User) *State {
+func NewState(s3 *aws.S3, players []*discordgo.User) *State {
 	return &State{
 		players:       players,
-		questions:     GetQuestions(ctx),
+		questions:     GetQuestions(s3),
 		currentPlayer: util.RandomElement(players),
 		points:        make(map[string]int),
 	}

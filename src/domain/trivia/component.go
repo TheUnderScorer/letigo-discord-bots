@@ -2,7 +2,6 @@ package trivia
 
 import (
 	"app/messages"
-	"context"
 	"errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
@@ -15,12 +14,7 @@ const FalseButtonId = "trivia-false"
 const Option = "trivia-option"
 const NextParticipant = "trivia-next-participant"
 
-func HandleInteraction(context context.Context, cid string, i *discordgo.InteractionCreate) error {
-	manager := context.Value(ManagerContextKey).(*Manager)
-	if manager == nil {
-		return errors.New("trivia manager is nil")
-	}
-
+func HandleInteraction(manager *Manager, cid string, i *discordgo.InteractionCreate) error {
 	trivia, ok := manager.Get(cid)
 	if !ok {
 		return errors.New("trivia is nil")
