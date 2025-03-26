@@ -8,6 +8,9 @@ import (
 	"strings"
 )
 
+const ThinkingStart = "<think>"
+const ThinkingEnd = "</think>"
+
 type OllamaAdapter struct {
 	client *ollama.Client
 	// an Ollama model to use
@@ -29,7 +32,7 @@ func (o *OllamaAdapter) Chat(ctx context.Context, request *Chat) (*ChatMessage, 
 	for _, m := range request.Messages {
 		messages = append(messages, ollama.Message{
 			Content: m.Contents,
-			Role:    getOllamaRole(m.Role),
+			Role:    mapOllamaRole(m.Role),
 		})
 	}
 
@@ -39,12 +42,10 @@ func (o *OllamaAdapter) Chat(ctx context.Context, request *Chat) (*ChatMessage, 
 		Messages: messages,
 	}
 
-	var chatMessageParts []string
+	handler := newStreamHandler()
 
 	err := o.client.Chat(ctx, req, func(response ollama.ChatResponse) error {
-		chatMessageParts = append(chatMessageParts, response.Message.Content)
-
-		return nil
+		return handler.Handle(response.Message.Content)
 	})
 
 	if err != nil {
@@ -53,7 +54,7 @@ func (o *OllamaAdapter) Chat(ctx context.Context, request *Chat) (*ChatMessage, 
 
 	return &ChatMessage{
 		Role:     ChatRoleAssistant,
-		Contents: strings.Join(chatMessageParts, ""),
+		Contents: strings.Join(handler.MessageParts, ""),
 	}, nil
 }
 
@@ -67,22 +68,54 @@ func (o *OllamaAdapter) Prompt(ctx context.Context, p Prompt) (string, error) {
 		Stream: &stream,
 	}
 
-	var messageParts []string
+	handler := newStreamHandler()
 
 	err := o.client.Generate(ctx, req, func(response ollama.GenerateResponse) error {
-		messageParts = append(messageParts, response.Response)
-
-		return nil
+		return handler.Handle(response.Response)
 	})
 
 	if err != nil {
 		return "", err
 	}
 
-	return strings.Join(messageParts, ""), nil
+	return strings.Join(handler.MessageParts, ""), nil
 }
 
-func getOllamaRole(role ChatRole) string {
+type streamHandler struct {
+	MessageParts  []string
+	ThinkingParts []string
+	isThinking    bool
+}
+
+func newStreamHandler() *streamHandler {
+	return &streamHandler{
+		MessageParts:  []string{},
+		ThinkingParts: []string{},
+		isThinking:    false,
+	}
+}
+
+func (h *streamHandler) Handle(contents string) error {
+	if contents == ThinkingStart {
+		h.isThinking = true
+		return nil
+	}
+
+	if contents == ThinkingEnd {
+		h.isThinking = false
+		return nil
+	}
+
+	if h.isThinking {
+		h.ThinkingParts = append(h.ThinkingParts, contents)
+	} else {
+		h.MessageParts = append(h.MessageParts, contents)
+	}
+
+	return nil
+}
+
+func mapOllamaRole(role ChatRole) string {
 	switch role {
 	case ChatRoleSystem:
 		return "system"
