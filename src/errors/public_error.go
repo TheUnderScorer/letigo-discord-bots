@@ -11,11 +11,11 @@ type PublicError struct {
 }
 
 func NewPublicError(err string) *PublicError {
-	return &PublicError{Message: err}
+	return &PublicError{Message: err, Context: make(map[string]any)}
 }
 
 func NewPublicErrorCause(err string, cause error) *PublicError {
-	return &PublicError{Message: err, Cause: cause}
+	return &PublicError{Message: err, Cause: cause, Context: make(map[string]any)}
 }
 
 func (u *PublicError) Error() string {

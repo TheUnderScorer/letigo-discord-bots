@@ -10,7 +10,7 @@ import (
 
 type Manager struct {
 	mu           sync.Mutex
-	chats        map[string]*Chat
+	chats        []*Chat
 	session      *discordgo.Session
 	log          *zap.Logger
 	llmContainer *llm.Container
@@ -22,18 +22,12 @@ func NewManager(session *discordgo.Session, llm *llm.Container) *Manager {
 	return &Manager{
 		session:      session,
 		log:          log,
-		chats:        make(map[string]*Chat),
+		chats:        make([]*Chat, 0),
 		llmContainer: llm,
 	}
 }
 
 func (m *Manager) GetChat(cid string) *Chat {
-	chat, ok := m.chats[cid]
-
-	if ok {
-		return chat
-	}
-
 	// Find chat using their thread
 	for _, c := range m.chats {
 		if c.thread != nil && c.thread.ID == cid {
@@ -57,7 +51,7 @@ func (m *Manager) GetOrCreateChat(cid string) *Chat {
 	if chat == nil {
 		m.log.Debug("creating new chat", zap.String("parentCid", cid))
 		chat = New(m.session, cid, m.llmContainer)
-		m.chats[cid] = chat
+		m.chats = append(m.chats, chat)
 	} else {
 		m.log.Debug("using existing chat", zap.String("parentCid", cid))
 	}

@@ -1,14 +1,17 @@
 package chat
 
 import (
+	"app/discord"
 	"app/errors"
 	"app/llm"
 	"app/logging"
 	"app/util"
 	"context"
 	_ "embed"
+	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 )
 
@@ -29,6 +32,8 @@ type Chat struct {
 	thread *discordgo.Channel
 	// llmContainer provides access to the LLM (Large Language Model) API for handling chat-related operations in the Chat struct.
 	llmContainer *llm.Container
+	// firstMessage contains content of the first message that started the thread
+	firstMessage *discordgo.Message
 }
 
 func New(session *discordgo.Session, cid string, llmContainer *llm.Container) *Chat {
@@ -63,6 +68,13 @@ func (c *Chat) HandleNewMessage(message *discordgo.MessageCreate) error {
 		Contents: traitsStr,
 	})
 
+	if c.firstMessage != nil {
+		chat.AddMessage(&llm.ChatMessage{
+			Role:     llm.ChatRoleUser,
+			Contents: addMemberMetadataToMessage(c.firstMessage, log),
+		})
+	}
+
 	// If message was send in thread, let's list messages around it, otherwise, it means that most likely there are no messages yet in the thread
 	if message.ChannelID == c.thread.ID {
 		messages, err := c.session.ChannelMessages(c.thread.ID, MessagesLimit, "", "", "", discordgo.WithContext(ctx))
@@ -79,6 +91,7 @@ func (c *Chat) HandleNewMessage(message *discordgo.MessageCreate) error {
 				}
 
 				var role llm.ChatRole
+				messageContent := m.Content
 
 				// Apply Assistant role to messages sent by bot
 				if m.Author.ID == c.session.State.User.ID {
@@ -87,11 +100,13 @@ func (c *Chat) HandleNewMessage(message *discordgo.MessageCreate) error {
 				} else {
 					log.Debug("resolved message to user", zap.String("ID", message.ID))
 					role = llm.ChatRoleUser
+
+					messageContent = addMemberMetadataToMessage(m, log)
 				}
 
 				chat.AddMessage(&llm.ChatMessage{
 					Role:     role,
-					Contents: m.Content,
+					Contents: messageContent,
 				})
 			}
 
@@ -136,11 +151,21 @@ func (c *Chat) ensureThread(ctx context.Context, message *discordgo.MessageCreat
 
 		return nil
 	}
-
 	if c.thread == nil {
 		log.Debug("first message, creating thread")
 
-		ch, err := c.session.MessageThreadStart(c.parentCid, message.ID, "Thread", ArchiveDurationMinutes, discordgo.WithContext(ctx))
+		c.firstMessage = &discordgo.Message{}
+		*c.firstMessage = *message.Message
+
+		threadSummary, err := c.llmContainer.ExpensiveAPI.Prompt(ctx, llm.Prompt{
+			Phrase: fmt.Sprintf("summarize this message in short sentence (up to 100 characters) in polish: %s", message.Content),
+		})
+		if err != nil {
+			log.Error("failed to get thread summary", zap.Error(err))
+			return errors.Wrap(err, "failed to summarize this message")
+		}
+
+		ch, err := c.session.MessageThreadStart(c.parentCid, message.ID, threadSummary.Reply, ArchiveDurationMinutes, discordgo.WithContext(ctx))
 		if err != nil {
 			log.Debug("failed to start thread", zap.Error(err))
 			return errors.Wrap(err, "failed to start thread")
@@ -151,4 +176,19 @@ func (c *Chat) ensureThread(ctx context.Context, message *discordgo.MessageCreat
 	}
 
 	return nil
+}
+
+// addMemberMetadataToMessage adds metadata about a message sender if they are a friend, formatted with their details.
+func addMemberMetadataToMessage(m *discordgo.Message, log *zap.Logger) string {
+	var messageParts []string
+
+	friend, ok := discord.GetFriend(m.Author.ID)
+	if ok {
+		log.Debug("found friend", zap.String("ID", friend.ID))
+		messageParts = append(messageParts, fmt.Sprintf("%s (discord nick: %s, discord ID: %s) says:", friend.FirstName, friend.Nickname, friend.ID))
+	}
+
+	messageParts = append(messageParts, m.Content)
+
+	return strings.Join(messageParts, "\n")
 }

@@ -1,55 +1,65 @@
 package chat
 
 import (
+	"app/discord"
 	"app/llm"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
 )
 
-func HandleMessageCreate(session *discordgo.Session, manager *Manager, llmApi *llm.API, m *discordgo.MessageCreate) {
-	log := chatLog.With(zap.String("messageID", m.ID))
+func HandleMessageCreate(session *discordgo.Session, manager *Manager, llmApi *llm.API, newMessage *discordgo.MessageCreate) {
+	log := chatLog.With(zap.String("messageID", newMessage.ID))
 	log.Debug("handling message create")
 
-	channel, err := session.Channel(m.ChannelID)
+	channel, err := session.Channel(newMessage.ChannelID)
 	if err != nil {
 		log.Error("failed to get message channel", zap.Error(err))
 		return
 	}
 
-	if m.Author.ID == session.State.User.ID {
+	sessionUserID := session.State.User.ID
+
+	if newMessage.Author.ID == sessionUserID {
 		log.Debug("skip this message, because it was sent by us")
 
 		return
 	}
 
-	if manager.HasChat(m.ChannelID) {
-		log.Debug("already have chat", zap.String("channelID", m.ChannelID), zap.String("messageID", m.ID))
+	if manager.HasChat(newMessage.ChannelID) {
+		log.Debug("already have chat", zap.String("channelID", newMessage.ChannelID), zap.String("messageID", newMessage.ID))
 
-		chat := manager.GetOrCreateChat(m.ChannelID)
-		err := chat.HandleNewMessage(m)
-		if err != nil {
-			log.Error("failed to handle new message in existing chat", zap.Error(err))
-		}
+		doHandleNewMessage(log, session, newMessage, manager)
 
 		return
 	}
 
-	if channel.IsThread() && channel.OwnerID == session.State.User.ID {
+	// Check if this channel is a thread, and if it was started by us before
+	isOurThread := channel.IsThread() && channel.OwnerID == sessionUserID
+	if isOurThread {
 		log.Debug("channel is a thread started by us before")
 	}
 
-	// Check if this channel is a thread, and if it was started by us before
-	if (channel.IsThread() && channel.OwnerID == session.State.User.ID) ||
-		// Otherwise, check if message is worthy of reply
-		IsWorthyOfReply(llmApi, m.Content) {
-		log.Info("message is worthy of reply", zap.String("content", m.Content))
+	// Check if message explicitly mentions us
+	isMention := newMessage.Mentions != nil && len(newMessage.Mentions) > 0 && discord.HasUser(newMessage.Mentions, sessionUserID)
+	if isMention {
+		log.Debug("message mentions us explicitly")
+	}
 
-		chat := manager.GetOrCreateChat(m.ChannelID)
-		err := chat.HandleNewMessage(m)
-		if err != nil {
-			log.Error("handle new message error", zap.Error(err))
-		}
+	if isOurThread || isMention ||
+		// Otherwise, check if message is worthy of reply
+		IsWorthyOfReply(llmApi, newMessage.Content) {
+		log.Info("message is worthy of reply", zap.String("content", newMessage.Content))
+		doHandleNewMessage(log, session, newMessage, manager)
 	} else {
-		log.Info("message is not worthy of reply", zap.String("content", m.Content))
+		log.Info("message is not worthy of reply", zap.String("content", newMessage.Content))
+	}
+}
+
+func doHandleNewMessage(log *zap.Logger, session *discordgo.Session, newMessage *discordgo.MessageCreate, manager *Manager) {
+	chat := manager.GetOrCreateChat(newMessage.ChannelID)
+	err := chat.HandleNewMessage(newMessage)
+	if err != nil {
+		log.Error("handle new message error", zap.Error(err))
+		discord.ReportErrorChannel(session, newMessage.ChannelID, err)
 	}
 }
