@@ -316,5 +316,11 @@
     "skipped": [
       "coo kolego jakie wolne"
     ]
+  },
+  "chat": {
+    "refuseToReply": [
+      "kolego, nie powiem ci juz nic",
+      "kolego... ide sobie, narazie"
+    ]
   }
 }

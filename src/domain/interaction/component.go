@@ -11,7 +11,7 @@ import (
 )
 
 func HandleComponentInteraction(triviaManager *trivia.Manager, s *discordgo.Session, cid string, i *discordgo.InteractionCreate) {
-	var ufe *errors2.UserFriendlyError
+	var ufe *errors2.PublicError
 
 	customID := i.MessageComponentData().CustomID
 

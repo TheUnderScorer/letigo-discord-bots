@@ -20,6 +20,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/openai/openai-go"
+	"github.com/openai/openai-go/option"
 	"go.uber.org/zap"
 	"math/rand"
 	"net/http"
@@ -78,7 +80,17 @@ func main() {
 
 	ollamaAdapter := llm.NewOllamaAdapter(env.Env.OllamaModel, ollamaUrl, httpClient)
 	ollamaApi := llm.NewAPI(ollamaAdapter, "ollama")
-	chatManager := chat.NewManager(wojciechBot.Session, ollamaApi)
+
+	openAIClient := openai.NewClient(option.WithAPIKey(env.Env.OpenAIApiKey))
+	openAIAdapter := llm.NewOpenAIAdapter(&openAIClient, openai.ChatModelGPT4oMini)
+	openAIApi := llm.NewAPI(openAIAdapter, "openai")
+
+	llmContainer := &llm.Container{
+		ExpensiveAPI: openAIApi,
+		FreeAPI:      ollamaApi,
+	}
+
+	chatManager := chat.NewManager(wojciechBot.Session, llmContainer)
 
 	botsArr := []*bots.Bot{wojciechBot, tadeuszBot}
 
@@ -90,7 +102,7 @@ func main() {
 
 	go domain.Init(&domain.Container{
 		ChatManager: chatManager,
-		LlmApi:      ollamaApi,
+		LlmApi:      llmContainer.FreeAPI,
 		Bots:        botsArr,
 		CommandsContainer: &interaction.CommandsContainer{
 			TriviaManager:        triviaManager,

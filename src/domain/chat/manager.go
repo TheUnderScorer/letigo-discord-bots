@@ -9,21 +9,21 @@ import (
 )
 
 type Manager struct {
-	mu      sync.Mutex
-	chats   map[string]*Chat
-	session *discordgo.Session
-	log     *zap.Logger
-	llm     *llm.API
+	mu           sync.Mutex
+	chats        map[string]*Chat
+	session      *discordgo.Session
+	log          *zap.Logger
+	llmContainer *llm.Container
 }
 
-func NewManager(session *discordgo.Session, llm *llm.API) *Manager {
+func NewManager(session *discordgo.Session, llm *llm.Container) *Manager {
 	log := logging.Get().Named("chat").Named("manager").With(zap.String("session", session.State.User.Username))
 
 	return &Manager{
-		session: session,
-		log:     log,
-		chats:   make(map[string]*Chat),
-		llm:     llm,
+		session:      session,
+		log:          log,
+		chats:        make(map[string]*Chat),
+		llmContainer: llm,
 	}
 }
 
@@ -56,7 +56,7 @@ func (m *Manager) GetOrCreateChat(cid string) *Chat {
 	chat := m.GetChat(cid)
 	if chat == nil {
 		m.log.Debug("creating new chat", zap.String("parentCid", cid))
-		chat = New(m.session, cid, m.llm)
+		chat = New(m.session, cid, m.llmContainer)
 		m.chats[cid] = chat
 	} else {
 		m.log.Debug("using existing chat", zap.String("parentCid", cid))

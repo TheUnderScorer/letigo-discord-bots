@@ -27,18 +27,18 @@ type Chat struct {
 	log *zap.Logger
 	// thread in which chat takes place
 	thread *discordgo.Channel
-	// llmApi provides access to the LLM (Large Language Model) API for handling chat-related operations in the Chat struct.
-	llmApi *llm.API
+	// llmContainer provides access to the LLM (Large Language Model) API for handling chat-related operations in the Chat struct.
+	llmContainer *llm.Container
 }
 
-func New(session *discordgo.Session, cid string, llm *llm.API) *Chat {
+func New(session *discordgo.Session, cid string, llmContainer *llm.Container) *Chat {
 	log := logging.Get().Named("chat").With(zap.String("parentCid", cid), zap.String("session", session.State.User.Username))
 
 	return &Chat{
-		session:   session,
-		parentCid: cid,
-		log:       log,
-		llmApi:    llm,
+		session:      session,
+		parentCid:    cid,
+		log:          log,
+		llmContainer: llmContainer,
 	}
 }
 
@@ -103,10 +103,10 @@ func (c *Chat) HandleNewMessage(message *discordgo.MessageCreate) error {
 		log.Error("failed to start typing in channel", zap.Error(err))
 	}
 
-	chat, newMessage, err := c.llmApi.Chat(ctx, chat)
+	chat, newMessage, err := c.llmContainer.ExpensiveAPI.Chat(ctx, chat)
 	if err != nil {
-		log.Error("failed to get new chat from llm", zap.Error(err))
-		return errors.Wrap(err, "failed to get new chat from llm")
+		log.Error("failed to get new chat from llmContainer", zap.Error(err))
+		return errors.Wrap(err, "failed to get new chat from llmContainer")
 	}
 
 	_, err = c.session.ChannelMessageSend(c.thread.ID, newMessage.Contents, discordgo.WithContext(ctx))

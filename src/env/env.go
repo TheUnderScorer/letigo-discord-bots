@@ -21,6 +21,7 @@ type appEnv struct {
 	GPTServerHost           string `env:"GPT_SERVER_HOST"`
 	OllamaHost              string `env:"OLLAMA_HOST"`
 	OllamaModel             string `env:"OLLAMA_MODEL"`
+	OpenAIApiKey            string `env:"OPENAI_API_KEY"`
 }
 
 var Env appEnv

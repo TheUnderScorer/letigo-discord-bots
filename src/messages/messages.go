@@ -7,6 +7,10 @@ import (
 	"go.uber.org/zap"
 )
 
+type Chat struct {
+	RefuseToReply []string `json:"refuseToReply"`
+}
+
 type DailyReportReminder struct {
 	Afternoon []string `json:"afternoon"`
 	Night     []string `json:"night"`
@@ -95,6 +99,7 @@ type messages struct {
 	Greetings            [][]string          `json:"greetings"`
 	DailyReportReplies   DailyReportReplies  `json:"dailyReportReplies"`
 	Trivia               Trivia              `json:"trivia"`
+	Chat                 Chat                `json:"chat"`
 }
 
 var Messages messages

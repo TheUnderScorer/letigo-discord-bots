@@ -11,6 +11,10 @@ func Includes[T comparable](arr []T, val T) bool {
 	return false
 }
 
+func Last[T any](arr []T) T {
+	return arr[len(arr)-1]
+}
+
 func Shuffle[T any](arr []T) []T {
 	rand.Shuffle(len(arr), func(i, j int) {
 		arr[i], arr[j] = arr[j], arr[i]
