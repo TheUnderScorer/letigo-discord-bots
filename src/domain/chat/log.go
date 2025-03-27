@@ -2,4 +2,4 @@ package chat
 
 import "app/logging"
 
-var log = logging.Get().Named("chat")
+var chatLog = logging.Get().Named("chat")

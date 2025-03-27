@@ -11,7 +11,7 @@ type InteractionReply struct {
 	Ephemeral bool
 }
 
-var logger = logging.Get().Named("interaction")
+var logger = logging.Get().Named("messages")
 
 func SendMessageAndForget(s *discordgo.Session, channelID string, content string) {
 	_, err := s.ChannelMessageSend(channelID, content)

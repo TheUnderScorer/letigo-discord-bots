@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const MinMessageLength = 100
+const MinMessageLength = 25
 const BaseProbability = 0.4 // Base probability for messages of MinMessageLength
 const MaxProbability = 0.9  // Maximum probability cap for very long messages
 const LengthFactor = 0.001  // How quickly probability increases with length
@@ -19,12 +19,12 @@ const LengthFactor = 0.001  // How quickly probability increases with length
 // IsWorthyOfReply determines if a given message warrants a reply based on length, probability, and an LLM-generated evaluation.
 func IsWorthyOfReply(llmClient *llm.API, message string) bool {
 	if len(message) == 0 {
-		log.Warn("message is empty")
+		chatLog.Warn("message is empty")
 		return false
 	}
 
 	if len(message) < MinMessageLength {
-		log.Info("message is too short", zap.String("message", message))
+		chatLog.Info("message is too short", zap.String("message", message))
 
 		return false
 	}
@@ -39,7 +39,7 @@ func IsWorthyOfReply(llmClient *llm.API, message string) bool {
 	probability = math.Min(probability, MaxProbability)
 
 	if !random.ChanceOfTrue(probability) {
-		log.Info("skipping message based on random chance",
+		chatLog.Info("skipping message based on random chance",
 			zap.Int("messageLength", len(message)),
 			zap.Float64("probability", probability))
 
@@ -53,13 +53,13 @@ func IsWorthyOfReply(llmClient *llm.API, message string) bool {
 	})
 
 	if err != nil {
-		log.Error("failed to get response", zap.Error(err))
+		chatLog.Error("failed to get response", zap.Error(err))
 		return false
 	}
 
 	result, err := strconv.ParseBool(response.Reply)
 	if err != nil {
-		log.Error("failed to parse response as bool", zap.Error(err), zap.String("reply", response.Reply))
+		chatLog.Error("failed to parse response as bool", zap.Error(err), zap.String("reply", response.Reply))
 		return false
 	}
 

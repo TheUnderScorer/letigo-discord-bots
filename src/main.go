@@ -66,6 +66,10 @@ func main() {
 	triviaManager := trivia.NewManager(ttsClient)
 	awsS3 := aws.NewS3(s3Client)
 
+	// Bots
+	wojciechBot := bots.NewBot(bots.BotNameWojciech, env.Env.WojciechBotToken)
+	tadeuszBot := bots.NewBot(bots.BotNameTadeuszSznuk, env.Env.TadeuszBotToken)
+
 	// Chat
 	ollamaUrl, err := url.Parse(env.Env.OllamaHost)
 	if err != nil {
@@ -74,11 +78,7 @@ func main() {
 
 	ollamaAdapter := llm.NewOllamaAdapter(env.Env.OllamaModel, ollamaUrl, httpClient)
 	ollamaApi := llm.NewAPI(ollamaAdapter, "ollama")
-	chatManager := chat.NewManager()
-
-	// Bots
-	wojciechBot := bots.NewBot(bots.BotNameWojciech, env.Env.WojciechBotToken)
-	tadeuszBot := bots.NewBot(bots.BotNameTadeuszSznuk, env.Env.TadeuszBotToken)
+	chatManager := chat.NewManager(wojciechBot.Session, ollamaApi)
 
 	botsArr := []*bots.Bot{wojciechBot, tadeuszBot}
 

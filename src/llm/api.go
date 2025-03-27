@@ -29,7 +29,7 @@ func NewAPI(adapter Adapter, name string) *API {
 }
 
 // Chat creates, or continues given chat discussion between user and the assistant (llm model)
-func (api *API) Chat(ctx context.Context, chat *Chat) (*Chat, error) {
+func (api *API) Chat(ctx context.Context, chat *Chat) (*Chat, *ChatMessage, error) {
 	api.logger.Debug("sending chat request", zap.Any("chat", chat))
 
 	measure := metrics.NewMeasure()
@@ -42,12 +42,12 @@ func (api *API) Chat(ctx context.Context, chat *Chat) (*Chat, error) {
 	if err != nil {
 		api.logger.Error("failed to send chat request", zap.Error(err))
 
-		return nil, err
+		return nil, nil, err
 	}
 
-	chat.Messages = append(chat.Messages, *response)
+	chat.AddMessage(response)
 
-	return chat, nil
+	return chat, response, nil
 }
 
 // Prompt sends a request to the LLM with given prompt

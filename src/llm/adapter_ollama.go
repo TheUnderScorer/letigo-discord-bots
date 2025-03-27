@@ -1,12 +1,16 @@
 package llm
 
 import (
+	"app/logging"
 	"context"
 	ollama "github.com/ollama/ollama/api"
+	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"strings"
 )
+
+var log = logging.Get().Named("llm").Named("adapter_ollama")
 
 const ThinkingStart = "<think>"
 const ThinkingEnd = "</think>"
@@ -52,9 +56,11 @@ func (o *OllamaAdapter) Chat(ctx context.Context, request *Chat) (*ChatMessage, 
 		return nil, err
 	}
 
+	log.Debug("got response from llm", zap.Any("request", request), zap.String("model", o.model), zap.Any("response", handler))
+
 	return &ChatMessage{
 		Role:     ChatRoleAssistant,
-		Contents: strings.Join(handler.MessageParts, ""),
+		Contents: strings.TrimSpace(strings.Join(handler.MessageParts, "")),
 	}, nil
 }
 
@@ -78,12 +84,14 @@ func (o *OllamaAdapter) Prompt(ctx context.Context, p Prompt) (string, error) {
 		return "", err
 	}
 
-	return strings.Join(handler.MessageParts, ""), nil
+	log.Debug("got response from llm", zap.String("prompt", p.Phrase), zap.String("model", o.model), zap.String("system", p.Traits), zap.Any("response", handler))
+
+	return strings.TrimSpace(strings.Join(handler.MessageParts, "")), nil
 }
 
 type streamHandler struct {
-	MessageParts  []string
-	ThinkingParts []string
+	MessageParts  []string `json:"message_parts"`
+	ThinkingParts []string `json:"thinking_parts"`
 	isThinking    bool
 }
 

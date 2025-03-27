@@ -12,5 +12,15 @@ type ChatMessage struct {
 }
 
 type Chat struct {
-	Messages []ChatMessage `json:"messages"`
+	Messages []*ChatMessage `json:"messages"`
+}
+
+func NewChat() *Chat {
+	return &Chat{
+		Messages: []*ChatMessage{},
+	}
+}
+
+func (c *Chat) AddMessage(message *ChatMessage) {
+	c.Messages = append(c.Messages, message)
 }
