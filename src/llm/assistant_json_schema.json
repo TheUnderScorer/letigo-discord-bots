@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "properties": {
+    "response": {
+      "type": "string",
+      "description": "The response given by the bot."
+    },
+    "is_worth_remembering": {
+      "type": "boolean",
+      "description": "Is true, if previous message is worth remembering."
+    },
+    "is_goodbye": {
+      "type": "boolean",
+      "description": "Indicates if previous message is a goodbye, or prompt to end the discussion."
+    }
+  },
+  "required": [
+    "response",
+    "is_worth_remembering",
+    "is_goodbye"
+  ],
+  "additionalProperties": false
+}

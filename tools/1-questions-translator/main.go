@@ -3,7 +3,7 @@ package main
 import (
 	"app/domain/trivia"
 	"app/logging"
-	"app/util"
+	"app/util/arrayutil"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -83,7 +83,7 @@ func handleResult(messages *openai.MessagesList) (result []trivia.Question) {
 				continue
 			}
 
-			result = append(result, util.Map(out.Questions, func(v opentdb.Question) trivia.Question {
+			result = append(result, arrayutil.Map(out.Questions, func(v opentdb.Question) trivia.Question {
 				return v.ToTrivia()
 			})...)
 		}

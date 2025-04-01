@@ -3,6 +3,7 @@ package trivia
 import (
 	"app/aws"
 	"app/util"
+	"app/util/arrayutil"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -30,7 +31,7 @@ func GetQuestions(s3 *aws.S3) (result []Question) {
 	}
 
 	// Pick two random question.json files from the list
-	objects := util.RandomElements(response.Contents, 2)
+	objects := arrayutil.RandomElements(response.Contents, 2)
 
 	for _, object := range objects {
 		contents, err := s3.Get(ctx, *object.Key)
@@ -48,7 +49,7 @@ func GetQuestions(s3 *aws.S3) (result []Question) {
 		result = append(result, questions...)
 	}
 
-	return util.Shuffle(result)
+	return arrayutil.Shuffle(result)
 }
 
 func GetVoice(s3 *aws.S3, sentence string) (io.ReadCloser, error) {

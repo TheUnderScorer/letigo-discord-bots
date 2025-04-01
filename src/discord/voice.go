@@ -2,7 +2,7 @@ package discord
 
 import (
 	"app/env"
-	"app/util"
+	"app/util/arrayutil"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -29,7 +29,7 @@ func ListVoiceChannelMembers(s *discordgo.Session, cid string) ([]*discordgo.Mem
 		}
 
 		for _, member := range fetchedMembers {
-			if member.User != nil && util.Includes(ids, member.User.ID) {
+			if member.User != nil && arrayutil.Includes(ids, member.User.ID) {
 				members = append(members, member)
 			}
 		}

@@ -5,6 +5,7 @@ import (
 	"app/domain/trivia"
 	"app/env"
 	util2 "app/util"
+	"app/util/arrayutil"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -32,7 +33,7 @@ func (f fileWalk) Walk(path string, info os.FileInfo, err error) error {
 	if err != nil {
 		return err
 	}
-	if !info.IsDir() && !util2.Includes(ignoredFiles, info.Name()) {
+	if !info.IsDir() && !arrayutil.Includes(ignoredFiles, info.Name()) {
 		f <- path
 	}
 	return nil

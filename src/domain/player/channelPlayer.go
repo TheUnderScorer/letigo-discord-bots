@@ -8,6 +8,7 @@ import (
 	"app/logging"
 	"app/messages"
 	"app/util"
+	"app/util/arrayutil"
 	"app/youtube"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
@@ -149,7 +150,7 @@ func (p *ChannelPlayer) playSession() error {
 	}
 	p.isSpeaking = true
 
-	discord.SendMessageAndForget(p.session, p.channelID, util.ApplyTokens(util.RandomElement(messages.Messages.Player.NowPlaying), map[string]string{
+	discord.SendMessageAndForget(p.session, p.channelID, util.ApplyTokens(arrayutil.RandomElement(messages.Messages.Player.NowPlaying), map[string]string{
 		"SONG_NAME": p.currentSong.Name,
 	}))
 

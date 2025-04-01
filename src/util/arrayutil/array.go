@@ -1,6 +1,9 @@
-package util
+package arrayutil
 
-import "math/rand"
+import (
+	"app/util"
+	"math/rand"
+)
 
 func Includes[T comparable](arr []T, val T) bool {
 	for _, v := range arr {
@@ -11,8 +14,27 @@ func Includes[T comparable](arr []T, val T) bool {
 	return false
 }
 
-func Last[T any](arr []T) T {
-	return arr[len(arr)-1]
+func Delete[T any](arr []T, i int) []T {
+	return append(arr[:i], arr[i+1:]...)
+}
+
+func Last[T any](arr []T) (T, bool) {
+	if len(arr) == 0 {
+		return *new(T), false
+	}
+
+	return arr[len(arr)-1], true
+}
+
+func FindLast[T any](arr []T, predicate func(T) bool) (T, bool) {
+	if len(arr) == 0 {
+		return *new(T), false
+	}
+
+	reversedArr := make([]T, len(arr))
+	copy(reversedArr, arr)
+
+	return Find(reversedArr, predicate)
 }
 
 func Shuffle[T any](arr []T) []T {
@@ -20,6 +42,16 @@ func Shuffle[T any](arr []T) []T {
 		arr[i], arr[j] = arr[j], arr[i]
 	})
 	return arr
+}
+
+func Filter[T any](arr []T, predicate func(T) bool) []T {
+	var result []T
+	for _, v := range arr {
+		if predicate(v) {
+			result = append(result, v)
+		}
+	}
+	return result
 }
 
 func Find[T any](arr []T, predicate func(T) bool) (T, bool) {
@@ -51,7 +83,7 @@ func RandomElement[T any](arr []T) T {
 		return arr[0]
 	}
 
-	index := RandomInt(0, len(arr))
+	index := util.RandomInt(0, len(arr))
 
 	return arr[index]
 }
@@ -64,9 +96,13 @@ func Map[T any, U any](arr []T, mapper func(T) U) []U {
 	return result
 }
 
-// ReverseSlice reverses any slice in-place
-func ReverseSlice[T any](slice []T) {
+// ReverseSlice reverses any slice
+func ReverseSlice[T any](slice []T) []T {
+	sliceCopy := make([]T, len(slice), len(slice))
+
 	for i, j := 0, len(slice)-1; i < j; i, j = i+1, j-1 {
-		slice[i], slice[j] = slice[j], slice[i]
+		sliceCopy[i], sliceCopy[j] = slice[j], slice[i]
 	}
+
+	return sliceCopy
 }

@@ -8,6 +8,7 @@ import (
 	"app/env"
 	"app/messages"
 	util2 "app/util"
+	"app/util/arrayutil"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -91,7 +92,7 @@ func generateForQuestion(ctx context.Context, question *trivia.Question, client 
 
 	sentences = append(sentences, question.ForSpeaking())
 
-	if util2.IsValidArray(question.FunFacts) {
+	if arrayutil.IsValidArray(question.FunFacts) {
 		sentences = append(sentences, question.FunFacts...)
 	}
 

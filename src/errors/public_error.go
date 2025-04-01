@@ -1,5 +1,7 @@
 package errors
 
+import "errors"
+
 // PublicError defines error struct that can be exposed to users
 type PublicError struct {
 	// Message is an error message, it should be user-friendly
@@ -14,8 +16,8 @@ func NewPublicError(err string) *PublicError {
 	return &PublicError{Message: err, Context: make(map[string]any)}
 }
 
-func NewPublicErrorCause(err string, cause error) *PublicError {
-	return &PublicError{Message: err, Cause: cause, Context: make(map[string]any)}
+func NewPublicErrorCause(err string, cause error) error {
+	return errors.Join(cause, &PublicError{Message: err, Cause: cause, Context: make(map[string]any)})
 }
 
 func (u *PublicError) Error() string {

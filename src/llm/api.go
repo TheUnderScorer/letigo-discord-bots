@@ -1,8 +1,11 @@
 package llm
 
 import (
+	"app/errors"
 	"app/logging"
+	"app/messages"
 	"app/metrics"
+	"app/util/arrayutil"
 	"context"
 	"go.uber.org/zap"
 )
@@ -42,7 +45,9 @@ func (api *API) Chat(ctx context.Context, chat *Chat) (*Chat, *ChatMessage, erro
 	if err != nil {
 		api.logger.Error("failed to send chat request", zap.Error(err))
 
-		return nil, nil, err
+		publicErr := errors.NewPublicErrorCause(arrayutil.RandomElement(messages.Messages.Chat.FailedToReply), err)
+
+		return nil, nil, publicErr
 	}
 
 	chat.AddMessage(response)
@@ -62,7 +67,9 @@ func (api *API) Prompt(ctx context.Context, prompt Prompt) (*PromptResponse, err
 	api.logger.Debug("prompt response finished", zap.Any("response", response), zap.Duration("duration", measure.Duration()))
 
 	if err != nil {
-		return nil, err
+		publicErr := errors.NewPublicErrorCause(arrayutil.RandomElement(messages.Messages.Chat.FailedToReply), err)
+
+		return nil, publicErr
 	}
 
 	promptResponse := &PromptResponse{

@@ -321,6 +321,17 @@
     "refuseToReply": [
       "kolego, nie powiem ci juz nic",
       "kolego... ide sobie, narazie"
+    ],
+    "endDiscussion": [
+      "ja lece, narazie koledzy",
+      "ja musze leciec",
+      "lece, narazie",
+      "nara"
+    ],
+    "failedToReply": [
+      "kolego, nie moge teraz gadac",
+      "kolego, pogadamy potem",
+      "."
     ]
   }
 }

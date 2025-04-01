@@ -8,6 +8,7 @@ import (
 	"app/logging"
 	"app/messages"
 	"app/util"
+	"app/util/arrayutil"
 	"bytes"
 	"context"
 	_ "embed"
@@ -84,7 +85,7 @@ func (t *Trivia) Start() error {
 		return nil
 	}
 
-	msg := util.RandomElement(messages.Messages.Trivia.Start)
+	msg := arrayutil.RandomElement(messages.Messages.Trivia.Start)
 	welcomeSentence := util.ApplyTokens(msg, map[string]string{
 		"MEMBERS_COUNT": util.PlayerCountSentence(len(t.state.players)),
 	})
@@ -99,7 +100,7 @@ func (t *Trivia) Start() error {
 		t.logger.Error("failed to speak welcome sentence", zap.Error(err))
 	}
 
-	startingPlayer := util.RandomElement(t.state.players)
+	startingPlayer := arrayutil.RandomElement(t.state.players)
 	t.state.SetStartingPlayer(startingPlayer)
 
 	go t.NextQuestion()
@@ -135,7 +136,7 @@ func (t *Trivia) NextQuestion() {
 	}
 
 	q := question.ForSpeaking()
-	options := strings.Join(util.Shuffle(question.Options()), ", ")
+	options := strings.Join(arrayutil.Shuffle(question.Options()), ", ")
 
 	var name string
 	friend, ok := discord.Friends[t.state.currentPlayer.ID]
@@ -155,12 +156,12 @@ func (t *Trivia) NextQuestion() {
 
 	incorrectAnswers := question.IncorrectAnswerMessages
 
-	if !util.IsValidArray(validAnswers) || !util.IsValidArray(incorrectAnswers) {
+	if !arrayutil.IsValidArray(validAnswers) || !arrayutil.IsValidArray(incorrectAnswers) {
 		t.NextQuestion()
 		return
 	}
 
-	validAnswerPhrase := util.ApplyTokens(util.RandomElement(validAnswers), tokens)
+	validAnswerPhrase := util.ApplyTokens(arrayutil.RandomElement(validAnswers), tokens)
 
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(questionTimeout))
 	defer cancel()
@@ -171,7 +172,7 @@ func (t *Trivia) NextQuestion() {
 		return
 	}
 
-	messageContent := util.ApplyTokens(util.RandomElement(messages.Messages.Trivia.QuestionMessages), tokens)
+	messageContent := util.ApplyTokens(arrayutil.RandomElement(messages.Messages.Trivia.QuestionMessages), tokens)
 	m, err := t.session.ChannelMessageSendComplex(t.channelID, &discordgo.MessageSend{
 		Components: GetQuestionComponent(question, nil),
 		Content:    messageContent,
@@ -231,7 +232,7 @@ func (t *Trivia) maybeSayFunFact() {
 	q := t.state.currentQuestion
 
 	if q != nil && util.RandomBool() && len(q.FunFacts) > 0 {
-		err := t.speak(util.RandomElement(q.FunFacts))
+		err := t.speak(arrayutil.RandomElement(q.FunFacts))
 		if err != nil {
 			t.logger.Error("failed to speak fun fact", zap.Error(err))
 		}
@@ -254,15 +255,15 @@ func (t *Trivia) finish() {
 	var winnerMsg string
 
 	if len(winners) == 0 {
-		winnerMsg = util.RandomElement(messages.Messages.Trivia.NoMoreQuestionsNoWinner)
+		winnerMsg = arrayutil.RandomElement(messages.Messages.Trivia.NoMoreQuestionsNoWinner)
 	} else if len(winners) > 1 {
-		winnerMsg = util.RandomElement(messages.Messages.Trivia.NoMoreQuestionsWinner)
+		winnerMsg = arrayutil.RandomElement(messages.Messages.Trivia.NoMoreQuestionsWinner)
 	} else {
-		winnerMsg = util.RandomElement(messages.Messages.Trivia.NoMoreQuestionsDraw)
+		winnerMsg = arrayutil.RandomElement(messages.Messages.Trivia.NoMoreQuestionsDraw)
 	}
 
 	winnerMsg = util.ApplyTokens(winnerMsg, map[string]string{
-		"MENTION": strings.Join(util.Map(winners, func(w *discordgo.User) string {
+		"MENTION": strings.Join(arrayutil.Map(winners, func(w *discordgo.User) string {
 			return w.Mention()
 		}), ", "),
 	})
@@ -426,10 +427,10 @@ func (t *Trivia) speakQuestion() error {
 	var questionPhraseTemplate string
 	if t.state.previousPlayer != nil && t.state.currentPlayer.ID == t.state.previousPlayer.ID {
 		t.logger.Info("current player is previous player")
-		questionPhraseTemplate = util.RandomElement(messages.Messages.Trivia.CurrentPlayerNextQuestion)
+		questionPhraseTemplate = arrayutil.RandomElement(messages.Messages.Trivia.CurrentPlayerNextQuestion)
 	} else {
 		t.logger.Info("current player is not previous player")
-		questionPhraseTemplate = util.RandomElement(messages.Messages.Trivia.NextPlayerQuestion)
+		questionPhraseTemplate = arrayutil.RandomElement(messages.Messages.Trivia.NextPlayerQuestion)
 	}
 	questionPhrase := util.ApplyTokens(questionPhraseTemplate, tokens)
 

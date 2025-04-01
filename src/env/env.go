@@ -22,6 +22,7 @@ type appEnv struct {
 	OllamaHost              string `env:"OLLAMA_HOST"`
 	OllamaModel             string `env:"OLLAMA_MODEL"`
 	OpenAIApiKey            string `env:"OPENAI_API_KEY"`
+	OpenAIAssistantID       string `env:"OPENAI_ASSISTANT_ID"`
 }
 
 var Env appEnv

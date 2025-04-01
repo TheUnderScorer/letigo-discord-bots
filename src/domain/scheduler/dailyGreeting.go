@@ -6,7 +6,7 @@ import (
 	"app/env"
 	"app/logging"
 	"app/messages"
-	"app/util"
+	"app/util/arrayutil"
 	"go.uber.org/zap"
 	"time"
 )
@@ -22,11 +22,11 @@ func DailyGreeting(bot *bots.Bot) {
 
 	day := int(time.Now().Weekday())
 	dayMessages := messages.Messages.Greetings[day]
-	if !util.IsValidArray(dayMessages) {
+	if !arrayutil.IsValidArray(dayMessages) {
 		log.Error("no messages found for given day", zap.Int("day", day))
 		return
 	}
 
-	message := util.RandomElement(dayMessages)
+	message := arrayutil.RandomElement(dayMessages)
 	discord.SendMessageAndForget(bot.Session, cid, message)
 }

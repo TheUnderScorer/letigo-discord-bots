@@ -3,6 +3,7 @@ package trivia
 import (
 	"app/messages"
 	"app/util"
+	"app/util/arrayutil"
 )
 
 // GetInvalidAnswerPhraseParts returns a random phrase indicating an invalid answer
@@ -35,16 +36,16 @@ func (question *Question) GetInvalidAnswerPhraseParts(userName string) []string 
 	switch qt := question.Type; qt {
 	case MultipleChoice:
 
-		msg = append(msg, util.ApplyTokens(util.RandomElement(messages.Messages.Trivia.InvalidAnswer.MultipleLeft), tokens))
+		msg = append(msg, util.ApplyTokens(arrayutil.RandomElement(messages.Messages.Trivia.InvalidAnswer.MultipleLeft), tokens))
 
-		if util.IsValidArray(question.IncorrectAnswerMessages) {
-			msg = append(msg, util.ApplyTokens(util.RandomElement(question.IncorrectAnswerMessages), tokens))
+		if arrayutil.IsValidArray(question.IncorrectAnswerMessages) {
+			msg = append(msg, util.ApplyTokens(arrayutil.RandomElement(question.IncorrectAnswerMessages), tokens))
 		}
 	case TrueFalse:
 		if question.Correct == True {
-			msg = append(msg, util.ApplyTokens(util.RandomElement(messages.Messages.Trivia.InvalidAnswer.BooleanTrue), tokens))
+			msg = append(msg, util.ApplyTokens(arrayutil.RandomElement(messages.Messages.Trivia.InvalidAnswer.BooleanTrue), tokens))
 		} else {
-			msg = append(msg, util.ApplyTokens(util.RandomElement(messages.Messages.Trivia.InvalidAnswer.BooleanFalse), tokens))
+			msg = append(msg, util.ApplyTokens(arrayutil.RandomElement(messages.Messages.Trivia.InvalidAnswer.BooleanFalse), tokens))
 		}
 	}
 

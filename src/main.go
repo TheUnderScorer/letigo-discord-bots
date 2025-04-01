@@ -22,6 +22,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
+	"github.com/pkoukk/tiktoken-go"
 	"go.uber.org/zap"
 	"math/rand"
 	"net/http"
@@ -72,7 +73,7 @@ func main() {
 	wojciechBot := bots.NewBot(bots.BotNameWojciech, env.Env.WojciechBotToken)
 	tadeuszBot := bots.NewBot(bots.BotNameTadeuszSznuk, env.Env.TadeuszBotToken)
 
-	// Chat
+	// DiscordChat
 	ollamaUrl, err := url.Parse(env.Env.OllamaHost)
 	if err != nil {
 		log.Fatal("failed to parse ollama host", zap.Error(err))
@@ -80,9 +81,13 @@ func main() {
 
 	ollamaAdapter := llm.NewOllamaAdapter(env.Env.OllamaModel, ollamaUrl, httpClient)
 	ollamaApi := llm.NewAPI(ollamaAdapter, "ollama")
-
 	openAIClient := openai.NewClient(option.WithAPIKey(env.Env.OpenAIApiKey))
-	openAIAdapter := llm.NewOpenAIAdapter(&openAIClient, openai.ChatModelGPT4oMini)
+	openAIModelDefinition := llm.OpenAIAssistantDefinition{
+		ID:            env.Env.OpenAIAssistantID,
+		Encoding:      tiktoken.MODEL_O200K_BASE,
+		ContextWindow: 128_000,
+	}
+	openAIAdapter := llm.NewOpenAIAssistantAdapter(&openAIClient, openAIModelDefinition)
 	openAIApi := llm.NewAPI(openAIAdapter, "openai")
 
 	llmContainer := &llm.Container{

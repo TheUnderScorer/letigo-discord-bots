@@ -4,7 +4,7 @@ import (
 	"app/aws"
 	"app/discord"
 	"app/messages"
-	"app/util"
+	"app/util/arrayutil"
 	"errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
@@ -26,7 +26,7 @@ func NewState(s3 *aws.S3, players []*discordgo.User) *State {
 	return &State{
 		players:       players,
 		questions:     GetQuestions(s3),
-		currentPlayer: util.RandomElement(players),
+		currentPlayer: arrayutil.RandomElement(players),
 		points:        make(map[string]int),
 	}
 }
@@ -94,7 +94,7 @@ func (s *State) ChangePlayerToRandom() {
 	var player *discordgo.User
 
 	for {
-		player = util.RandomElement(s.players)
+		player = arrayutil.RandomElement(s.players)
 		if player.ID != s.currentPlayer.ID {
 			s.ChangePlayer(player)
 			break

@@ -9,6 +9,7 @@ import (
 	"app/errors"
 	"app/messages"
 	"app/util"
+	"app/util/arrayutil"
 	errors2 "errors"
 	"github.com/bwmarrin/discordgo"
 	"github.com/charmbracelet/log"
@@ -285,7 +286,7 @@ var commandHandlers = map[bots.BotName]CommandHandlers{
 					if order == 0 {
 						message = messages.Messages.Player.AddedToQueueAsNext
 					} else {
-						message = util.ApplyTokens(util.RandomElement(messages.Messages.Player.AddedToQueue), map[string]string{
+						message = util.ApplyTokens(arrayutil.RandomElement(messages.Messages.Player.AddedToQueue), map[string]string{
 							"INDEX": strconv.Itoa(order),
 						})
 					}

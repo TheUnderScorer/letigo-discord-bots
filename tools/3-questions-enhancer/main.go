@@ -3,7 +3,7 @@ package main
 import (
 	"app/domain/trivia"
 	"app/messages"
-	"app/util"
+	"app/util/arrayutil"
 	"encoding/json"
 	"fmt"
 	"github.com/charmbracelet/log"
@@ -68,10 +68,10 @@ func main() {
 	}
 
 	for tid := range threadIds {
-		userMessage, uok := util.Find(result, func(m openai.Message) bool {
+		userMessage, uok := arrayutil.Find(result, func(m openai.Message) bool {
 			return m.ThreadID == tid && m.Role == openai.ChatMessageRoleUser
 		})
-		assistantMessage, aok := util.Find(result, func(m openai.Message) bool {
+		assistantMessage, aok := arrayutil.Find(result, func(m openai.Message) bool {
 			return m.ThreadID == tid && m.Role == openai.ChatMessageRoleAssistant
 		})
 

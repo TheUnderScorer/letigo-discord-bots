@@ -9,6 +9,8 @@ import (
 
 type Chat struct {
 	RefuseToReply []string `json:"refuseToReply"`
+	FailedToReply []string `json:"failedToReply"`
+	EndDiscussion []string `json:"endDiscussion"`
 }
 
 type DailyReportReminder struct {
