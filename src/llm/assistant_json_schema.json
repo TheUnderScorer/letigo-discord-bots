@@ -7,7 +7,7 @@
     },
     "is_worth_remembering": {
       "type": "boolean",
-      "description": "Is true, if previous message is worth remembering."
+      "description": "Is true, if previous message is worth remembering. Should be false, if you already remember details from the previous message."
     },
     "is_goodbye": {
       "type": "boolean",

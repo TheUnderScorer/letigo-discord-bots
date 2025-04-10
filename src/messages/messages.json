@@ -318,6 +318,11 @@
     ]
   },
   "chat": {
+    "buttonLabelForget": "Zapomnij to kolego",
+    "newMemory": [
+      "\uD83E\uDD16 kolego, zapamietalem nowa rzecz! \uD83E\uDD16",
+      "\uD83E\uDD16 kolego, zapamietam to \uD83E\uDD16"
+    ],
     "refuseToReply": [
       "kolego, nie powiem ci juz nic",
       "kolego... ide sobie, narazie"

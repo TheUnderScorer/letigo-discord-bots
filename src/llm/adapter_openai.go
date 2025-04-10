@@ -1,9 +1,9 @@
 package llm
 
 import (
+	openai2 "app/domain/openai"
 	"app/errors"
 	messages2 "app/messages"
-	openai2 "app/openai"
 	"app/util/arrayutil"
 	"context"
 	"github.com/openai/openai-go"
@@ -29,6 +29,7 @@ func NewOpenAIAdapter(client *openai.Client, model OpenAIModelDefinition) *OpenA
 	}
 }
 
+// TODO Refactor to use Completions API instead, so that we can pass vector store
 func (o *OpenAIAdapter) Prompt(ctx context.Context, p Prompt) (string, error) {
 	var messages []*ChatMessage
 
@@ -44,7 +45,7 @@ func (o *OpenAIAdapter) Prompt(ctx context.Context, p Prompt) (string, error) {
 		Contents: p.Phrase,
 	})
 
-	message, err := o.Chat(ctx, &Chat{
+	message, _, err := o.Chat(ctx, &Chat{
 		Messages: messages,
 	})
 	if err != nil {
@@ -54,39 +55,40 @@ func (o *OpenAIAdapter) Prompt(ctx context.Context, p Prompt) (string, error) {
 	return message.Contents, nil
 }
 
-func (o *OpenAIAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMessage, error) {
+func (o *OpenAIAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMessage, *ChatReplyMetadata, error) {
 	var messages []openai.ChatCompletionMessageParamUnion
 
 	for _, chatMessage := range chat.Messages {
 		switch chatMessage.Role {
 		case ChatRoleUser:
-			messages = append(messages, openai.UserMessage(chatMessage.Contents))
+			messages = append(messages, openai.UserMessage(chatMessage.ChatMessage()))
 
 		case ChatRoleAssistant:
-			messages = append(messages, openai.AssistantMessage(chatMessage.Contents))
+			messages = append(messages, openai.AssistantMessage(chatMessage.ChatMessage()))
 
 		case ChatRoleSystem:
-			messages = append(messages, openai.SystemMessage(chatMessage.Contents))
+			messages = append(messages, openai.SystemMessage(chatMessage.ChatMessage()))
 		}
 	}
 
 	param := openai.ChatCompletionNewParams{
 		Messages: messages,
 		Model:    o.model.Model,
+		Tools:    []openai.ChatCompletionToolParam{},
 	}
 
 	tokens, err := o.countTokens(chat)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to count tokens")
+		return nil, nil, errors.Wrap(err, "failed to count tokens")
 	}
 
 	if tokens > o.model.ContextWindow {
-		return nil, NewPromptTooLongError(tokens)
+		return nil, nil, NewPromptTooLongError(tokens)
 	}
 
 	completion, err := o.client.Chat.Completions.New(ctx, param)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	message := completion.Choices[0].Message
@@ -99,10 +101,10 @@ func (o *OpenAIAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMessage, err
 			userFriendlyError.AddContext("prompt", lastMessage.Contents)
 		}
 
-		return nil, userFriendlyError
+		return nil, nil, userFriendlyError
 	}
 
-	return NewChatMessage(message.Content, ChatRoleUser), nil
+	return NewChatMessage(message.Content, ChatRoleUser), nil, nil
 }
 
 func (o *OpenAIAdapter) countTokens(chat *Chat) (int32, error) {

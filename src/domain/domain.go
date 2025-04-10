@@ -4,8 +4,12 @@ import (
 	"app/bots"
 	"app/domain/chat"
 	"app/domain/interaction"
+	"app/domain/openai"
+	"app/env"
+	"app/events"
 	"app/llm"
 	"app/logging"
+	"context"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
 )
@@ -45,5 +49,13 @@ func Init(container *Container) {
 func InitWojciechBot(session *discordgo.Session, manager *chat.Manager, llmApi *llm.API) {
 	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		chat.HandleMessageCreate(session, manager, llmApi, m)
+	})
+
+	events.Handle(func(ctx context.Context, event openai.MemoryUpdated) error {
+		if event.DiscordThreadID != "" {
+			return chat.HandleMemoryUpdated(ctx, env.Env.OpenAIAssistantVectorStoreID, session, event)
+		}
+
+		return nil
 	})
 }

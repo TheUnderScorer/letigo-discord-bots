@@ -1,8 +1,9 @@
 package chat
 
 import (
-	"app/discord"
+	chatevents "app/domain/chat/events"
 	"app/errors"
+	"app/events"
 	"app/llm"
 	"app/llm/prompts"
 	"app/logging"
@@ -10,10 +11,8 @@ import (
 	"context"
 	_ "embed"
 	goerrors "errors"
-	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
-	"strings"
 	"sync"
 	"time"
 )
@@ -42,7 +41,6 @@ type DiscordChat struct {
 	// TODO When message is deleted, delete it from here
 	// chat is the underlying chat used by llm
 	chat *llm.Chat
-
 	// onDiscussionEnded is called after discussion is ended
 	onDiscussionEnded *func(chat *DiscordChat)
 }
@@ -86,10 +84,10 @@ func (c *DiscordChat) HandleNewMessage(message *discordgo.MessageCreate) error {
 		log.Error("failed to start typing in channel", zap.Error(err))
 	}
 
-	chatMessage := llm.NewChatMessageID(message.ID, c.addMemberMetadataToMessage(message.Message), llm.ChatRoleUser)
-	chat.AddMessage(chatMessage)
+	chatMessage := llm.NewDiscordChatMessage(message.Message)
+	chat.AddMessages(chatMessage)
 
-	chat, newMessage, err := c.llmContainer.ExpensiveAPI.Chat(ctx, chat)
+	chat, newMessage, newMessageMetadata, err := c.llmContainer.AssistantAPI.Chat(ctx, chat)
 	if err != nil {
 		log.Error("failed to get new chat from llmContainer", zap.Error(err))
 
@@ -111,10 +109,14 @@ func (c *DiscordChat) HandleNewMessage(message *discordgo.MessageCreate) error {
 	}
 	newMessage.ID = sentMessage.ID
 
-	if newMessage.IsGoodbye {
+	if newMessageMetadata.IsGoodbye {
 		log.Info("bot said goodbye, ending discussion")
 
 		return c.EndDiscussion(ctx, message.Message)
+	}
+
+	if newMessageMetadata.IsWorthRemembering {
+		go c.remember(sentMessage.ID)
 	}
 
 	return nil
@@ -140,6 +142,47 @@ func (c *DiscordChat) EndDiscussion(ctx context.Context, message *discordgo.Mess
 	return nil
 }
 
+// remember handles process of asking LLM to remember details from current discord chat. It is meant to run in a separate go routine.
+func (c *DiscordChat) remember(messageID string) {
+	log := c.log.With(zap.String("messageID", messageID)).Named("remember")
+
+	if c.thread == nil {
+		log.Warn("unable to remember, no thread exists")
+		return
+	}
+
+	// Process only user messages
+	userMessages := arrayutil.Filter(c.chat.Messages, func(message *llm.ChatMessage) bool {
+		return message.Role == llm.ChatRoleUser
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	systemPrompt := "You are a helpful assistant that parses messages, and extracts details from them. Extract details from this chat messages someone else should remember, and return ONLY them. Try to answer following questions: WHO? and WHAT? Return single sentence that answers these both questions. If message does not contain anything relevant, or you are enable to answer BOTH of these questions, return an empty string. Ignore informations that YOU already know."
+
+	chat := llm.NewChat()
+	chat.AddMessages(llm.NewChatMessage(systemPrompt, llm.ChatRoleSystem))
+	chat.AddMessages(userMessages...)
+
+	_, reply, _, err := c.llmContainer.ExpensiveAPI.Chat(ctx, chat)
+	if err != nil {
+		log.Error("failed to extract details to remember", zap.Error(err))
+	}
+
+	if reply.Contents == "" {
+		log.Error("message has no contents")
+	}
+
+	err = events.Dispatch(ctx, chatevents.MemoryDetailsExtracted{
+		Details:         reply.Contents,
+		DiscordThreadID: c.thread.ID,
+	})
+	if err != nil {
+		log.Error("failed to dispatch MemoryDetailsExtracted event", zap.Error(err))
+	}
+}
+
 // ensureThread ensures a message thread is created for the given message. If the thread does not exist, it creates one.
 func (c *DiscordChat) ensureThread(ctx context.Context, message *discordgo.MessageCreate) error {
 	log := c.log.With(zap.String("messageID", message.ID))
@@ -163,12 +206,11 @@ func (c *DiscordChat) ensureThread(ctx context.Context, message *discordgo.Messa
 	if c.thread == nil {
 		log.Info("first message, creating thread")
 
-		// What does this do? :0
 		c.firstMessage = message.Message
 		// Add the first message to the chat
-		c.chat.AddMessage(llm.NewChatMessageID(message.ID, c.addMemberMetadataToMessage(message.Message), llm.ChatRoleUser))
+		c.chat.AddMessages(llm.NewDiscordChatMessage(message.Message))
 
-		threadSummary, err := prompts.SummarizeDiscordThread(ctx, c.llmContainer.ExpensiveAPI, message.Content)
+		threadSummary, err := prompts.SummarizeDiscordThread(ctx, c.llmContainer.AssistantAPI, message.Content)
 		if err != nil {
 			log.Error("failed to get thread summary", zap.Error(err))
 			return errors.Wrap(err, "failed to summarize this message")
@@ -217,7 +259,6 @@ func (c *DiscordChat) addThreadMessagesToChat(ctx context.Context) error {
 	if messagesLen > 0 {
 		for _, m := range channelMessages {
 			var role llm.ChatRole
-			messageContent := m.Content
 
 			// Apply Assistant role to channelMessages sent by bot
 			if m.Author.ID == c.session.State.User.ID {
@@ -226,28 +267,13 @@ func (c *DiscordChat) addThreadMessagesToChat(ctx context.Context) error {
 			} else {
 				log.Debug("resolved message to user", zap.String("ID", m.ID))
 				role = llm.ChatRoleUser
-
-				messageContent = c.addMemberMetadataToMessage(m)
 			}
 
-			c.chat.AddMessage(llm.NewChatMessageID(m.ID, messageContent, role))
+			chatMessage := llm.NewDiscordChatMessage(m)
+			chatMessage.Role = role
+			c.chat.AddMessages(chatMessage)
 		}
 
 	}
 	return nil
-}
-
-// addMemberMetadataToMessage adds metadata about a message sender if they are a friend, formatted with their details.
-func (c *DiscordChat) addMemberMetadataToMessage(m *discordgo.Message) string {
-	var messageParts []string
-
-	friend, ok := discord.GetFriend(m.Author.ID)
-	if ok {
-		c.log.Debug("found friend", zap.String("ID", friend.ID))
-		messageParts = append(messageParts, fmt.Sprintf("%s (discord ID: %s):", friend.FirstName, friend.ID))
-	}
-
-	messageParts = append(messageParts, m.Content)
-
-	return strings.Join(messageParts, "\n")
 }

@@ -1,10 +1,10 @@
 package llm
 
 import (
+	openaiutil "app/domain/openai"
 	"app/errors"
 	"app/logging"
 	appmessages "app/messages"
-	openai2 "app/openai"
 	"app/util/arrayutil"
 	"context"
 	_ "embed"
@@ -12,6 +12,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/openai/openai-go"
 	"go.uber.org/zap"
+	"strings"
 )
 
 const threadCompletedEvent = "thread.message.completed"
@@ -48,14 +49,16 @@ type OpenAIAssistantDefinition struct {
 type OpenAIAssistantAdapter struct {
 	client *openai.Client
 	// openAI assistant to use
-	assistant OpenAIAssistantDefinition
+	assistant     OpenAIAssistantDefinition
+	vectorStoreID string
 }
 
 // NewOpenAIAssistantAdapter creates a new instance of OpenAIAssistantAdapter with the provided client and assistant.
-func NewOpenAIAssistantAdapter(client *openai.Client, assistant OpenAIAssistantDefinition) *OpenAIAssistantAdapter {
+func NewOpenAIAssistantAdapter(client *openai.Client, assistant OpenAIAssistantDefinition, vectorStoreID string) *OpenAIAssistantAdapter {
 	return &OpenAIAssistantAdapter{
-		client:    client,
-		assistant: assistant,
+		client:        client,
+		assistant:     assistant,
+		vectorStoreID: vectorStoreID,
 	}
 }
 
@@ -76,9 +79,9 @@ func (o *OpenAIAssistantAdapter) Prompt(ctx context.Context, p Prompt) (string, 
 
 	chat := NewChat()
 	for _, message := range messages {
-		chat.AddMessage(message)
+		chat.AddMessages(message)
 	}
-	message, err := o.Chat(ctx, chat)
+	message, _, err := o.Chat(ctx, chat)
 	if err != nil {
 		return "", err
 	}
@@ -86,7 +89,7 @@ func (o *OpenAIAssistantAdapter) Prompt(ctx context.Context, p Prompt) (string, 
 	return message.Contents, nil
 }
 
-func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMessage, error) {
+func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMessage, *ChatReplyMetadata, error) {
 	log := logging.Get().Named("AdapterOpenAIAssistant").Named("Chat")
 
 	var thread *openai.Thread
@@ -94,10 +97,10 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 
 	tokens, err := o.countTokens(chat)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to count tokens")
+		return nil, nil, errors.Wrap(err, "failed to count tokens")
 	}
 	if tokens > o.assistant.ContextWindow {
-		return nil, NewPromptTooLongError(tokens)
+		return nil, nil, NewPromptTooLongError(tokens)
 	}
 
 	if resolvedThreadId, ok := chat.Metadata[threadIdMetadataKey]; ok {
@@ -110,7 +113,7 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 
 			threadMessageIds, err := o.listMessageIds(ctx, resolvedThreadId)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to list thread message ids")
+				return nil, nil, errors.Wrap(err, "failed to list thread message ids")
 			}
 
 			// Filter for messages sent by users, not us
@@ -123,7 +126,7 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 				if chatMessage.ID == "" || !arrayutil.Includes(threadMessageIds, chatMessage.ID) {
 					err = o.sendMessageToThread(ctx, chatMessage, resolvedThreadId)
 					if err != nil {
-						return nil, errors.Wrap(err, "failed to send message to thread")
+						return nil, nil, errors.Wrap(err, "failed to send message to thread")
 					}
 				}
 			}
@@ -131,7 +134,7 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 	} else {
 		thread, err = o.createThread(ctx, chat)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create thread")
+			return nil, nil, errors.Wrap(err, "failed to create thread")
 		}
 
 		// Store thread ID in chat metadata so that we can retrieve in in further Chat() calls
@@ -139,15 +142,26 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 	}
 
 	if thread == nil {
-		return nil, goerrors.New("failed to send message: chat contains no thread")
+		return nil, nil, goerrors.New("failed to send message: chat contains no thread")
 	}
 
 	schema, err := parseSchema()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse schema")
+		return nil, nil, errors.Wrap(err, "failed to parse schema")
 	}
 
 	var streamHistory []any
+
+	var additionalInstructions string
+	systemMessages := arrayutil.Filter(chat.Messages, func(m *ChatMessage) bool {
+		return m.Role == ChatRoleSystem
+	})
+	if len(systemMessages) > 0 {
+		systemPrompts := arrayutil.Map(systemMessages, func(m *ChatMessage) string {
+			return m.Contents
+		})
+		additionalInstructions = strings.Join(systemPrompts, ", ")
+	}
 
 	stream := o.client.Beta.Threads.Runs.NewStreaming(ctx, thread.ID, openai.BetaThreadRunNewParams{
 		AssistantID: o.assistant.ID,
@@ -156,12 +170,20 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 			Strict: openai.Bool(true),
 			Schema: schema,
 		}),
+		AdditionalInstructions: openai.String(additionalInstructions),
+		Tools: []openai.AssistantToolUnionParam{
+			{
+				OfFileSearch: &openai.FileSearchToolParam{
+					FileSearch: openai.FileSearchToolFileSearchParam{},
+				},
+			},
+		},
 	})
 	defer stream.Close()
 	for stream.Next() {
 		err = stream.Err()
 		if err != nil {
-			return nil, errors.Wrap(err, "stream run error")
+			return nil, nil, errors.Wrap(err, "stream run error")
 		}
 		v := stream.Current()
 
@@ -186,7 +208,7 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 							publicError.AddContext("prompt", lastMessage.Contents)
 						}
 
-						return nil, publicError
+						return nil, nil, publicError
 					}
 
 					if text.Text.Value != "" {
@@ -194,21 +216,14 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 						err = json.Unmarshal([]byte(text.Text.Value), &threadResponse)
 						if err != nil {
 							log.Error("failed to unmarshal thread", zap.Error(err), zap.String("content", text.Text.Value))
-							return nil, errors.Wrap(err, "failed to unmarshal thread response")
+							return nil, nil, errors.Wrap(err, "failed to unmarshal thread response")
 						}
 
-						// Handle remembering
-						if threadResponse.IsWorthRemembering {
-							log.Info("previous message is worth remembering")
-						}
-
-						if threadResponse.IsGoodbye {
-							log.Info("previous message is goodbye")
-						}
-
-						message := NewChatMessage(threadResponse.Response, ChatRoleAssistant)
-						message.IsGoodbye = threadResponse.IsGoodbye
-						return message, nil
+						message := NewAssistantChatMessage(threadResponse.Response, v.Data.RunID)
+						return message, &ChatReplyMetadata{
+							IsWorthRemembering: threadResponse.IsWorthRemembering,
+							IsGoodbye:          threadResponse.IsGoodbye,
+						}, nil
 					}
 				}
 			}
@@ -217,22 +232,23 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 
 	err = stream.Err()
 	if err != nil {
-		return nil, errors.Wrap(err, "stream run error")
+		return nil, nil, errors.Wrap(err, "stream run error")
 	}
 
 	log.Error("assistant didn't reply", zap.Any("streamHistory", streamHistory))
 
-	return nil, goerrors.New("assistant didn't reply")
+	return nil, nil, goerrors.New("assistant didn't reply")
 }
 
 // sendMessageToThread sends a message to an existing thread and returns the response message or an error if it fails.
 func (o *OpenAIAssistantAdapter) sendMessageToThread(ctx context.Context, message *ChatMessage, threadId string) error {
 	messageMetadata := mapMetadata(message)
 
+	content := openai.BetaThreadMessageNewParamsContentUnion{
+		OfString: openai.String(message.ChatMessage()),
+	}
 	_, err := o.client.Beta.Threads.Messages.New(ctx, threadId, openai.BetaThreadMessageNewParams{
-		Content: openai.BetaThreadMessageNewParamsContentUnion{
-			OfString: openai.String(message.Contents),
-		},
+		Content:  content,
 		Metadata: messageMetadata,
 		Role:     mapRole(message),
 	})
@@ -267,9 +283,18 @@ func (o *OpenAIAssistantAdapter) createThread(ctx context.Context, chat *Chat) (
 		metadata[k] = v
 	}
 
+	chatMessages := arrayutil.Filter(chat.Messages, func(message *ChatMessage) bool {
+		return message.Role != ChatRoleSystem
+	})
+	messages := arrayutil.Map(chatMessages, chatMessageToThreadMessage)
 	createdThread, err := o.client.Beta.Threads.New(ctx, openai.BetaThreadNewParams{
 		Metadata: metadata,
-		Messages: arrayutil.Map(chat.Messages, chatMessageToThreadMessage),
+		Messages: messages,
+		ToolResources: openai.BetaThreadNewParamsToolResources{
+			FileSearch: openai.BetaThreadNewParamsToolResourcesFileSearch{
+				VectorStoreIDs: []string{o.vectorStoreID},
+			},
+		},
 	})
 
 	return createdThread, err
@@ -283,7 +308,7 @@ func chatMessageToThreadMessage(message *ChatMessage) openai.BetaThreadNewParams
 		Role:     role,
 		Metadata: messageMetadata,
 		Content: openai.BetaThreadNewParamsMessageContentUnion{
-			OfString: openai.String(message.Contents),
+			OfString: openai.String(message.ChatMessage()),
 		},
 	}
 }
@@ -327,5 +352,5 @@ func (o *OpenAIAssistantAdapter) countTokens(chat *Chat) (int32, error) {
 		contents = contents + message.Contents
 	}
 
-	return openai2.CountTokens(contents, o.assistant.Encoding)
+	return openaiutil.CountTokens(contents, o.assistant.Encoding)
 }

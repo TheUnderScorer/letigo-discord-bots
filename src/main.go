@@ -6,6 +6,7 @@ import (
 	"app/domain"
 	"app/domain/chat"
 	"app/domain/interaction"
+	openaidomain "app/domain/openai"
 	"app/domain/player"
 	"app/domain/scheduler"
 	"app/domain/trivia"
@@ -82,17 +83,25 @@ func main() {
 	ollamaAdapter := llm.NewOllamaAdapter(env.Env.OllamaModel, ollamaUrl, httpClient)
 	ollamaApi := llm.NewAPI(ollamaAdapter, "ollama")
 	openAIClient := openai.NewClient(option.WithAPIKey(env.Env.OpenAIApiKey))
-	openAIModelDefinition := llm.OpenAIAssistantDefinition{
+	openAIAssistantDefinition := llm.OpenAIAssistantDefinition{
 		ID:            env.Env.OpenAIAssistantID,
 		Encoding:      tiktoken.MODEL_O200K_BASE,
 		ContextWindow: 128_000,
 	}
-	openAIAdapter := llm.NewOpenAIAssistantAdapter(&openAIClient, openAIModelDefinition)
+	openAIAssistantAdapter := llm.NewOpenAIAssistantAdapter(&openAIClient, openAIAssistantDefinition, env.Env.OpenAIAssistantVectorStoreID)
+	assistantApi := llm.NewAPI(openAIAssistantAdapter, "openai")
+
+	openAIAdapter := llm.NewOpenAIAdapter(&openAIClient, llm.OpenAIModelDefinition{
+		Model:         openai.ChatModelGPT4oMini,
+		ContextWindow: 128_000,
+		Encoding:      tiktoken.MODEL_O200K_BASE,
+	})
 	openAIApi := llm.NewAPI(openAIAdapter, "openai")
 
 	llmContainer := &llm.Container{
-		ExpensiveAPI: openAIApi,
+		AssistantAPI: assistantApi,
 		FreeAPI:      ollamaApi,
+		ExpensiveAPI: openAIApi,
 	}
 
 	chatManager := chat.NewManager(wojciechBot.Session, llmContainer)
@@ -103,9 +112,11 @@ func main() {
 		Bots: botsArr,
 	}, app, metadata.GetVersion())
 
-	go interaction.Init(botsArr)
+	openaidomain.Init(&openAIClient, env.Env.OpenAIAssistantVectorStoreID)
 
-	go domain.Init(&domain.Container{
+	interaction.Init(botsArr)
+
+	domain.Init(&domain.Container{
 		ChatManager: chatManager,
 		LlmApi:      llmContainer.FreeAPI,
 		Bots:        botsArr,

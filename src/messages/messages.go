@@ -8,9 +8,11 @@ import (
 )
 
 type Chat struct {
-	RefuseToReply []string `json:"refuseToReply"`
-	FailedToReply []string `json:"failedToReply"`
-	EndDiscussion []string `json:"endDiscussion"`
+	RefuseToReply     []string `json:"refuseToReply"`
+	FailedToReply     []string `json:"failedToReply"`
+	EndDiscussion     []string `json:"endDiscussion"`
+	NewMemory         []string `json:"newMemory"`
+	ButtonLabelForget string   `json:"buttonLabelForget"`
 }
 
 type DailyReportReminder struct {

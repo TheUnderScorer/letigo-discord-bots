@@ -31,8 +31,7 @@ func FindLast[T any](arr []T, predicate func(T) bool) (T, bool) {
 		return *new(T), false
 	}
 
-	reversedArr := make([]T, len(arr))
-	copy(reversedArr, arr)
+	reversedArr := ReverseSlice(arr)
 
 	return Find(reversedArr, predicate)
 }
@@ -98,10 +97,10 @@ func Map[T any, U any](arr []T, mapper func(T) U) []U {
 
 // ReverseSlice reverses any slice
 func ReverseSlice[T any](slice []T) []T {
-	sliceCopy := make([]T, len(slice), len(slice))
+	sliceCopy := make([]T, 0, len(slice))
 
-	for i, j := 0, len(slice)-1; i < j; i, j = i+1, j-1 {
-		sliceCopy[i], sliceCopy[j] = slice[j], slice[i]
+	for i := len(slice) - 1; i >= 0; i-- {
+		sliceCopy = append(sliceCopy, slice[i])
 	}
 
 	return sliceCopy

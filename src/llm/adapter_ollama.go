@@ -28,7 +28,7 @@ func NewOllamaAdapter(model string, base *url.URL, http *http.Client) *OllamaAda
 	}
 }
 
-func (o *OllamaAdapter) Chat(ctx context.Context, request *Chat) (*ChatMessage, error) {
+func (o *OllamaAdapter) Chat(ctx context.Context, request *Chat) (*ChatMessage, *ChatReplyMetadata, error) {
 	stream := true
 
 	var messages []ollama.Message
@@ -53,7 +53,7 @@ func (o *OllamaAdapter) Chat(ctx context.Context, request *Chat) (*ChatMessage, 
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	log.Debug("got response from llm", zap.Any("request", request), zap.String("model", o.model), zap.Any("response", handler))
@@ -61,7 +61,7 @@ func (o *OllamaAdapter) Chat(ctx context.Context, request *Chat) (*ChatMessage, 
 	return &ChatMessage{
 		Role:     ChatRoleAssistant,
 		Contents: strings.TrimSpace(strings.Join(handler.MessageParts, "")),
-	}, nil
+	}, nil, nil
 }
 
 func (o *OllamaAdapter) Prompt(ctx context.Context, p Prompt) (string, error) {

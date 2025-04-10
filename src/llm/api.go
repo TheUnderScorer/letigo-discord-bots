@@ -32,12 +32,12 @@ func NewAPI(adapter Adapter, name string) *API {
 }
 
 // Chat creates, or continues given chat discussion between user and the assistant (llm model)
-func (api *API) Chat(ctx context.Context, chat *Chat) (*Chat, *ChatMessage, error) {
+func (api *API) Chat(ctx context.Context, chat *Chat) (*Chat, *ChatMessage, *ChatReplyMetadata, error) {
 	api.logger.Debug("sending chat request", zap.Any("chat", chat))
 
 	measure := metrics.NewMeasure()
 	measure.Start()
-	response, err := api.adapter.Chat(ctx, chat)
+	response, metadata, err := api.adapter.Chat(ctx, chat)
 	measure.End()
 
 	api.logger.Debug("chat request finished", zap.Duration("duration", measure.Duration()), zap.Any("response", response))
@@ -47,12 +47,12 @@ func (api *API) Chat(ctx context.Context, chat *Chat) (*Chat, *ChatMessage, erro
 
 		publicErr := errors.NewPublicErrorCause(arrayutil.RandomElement(messages.Messages.Chat.FailedToReply), err)
 
-		return nil, nil, publicErr
+		return nil, nil, nil, publicErr
 	}
 
-	chat.AddMessage(response)
+	chat.AddMessages(response)
 
-	return chat, response, nil
+	return chat, response, metadata, nil
 }
 
 // Prompt sends a request to the LLM with given prompt

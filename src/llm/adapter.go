@@ -7,5 +7,5 @@ type Adapter interface {
 	Prompt(ctx context.Context, p Prompt) (string, error)
 
 	// Chat sends a request with chat to the LLM
-	Chat(ctx context.Context, chat *Chat) (*ChatMessage, error)
+	Chat(ctx context.Context, chat *Chat) (*ChatMessage, *ChatReplyMetadata, error)
 }
