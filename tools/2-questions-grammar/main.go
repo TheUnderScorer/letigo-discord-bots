@@ -134,9 +134,10 @@ func handleMessage(ctx context.Context, client *openai.Client, msg openai.Thread
 	var userMessage openai.Message
 
 	for _, v := range result.Messages {
-		if v.Role == openai.ChatMessageRoleAssistant {
+		switch {
+		case v.Role == openai.ChatMessageRoleAssistant:
 			assistantMessage = v
-		} else if v.Role == openai.ChatMessageRoleUser {
+		case v.Role == openai.ChatMessageRoleUser:
 			userMessage = v
 		}
 	}
