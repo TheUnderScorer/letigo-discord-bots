@@ -34,8 +34,6 @@ type DiscordChat struct {
 	llmContainer *llm.Container
 	// firstMessage contains content of the first message that started the thread
 	firstMessage *discordgo.Message
-	// afterID is used for paginating long chat messages
-	afterID string
 	// isFinished indicates if the chat discussion is finished
 	isFinished bool
 	// TODO When message is deleted, delete it from here

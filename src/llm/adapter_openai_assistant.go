@@ -190,7 +190,7 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 		streamHistory = append(streamHistory, v)
 
 		if v.Event == threadCompletedEvent {
-			if v.Data.Content != nil && len(v.Data.Content) > 0 {
+			if len(v.Data.Content) > 0 {
 				log.Debug("stream content", zap.Any("contents", v.Data.Content))
 				for _, content := range v.Data.Content {
 					refusal := content.AsRefusal()

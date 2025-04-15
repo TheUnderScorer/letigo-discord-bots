@@ -242,7 +242,7 @@ var commandHandlers = map[bots.BotName]CommandHandlers{
 					return
 				}
 
-				discord.SendMessageComplexAndForget(s, i.Interaction.ChannelID, &discordgo.MessageSend{
+				discord.SendMessageComplexAndForget(s, i.ChannelID, &discordgo.MessageSend{
 					Components: *component,
 				})
 				discord.DeleteFollowupAndForget(s, i.Interaction)

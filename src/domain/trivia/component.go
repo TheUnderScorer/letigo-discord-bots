@@ -126,9 +126,11 @@ func GetQuestionComponent(q *Question, opts *QuestionComponentOpts) []discordgo.
 		for i, option := range q.Options() {
 			var style discordgo.ButtonStyle
 			if opts != nil && opts.SelectedAnswer != "" {
-				if option == q.Correct {
+				switch option {
+				case q.Correct:
 					style = discordgo.SuccessButton
-				} else if option == opts.SelectedAnswer {
+
+				case opts.SelectedAnswer:
 					style = discordgo.DangerButton
 				}
 			} else {

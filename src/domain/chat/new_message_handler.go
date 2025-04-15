@@ -41,7 +41,7 @@ func HandleMessageCreate(session *discordgo.Session, manager *Manager, llmApi *l
 	}
 
 	// Check if message explicitly mentions us
-	isMention := (newMessage.Mentions != nil && len(newMessage.Mentions) > 0 && discord.HasUser(newMessage.Mentions, sessionUserID)) || strings.Contains(newMessage.Content, sessionUserID)
+	isMention := (len(newMessage.Mentions) > 0 && discord.HasUser(newMessage.Mentions, sessionUserID)) || strings.Contains(newMessage.Content, sessionUserID)
 	if isMention {
 		log.Debug("message mentions us explicitly")
 	}
