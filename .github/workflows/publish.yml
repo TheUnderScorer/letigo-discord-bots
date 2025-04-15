@@ -1,0 +1,29 @@
+name: Publish image to docker registry
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: actions/checkout@v4
+
+      - name: Build and push Docker image
+        run: |
+          docker build -f ./docker/server/Dockerfile -t schemik/letigo-discord-bots:latest .
+          docker push schemik/letigo-discord-bots:latest
+
+      - name: Push with tag
+        if: github.event_name == 'release'
+        run: |
+          docker tag schemik/letigo-discord-bots:lates schemik/letigo-discord-bots:${{github.event.release.tag_name}}
+          docker push schemik/letigo-discord-bots:${{github.event.release.tag_name}}
+          
