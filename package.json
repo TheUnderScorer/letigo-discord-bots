@@ -1,6 +1,6 @@
 {
   "name": "letigo-discord-bots",
-  "version": "2.13.2",
+  "version": "2.14.0",
   "description": "Bots for letigo group",
   "private": true,
   "scripts": {

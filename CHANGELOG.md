@@ -1,3 +1,11 @@
+# [2.14.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.13.2...v2.14.0) (2025-04-15)
+
+
+### Features
+
+* add chat functionality to the bot ([254a65d](https://github.com/TheUnderScorer/letigo-discord-bots/commit/254a65de3bad361bcc8a103f298ae1da456db331))
+* add memory functionality to the chat ([b59ed76](https://github.com/TheUnderScorer/letigo-discord-bots/commit/b59ed76792c695e32aebdae0ed12ab7aeb617dd2))
+
 ## [2.13.2](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.13.1...v2.13.2) (2025-03-05)
 
 
