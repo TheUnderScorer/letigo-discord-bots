@@ -1,34 +1,49 @@
 package chat
 
 import (
+	"app/bots"
 	"app/domain/openai"
 	"app/errors"
 	"app/messages"
 	"app/util/arrayutil"
-	"bytes"
 	"context"
-	"encoding/json"
 	"github.com/bwmarrin/discordgo"
 )
 
-// HandleMemoryUpdated processes a memory update event and sends a Discord message with associated memory payload data.
-func HandleMemoryUpdated(ctx context.Context, vectorStoreID string, session *discordgo.Session, event openai.MemoryUpdated) error {
-	payload := ForgetButtonPayload{
-		VectorStoreID: vectorStoreID,
-		VectorFileID:  event.VectorFileID,
-		Content:       event.Content,
-	}
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal ForgetButtonPayload")
-	}
+type MemoryEmbedField string
 
-	_, err = session.ChannelMessageSendComplex(event.DiscordThreadID, &discordgo.MessageSend{
+var (
+	MemoryEmbedFieldVectorStoreID = MemoryEmbedField("Vector Store ID")
+	MemoryEmbedFieldVectorFileID  = MemoryEmbedField("Vector File ID")
+)
+
+func (f MemoryEmbedField) String() string {
+	return string(f)
+}
+
+// HandleMemoryUpdated processes a memory update event and sends a Discord message with associated memory payload data.
+func HandleMemoryUpdated(ctx context.Context, vectorStoreID string, bot *bots.Bot, event openai.MemoryUpdated) error {
+	session := bot.Session
+
+	_, err := session.ChannelMessageSendComplex(event.DiscordThreadID, &discordgo.MessageSend{
 		Content: arrayutil.RandomElement(messages.Messages.Chat.NewMemory),
-		File: &discordgo.File{
-			Name:        "metadata.json",
-			ContentType: "application/json",
-			Reader:      bytes.NewReader(payloadBytes),
+		Embeds: []*discordgo.MessageEmbed{
+			{
+				Author: &discordgo.MessageEmbedAuthor{
+					Name: bot.Name.String(),
+				},
+				Description: event.Content,
+				Fields: []*discordgo.MessageEmbedField{
+					{
+						Name:  MemoryEmbedFieldVectorStoreID.String(),
+						Value: vectorStoreID,
+					},
+					{
+						Name:  MemoryEmbedFieldVectorFileID.String(),
+						Value: event.VectorFileID,
+					},
+				},
+			},
 		},
 		Components: []discordgo.MessageComponent{
 			discordgo.ActionsRow{
