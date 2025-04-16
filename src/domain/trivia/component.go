@@ -62,7 +62,15 @@ func (h ComponentInteractionHandler) Handle(ctx context.Context, i *discordgo.In
 		}
 
 		if user != nil {
-			trivia.PlayerNominated <- user
+			select {
+			case trivia.PlayerNominated <- user:
+
+			case <-ctx.Done():
+				return ctx.Err()
+
+			default:
+				log.Warn("player nomination channel is not listening")
+			}
 		}
 	}
 
