@@ -9,7 +9,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func ReportErrorChannel(session *discordgo.Session, cid string, err error) {
+func prepareErrorReportEmbed(err error) []*discordgo.MessageEmbed {
 	var publicError *errors.PublicError
 	fields := make(map[string]string)
 	fields["Error"] = err.Error()
@@ -33,15 +33,31 @@ func ReportErrorChannel(session *discordgo.Session, cid string, err error) {
 		})
 	}
 
+	return []*discordgo.MessageEmbed{
+		{
+			Title:  "Error",
+			Fields: embedFields,
+			Color:  0xff0000,
+		},
+	}
+}
+
+func ReportErrorInteraction(session *discordgo.Session, interaction *discordgo.InteractionCreate, err error) {
+	embeds := prepareErrorReportEmbed(err)
+
+	FollowupInteractionMessageAndForget(session, interaction.Interaction, &InteractionReply{
+		Content:   messages.Messages.UnknownError,
+		Embeds:    embeds,
+		Ephemeral: true,
+	})
+}
+
+func ReportErrorChannel(session *discordgo.Session, cid string, err error) {
+	embeds := prepareErrorReportEmbed(err)
+
 	SendMessageComplexAndForget(session, cid, &discordgo.MessageSend{
 		Content: messages.Messages.UnknownError,
-		Embeds: []*discordgo.MessageEmbed{
-			{
-				Title:  "Error",
-				Fields: embedFields,
-				Color:  0xff0000,
-			},
-		},
+		Embeds:  embeds,
 	})
 }
 

@@ -2,6 +2,7 @@ package trivia
 
 import (
 	"app/messages"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
@@ -13,6 +14,60 @@ const TrueButtonId = "trivia-true"
 const FalseButtonId = "trivia-false"
 const Option = "trivia-option"
 const NextParticipant = "trivia-next-participant"
+
+type ComponentInteractionHandler struct {
+	*Manager
+}
+
+func (h ComponentInteractionHandler) ShouldHandle(i *discordgo.InteractionCreate) bool {
+	customID := i.MessageComponentData().CustomID
+
+	return strings.HasPrefix(customID, "trivia")
+}
+
+func (h ComponentInteractionHandler) Handle(ctx context.Context, i *discordgo.InteractionCreate, session *discordgo.Session) error {
+	trivia, ok := h.Manager.Get(i.ChannelID)
+	if !ok {
+		return errors.New("trivia is nil")
+	}
+
+	data := i.MessageComponentData()
+
+	if trivia.state.currentPlayer == nil || i.Member == nil || i.Member.User == nil || i.Member.User.ID != trivia.state.currentPlayer.ID {
+		// Silently fail when different user invoked interaction, or if there is no current player
+		return nil
+	}
+
+	if strings.HasPrefix(data.CustomID, Option) {
+		index, err := strconv.Atoi(strings.Split(data.CustomID, "-")[2])
+		if err != nil {
+			return err
+		}
+
+		return trivia.HandleChoice(index)
+	}
+
+	switch data.CustomID {
+	case TrueButtonId:
+		return trivia.HandleBoolean(True)
+	case FalseButtonId:
+		return trivia.HandleBoolean(False)
+	case NextParticipant:
+		var user *discordgo.User
+		for _, u := range data.Resolved.Users {
+			if u != nil {
+				user = u
+				break
+			}
+		}
+
+		if user != nil {
+			trivia.PlayerNominated <- user
+		}
+	}
+
+	return nil
+}
 
 func HandleInteraction(manager *Manager, cid string, i *discordgo.InteractionCreate) error {
 	trivia, ok := manager.Get(cid)

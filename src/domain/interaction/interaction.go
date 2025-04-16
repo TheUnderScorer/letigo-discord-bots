@@ -2,7 +2,6 @@ package interaction
 
 import (
 	"app/bots"
-	"app/discord"
 	"app/env"
 	"app/logging"
 	"github.com/bwmarrin/discordgo"
@@ -64,26 +63,22 @@ func unregisterCommands(s *discordgo.Session, commands []*discordgo.ApplicationC
 	}
 }
 
-func Handle(s *discordgo.Session, botName bots.BotName, i *discordgo.InteractionCreate, container *CommandsContainer) {
-	if i.Type == discordgo.InteractionMessageComponent {
+func Handle(session *discordgo.Session, botName bots.BotName, interaction *discordgo.InteractionCreate, container *CommandsContainer) {
+	if interaction.Type == discordgo.InteractionMessageComponent {
 		logger.Info("got component")
 
-		go discord.RespondToInteractionAndForget(s, i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseDeferredMessageUpdate,
-		})
-
-		HandleComponentInteraction(container.TriviaManager, s, i.ChannelID, i)
+		HandleComponentInteraction(container.ComponentInteractionHandlers, session, interaction)
 
 		return
 	}
 
-	data := i.ApplicationCommandData()
+	data := interaction.ApplicationCommandData()
 	name := data.Name
 	log := logger.With(zap.String("command", name)).With(zap.Any("data", data))
 
 	log.Info("got command")
 	if h, ok := commandHandlers[botName][name]; ok {
-		h(s, i, container)
+		h(session, interaction, container)
 	} else {
 		log.Error("unknown command")
 	}

@@ -9,6 +9,7 @@ import (
 type InteractionReply struct {
 	Content   string
 	Ephemeral bool
+	Embeds    []*discordgo.MessageEmbed
 }
 
 var logger = logging.Get().Named("messages")
@@ -83,6 +84,7 @@ func FollowupInteractionMessageAndForget(s *discordgo.Session, i *discordgo.Inte
 	_, err := s.FollowupMessageCreate(i, false, &discordgo.WebhookParams{
 		Flags:   flags,
 		Content: reply.Content,
+		Embeds:  reply.Embeds,
 	})
 
 	if err != nil {

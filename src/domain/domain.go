@@ -40,20 +40,21 @@ func Init(container *Container) {
 		})
 
 		if bot.Name == bots.BotNameWojciech {
-			InitWojciechBot(bot.Session, container.ChatManager, container.LlmApi)
+			InitWojciechBot(bot, container.ChatManager, container.LlmApi)
 		}
 	}
 
 }
 
-func InitWojciechBot(session *discordgo.Session, manager *chat.Manager, llmApi *llm.API) {
+func InitWojciechBot(bot *bots.Bot, manager *chat.Manager, llmApi *llm.API) {
+	session := bot.Session
 	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		chat.HandleMessageCreate(session, manager, llmApi, m)
 	})
 
 	events.Handle(func(ctx context.Context, event openai.MemoryUpdated) error {
 		if event.DiscordThreadID != "" {
-			return chat.HandleMemoryUpdated(ctx, env.Env.OpenAIAssistantVectorStoreID, session, event)
+			return chat.HandleMemoryUpdated(ctx, env.Env.OpenAIAssistantVectorStoreID, bot, event)
 		}
 
 		return nil

@@ -2,31 +2,25 @@ package interaction
 
 import (
 	"app/discord"
-	"app/domain/trivia"
-	errors2 "app/errors"
-	"app/messages"
-	"errors"
+	"context"
 	"github.com/bwmarrin/discordgo"
-	"strings"
+	"time"
 )
 
-func HandleComponentInteraction(triviaManager *trivia.Manager, s *discordgo.Session, cid string, i *discordgo.InteractionCreate) {
-	var ufe *errors2.PublicError
+func HandleComponentInteraction(handlers []discord.ComponentInteractionHandler, session *discordgo.Session, interaction *discordgo.InteractionCreate) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 
-	customID := i.MessageComponentData().CustomID
+	discord.RespondToInteractionAndForget(session, interaction.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredMessageUpdate,
+	})
 
-	if strings.HasPrefix(customID, "trivia") {
-		err := trivia.HandleInteraction(triviaManager, cid, i)
-		if err != nil {
-			if errors.As(err, &ufe) {
-				go discord.FollowupInteractionErrorAndForget(s, i.Interaction, err)
-			} else {
-				go discord.FollowupInteractionMessageAndForget(s, i.Interaction, &discord.InteractionReply{
-					Content: messages.Messages.UnknownError,
-				})
+	for _, handler := range handlers {
+		if handler.ShouldHandle(interaction) {
+			err := handler.Handle(ctx, interaction, session)
+			if err != nil {
+				discord.ReportErrorInteraction(session, interaction, err)
 			}
 		}
-
-		return
 	}
 }

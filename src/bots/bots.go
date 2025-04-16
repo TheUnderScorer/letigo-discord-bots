@@ -12,6 +12,19 @@ var (
 	BotNameTadeuszSznuk = BotName("tadeusz-sznuk")
 )
 
+func (n BotName) String() string {
+	switch n {
+	case BotNameWojciech:
+		return "WojciechBot"
+
+	case BotNameTadeuszSznuk:
+		return "Tadeusz Sznuk"
+
+	default:
+		return ""
+	}
+}
+
 type Bot struct {
 	Name    BotName
 	token   string

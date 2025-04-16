@@ -3,6 +3,7 @@ package main
 import (
 	"app/aws"
 	"app/bots"
+	"app/discord"
 	"app/domain"
 	"app/domain/chat"
 	"app/domain/interaction"
@@ -124,6 +125,11 @@ func main() {
 			TriviaManager:        triviaManager,
 			ChannelPlayerManager: channelPlayerManager,
 			S3:                   awsS3,
+			ComponentInteractionHandlers: []discord.ComponentInteractionHandler{
+				trivia.ComponentInteractionHandler{
+					Manager: triviaManager,
+				},
+			},
 		},
 	})
 

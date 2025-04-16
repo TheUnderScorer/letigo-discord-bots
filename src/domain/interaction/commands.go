@@ -18,9 +18,10 @@ import (
 )
 
 type CommandsContainer struct {
-	TriviaManager        *trivia.Manager
-	S3                   *aws.S3
-	ChannelPlayerManager *player.ChannelPlayerManager
+	TriviaManager                *trivia.Manager
+	S3                           *aws.S3
+	ChannelPlayerManager         *player.ChannelPlayerManager
+	ComponentInteractionHandlers []discord.ComponentInteractionHandler
 }
 
 var commands = map[bots.BotName][]*discordgo.ApplicationCommand{
