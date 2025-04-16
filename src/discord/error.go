@@ -4,53 +4,45 @@ import (
 	"app/env"
 	"app/errors"
 	"app/messages"
-	"bytes"
-	"encoding/json"
-	errors2 "errors"
+	goerrors "errors"
+	"fmt"
 	"github.com/bwmarrin/discordgo"
 )
 
 func ReportErrorChannel(session *discordgo.Session, cid string, err error) {
 	var publicError *errors.PublicError
+	fields := make(map[string]string)
+	fields["Error"] = err.Error()
 
-	var files []*discordgo.File
-	var messageContent string
-
-	if errors2.As(err, &publicError) {
+	if goerrors.As(err, &publicError) {
 		if publicError.Cause != nil {
 			publicError.AddContext("cause", publicError.Cause.Error())
 		}
 
-		errorBytes, marshalErr := json.Marshal(publicError)
-		if marshalErr == nil {
-			reader := bytes.NewReader(errorBytes)
-			files = append(files, &discordgo.File{
-				Name:        "error.json",
-				ContentType: "application/json",
-				Reader:      reader,
-			},
-			)
+		for key, value := range publicError.Context {
+			fields[key] = fmt.Sprintf("%v", value)
 		}
 
-		messageContent = publicError.Error()
-	} else {
-		messageContent = messages.Messages.UnknownError
-		errorMessageBytes := []byte(err.Error())
-		reader := bytes.NewReader(errorMessageBytes)
+	}
 
-		files = append(files, &discordgo.File{
-			Name:        "error.txt",
-			ContentType: "text/plain",
-			Reader:      reader,
+	var embedFields []*discordgo.MessageEmbedField
+	for key, value := range fields {
+		embedFields = append(embedFields, &discordgo.MessageEmbedField{
+			Name:  key,
+			Value: value,
 		})
 	}
 
-	if messageContent != "" {
-		SendMessageComplexAndForget(session, cid, &discordgo.MessageSend{
-			Content: messageContent,
-			Files:   files,
-		})
-	}
+	SendMessageComplexAndForget(session, cid, &discordgo.MessageSend{
+		Content: messages.Messages.UnknownError,
+		Embeds: []*discordgo.MessageEmbed{
+			{
+				Title:  "Error",
+				Fields: embedFields,
+				Color:  0xff0000,
+			},
+		},
+	})
 }
 
 func ReportError(session *discordgo.Session, err error) {
