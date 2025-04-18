@@ -7,4 +7,4 @@ build_app_docker:
 push_app_image:
 	docker push schemik/letigo-discord-bots:latest
 
-publish_app_image: build_app_docker push_app_image
+publish_app_image: build_base_docker build_app_docker push_app_image
