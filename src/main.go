@@ -129,6 +129,7 @@ func main() {
 				trivia.ComponentInteractionHandler{
 					Manager: triviaManager,
 				},
+				chat.NewForgetComponentHandler(&openAIClient),
 			},
 		},
 	})

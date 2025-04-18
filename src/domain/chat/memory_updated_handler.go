@@ -15,6 +15,7 @@ type MemoryEmbedField string
 var (
 	MemoryEmbedFieldVectorStoreID = MemoryEmbedField("Vector Store ID")
 	MemoryEmbedFieldVectorFileID  = MemoryEmbedField("Vector File ID")
+	MemoryEmbedFileID             = MemoryEmbedField("File ID")
 )
 
 func (f MemoryEmbedField) String() string {
@@ -42,25 +43,33 @@ func HandleMemoryUpdated(ctx context.Context, vectorStoreID string, bot *bots.Bo
 						Name:  MemoryEmbedFieldVectorFileID.String(),
 						Value: event.VectorFileID,
 					},
-				},
-			},
-		},
-		Components: []discordgo.MessageComponent{
-			discordgo.ActionsRow{
-				Components: []discordgo.MessageComponent{
-					discordgo.Button{
-						Style:    discordgo.DangerButton,
-						Label:    messages.Messages.Chat.ButtonLabelForget,
-						CustomID: ForgetButtonID,
-						Disabled: false,
+					{
+						Name:  MemoryEmbedFileID.String(),
+						Value: event.FileID,
 					},
 				},
 			},
 		},
+		Components: ForgetMessageComponent(false),
 	}, discordgo.WithContext(ctx))
 	if err != nil {
 		return errors.Wrap(err, "failed to send message for ForgetButtonPayload")
 	}
 
 	return nil
+}
+
+func ForgetMessageComponent(disabled bool) []discordgo.MessageComponent {
+	return []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					Style:    discordgo.DangerButton,
+					Label:    messages.Messages.Chat.ButtonLabelForget,
+					CustomID: ForgetButtonID,
+					Disabled: disabled,
+				},
+			},
+		},
+	}
 }

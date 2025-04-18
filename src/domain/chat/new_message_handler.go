@@ -2,7 +2,6 @@ package chat
 
 import (
 	"app/discord"
-	"app/errors"
 	"app/llm"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
@@ -58,10 +57,6 @@ func HandleMessageCreate(session *discordgo.Session, manager *Manager, llmApi *l
 }
 
 func doHandleNewMessage(log *zap.Logger, session *discordgo.Session, newMessage *discordgo.MessageCreate, manager *Manager) {
-	testErr := errors.NewPublicError("test error")
-	testErr.AddContext("test", "yes")
-	discord.ReportErrorChannel(session, newMessage.ChannelID, testErr)
-
 	chat := manager.GetOrCreateChat(newMessage.ChannelID)
 	err := chat.HandleNewMessage(newMessage)
 	if err != nil {

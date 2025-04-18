@@ -5,4 +5,5 @@ type MemoryUpdated struct {
 	DiscordThreadID string
 	VectorFileID    string
 	Content         string
+	FileID          string
 }

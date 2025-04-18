@@ -42,7 +42,6 @@ func ParseAndRememberText(ctx context.Context, message openai.ChatCompletionMess
 	return Remember(ctx, file, client, vectorStoreID)
 }
 
-// TODO On finish, send message on discord with info as to what was remembered, with an option to forget it
 func Remember(ctx context.Context, contents io.Reader, client *openai.Client, vectorStoreID string) (*openai.VectorStoreFile, *openai.FileObject, error) {
 	file, err := client.Files.New(ctx, openai.FileNewParams{
 		File:    contents,

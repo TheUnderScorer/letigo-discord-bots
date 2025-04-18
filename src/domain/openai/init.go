@@ -18,7 +18,7 @@ func Init(client *openai.Client, vectorStoreID string) {
 		now := time.Now()
 		file := openai.File(reader, fmt.Sprintf("memory_%d.txt", now.Unix()), "text/plain")
 
-		vectorFile, _, err := Remember(ctx, file, client, vectorStoreID)
+		vectorFile, openAIFile, err := Remember(ctx, file, client, vectorStoreID)
 		if err != nil {
 			return errors.Wrap(err, "openai remember failed")
 		}
@@ -27,6 +27,7 @@ func Init(client *openai.Client, vectorStoreID string) {
 			DiscordThreadID: event.DiscordThreadID,
 			Content:         event.Details,
 			VectorFileID:    vectorFile.ID,
+			FileID:          openAIFile.ID,
 		})
 	})
 }
