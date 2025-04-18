@@ -34,19 +34,24 @@ func HandleMessageCreate(session *discordgo.Session, manager *Manager, llmApi *l
 		return
 	}
 
+	isDM := channel.Type == discordgo.ChannelTypeDM
+	if isDM {
+		log.Debug("channel is DM")
+	}
+
 	// Check if this channel is a thread, and if it was started by us before
 	isOurThread := channel.IsThread() && channel.OwnerID == sessionUserID
 	if isOurThread {
 		log.Debug("channel is a thread started by us before")
 	}
 
-	// Check if message explicitly mentions us
+	// Check if a message explicitly mentions us
 	isMention := (len(newMessage.Mentions) > 0 && discord.HasUser(newMessage.Mentions, sessionUserID)) || strings.Contains(newMessage.Content, sessionUserID)
 	if isMention {
 		log.Debug("message mentions us explicitly")
 	}
 
-	if isOurThread || isMention ||
+	if isOurThread || isMention || isDM ||
 		// Otherwise, check if message is worthy of reply
 		IsWorthyOfReply(llmApi, newMessage.Content) {
 		log.Info("message is worthy of reply", zap.String("content", newMessage.Content))

@@ -140,7 +140,7 @@ func (c *DiscordChat) EndDiscussion(ctx context.Context, message *discordgo.Mess
 	return nil
 }
 
-// remember handles process of asking LLM to remember details from current discord chat. It is meant to run in a separate go routine.
+// Remember handles process of asking LLM to remember details from the current discord chat. It is meant to run in a separate go routine.
 func (c *DiscordChat) remember(messageID string) {
 	log := c.log.With(zap.String("messageID", messageID)).Named("remember")
 
@@ -189,6 +189,14 @@ func (c *DiscordChat) ensureThread(ctx context.Context, message *discordgo.Messa
 	if err != nil {
 		log.Error("failed to get channel", zap.Error(err))
 		return errors.Wrap(err, "failed to get channel")
+	}
+
+	if channel.Type == discordgo.ChannelTypeDM {
+		log.Info("channel is a DM")
+		c.thread = channel
+		c.parentCid = channel.ID
+
+		return nil
 	}
 
 	if channel.IsThread() {
