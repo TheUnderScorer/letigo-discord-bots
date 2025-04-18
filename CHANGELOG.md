@@ -1,3 +1,17 @@
+# [2.15.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.14.0...v2.15.0) (2025-04-18)
+
+
+### Bug Fixes
+
+* **trivia:** handle cases where player nomination channel is not listening ([0c31bff](https://github.com/TheUnderScorer/letigo-discord-bots/commit/0c31bffc0b0dc25fdd32a6b4163f12792f2aece7))
+
+
+### Features
+
+* handle forgetting ([b544985](https://github.com/TheUnderScorer/letigo-discord-bots/commit/b54498581ed7852b385f27efb0ba4cfceae6fee1))
+* use embed for reporting errors ([5a85008](https://github.com/TheUnderScorer/letigo-discord-bots/commit/5a850086b34e6ab5ac2898deb93b077f972972b5))
+* use embeds in memory updated handler ([17dda4e](https://github.com/TheUnderScorer/letigo-discord-bots/commit/17dda4e3390dbe14e3a8bfc3c39dc2e5cba21375))
+
 # [2.14.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.13.2...v2.14.0) (2025-04-15)
 
 
