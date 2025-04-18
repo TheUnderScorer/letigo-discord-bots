@@ -1,3 +1,10 @@
+# [2.16.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.15.0...v2.16.0) (2025-04-18)
+
+
+### Features
+
+* support DMs for chat ([7039bdd](https://github.com/TheUnderScorer/letigo-discord-bots/commit/7039bddf92fabdb0b3d23741133661b32464113e))
+
 # [2.15.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.14.0...v2.15.0) (2025-04-18)
 
 
