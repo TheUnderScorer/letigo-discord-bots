@@ -126,9 +126,7 @@ func main() {
 			ChannelPlayerManager: channelPlayerManager,
 			S3:                   awsS3,
 			ComponentInteractionHandlers: []discord.ComponentInteractionHandler{
-				trivia.ComponentInteractionHandler{
-					Manager: triviaManager,
-				},
+				trivia.NewComponentInteractionHandler(triviaManager),
 				chat.NewForgetComponentHandler(&openAIClient),
 			},
 		},

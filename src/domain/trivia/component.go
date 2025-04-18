@@ -16,7 +16,13 @@ const Option = "trivia-option"
 const NextParticipant = "trivia-next-participant"
 
 type ComponentInteractionHandler struct {
-	*Manager
+	manager *Manager
+}
+
+func NewComponentInteractionHandler(manager *Manager) *ComponentInteractionHandler {
+	return &ComponentInteractionHandler{
+		manager: manager,
+	}
 }
 
 func (h ComponentInteractionHandler) ShouldHandle(i *discordgo.InteractionCreate) bool {
@@ -26,7 +32,7 @@ func (h ComponentInteractionHandler) ShouldHandle(i *discordgo.InteractionCreate
 }
 
 func (h ComponentInteractionHandler) Handle(ctx context.Context, i *discordgo.InteractionCreate, session *discordgo.Session) error {
-	trivia, ok := h.Manager.Get(i.ChannelID)
+	trivia, ok := h.manager.Get(i.ChannelID)
 	if !ok {
 		return errors.New("trivia is nil")
 	}
