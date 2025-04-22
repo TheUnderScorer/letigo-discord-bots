@@ -11,7 +11,7 @@ import (
 	"github.com/openai/openai-go/responses"
 )
 
-var AssistantDidNotReplyError = goerrors.New("assistant didn't reply")
+var ErrAssistantDidNotReply = goerrors.New("assistant didn't reply")
 
 type OpenAIModelDefinition struct {
 	Model         openai.ChatModel
@@ -82,7 +82,7 @@ func (o *OpenAIAdapter) Prompt(ctx context.Context, p Prompt) (string, *PromptRe
 		}
 	}
 
-	return "", nil, AssistantDidNotReplyError
+	return "", nil, ErrAssistantDidNotReply
 }
 
 func (o *OpenAIAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMessage, *ChatReplyMetadata, error) {
