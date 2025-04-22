@@ -2,6 +2,7 @@ package domain
 
 import (
 	"app/bots"
+	"app/discord"
 	"app/domain/chat"
 	"app/domain/interaction"
 	"app/domain/openai"
@@ -18,9 +19,10 @@ var logger = logging.Get().Named("domain")
 
 type Container struct {
 	*interaction.CommandsContainer
-	Bots        []*bots.Bot
-	ChatManager *chat.Manager
-	LlmApi      *llm.API
+	Bots         []*bots.Bot
+	ChatManager  *chat.Manager
+	LlmApi       *llm.API
+	LlmContainer *llm.Container
 }
 
 func Init(container *Container) {
@@ -40,17 +42,30 @@ func Init(container *Container) {
 		})
 
 		if bot.Name == bots.BotNameWojciech {
-			InitWojciechBot(bot, container.ChatManager, container.LlmApi)
+			InitWojciechBot(bot, container.ChatManager, container.LlmContainer)
 		}
 	}
 
 }
 
-func InitWojciechBot(bot *bots.Bot, manager *chat.Manager, llmApi *llm.API) {
+func InitWojciechBot(bot *bots.Bot, manager *chat.Manager, llmContainer *llm.Container) {
 	session := bot.Session
 	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		chat.HandleMessageCreate(session, manager, llmApi, m)
+		chat.HandleMessageCreate(session, manager, llmContainer.FreeAPI, m)
 	})
+	chatScanner := chat.NewDiscordChannelScanner(session, llmContainer.FreeAPI, func(message *discordgo.Message) {
+		err := bot.Session.MessageReactionAdd(message.ChannelID, message.ID, discord.ReactionSeen)
+		if err != nil {
+			logger.Error("failed to add seen reaction", zap.Error(err))
+		}
+
+		discordChat := manager.GetOrCreateChat(message.ChannelID)
+		err = discordChat.HandleNewMessage(message)
+		if err != nil {
+			logger.Error("failed to handle new message", zap.Error(err))
+		}
+	})
+	go chatScanner.Start()
 
 	events.Handle(func(ctx context.Context, event openai.MemoryUpdated) error {
 		if event.DiscordThreadID != "" {

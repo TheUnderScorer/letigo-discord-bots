@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"app/discord"
 	"app/errors"
 	"app/llm"
 	"app/llm/prompts"
@@ -55,7 +56,7 @@ func NewDiscordChat(session *discordgo.Session, cid string, llmContainer *llm.Co
 	}
 }
 
-func (c *DiscordChat) HandleNewMessage(message *discordgo.MessageCreate) error {
+func (c *DiscordChat) HandleNewMessage(message *discordgo.Message) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -82,7 +83,7 @@ func (c *DiscordChat) HandleNewMessage(message *discordgo.MessageCreate) error {
 		log.Error("failed to start typing in channel", zap.Error(err))
 	}
 
-	chatMessage := llm.NewDiscordChatMessage(message.Message)
+	chatMessage := llm.NewDiscordChatMessage(message)
 	chat.AddMessages(chatMessage)
 
 	chat, newMessage, newMessageMetadata, err := c.llmContainer.AssistantAPI.Chat(ctx, chat)
@@ -92,7 +93,7 @@ func (c *DiscordChat) HandleNewMessage(message *discordgo.MessageCreate) error {
 		var tooLongError llm.PromptTooLongError
 		if goerrors.As(err, &tooLongError) {
 			// DiscordChat got too long for llm to handle, finish the discussion
-			return c.EndDiscussion(ctx, message.Message)
+			return c.EndDiscussion(ctx, message)
 		}
 
 		return errors.Wrap(err, "failed to get new chat from llmContainer")
@@ -110,10 +111,10 @@ func (c *DiscordChat) HandleNewMessage(message *discordgo.MessageCreate) error {
 	if newMessageMetadata.IsGoodbye {
 		log.Info("bot said goodbye, ending discussion")
 
-		return c.EndDiscussion(ctx, message.Message)
+		return c.EndDiscussion(ctx, message)
 	}
 
-	go c.memory.AddMessage(message.Message)
+	go c.memory.AddMessage(message)
 
 	return nil
 }
@@ -131,7 +132,7 @@ func (c *DiscordChat) EndDiscussion(ctx context.Context, message *discordgo.Mess
 		}
 	}()
 
-	err := c.session.MessageReactionAdd(c.thread.ID, message.ID, "👋", discordgo.WithContext(ctx))
+	err := c.session.MessageReactionAdd(c.thread.ID, message.ID, discord.ReactionBye, discordgo.WithContext(ctx))
 	if err != nil {
 		log.Error("failed to react to goodbye message", zap.Error(err))
 	}
@@ -147,7 +148,7 @@ func (c *DiscordChat) EndDiscussion(ctx context.Context, message *discordgo.Mess
 }
 
 // ensureThread ensures a message thread is created for the given message. If the thread does not exist, it creates one.
-func (c *DiscordChat) ensureThread(ctx context.Context, message *discordgo.MessageCreate) error {
+func (c *DiscordChat) ensureThread(ctx context.Context, message *discordgo.Message) error {
 	log := c.log.With(zap.String("messageID", message.ID))
 
 	channel, err := c.session.Channel(message.ChannelID)
@@ -177,9 +178,9 @@ func (c *DiscordChat) ensureThread(ctx context.Context, message *discordgo.Messa
 	if c.thread == nil {
 		log.Info("first message, creating thread")
 
-		c.firstMessage = message.Message
+		c.firstMessage = message
 		// Add the first message to the chat
-		c.chat.AddMessages(llm.NewDiscordChatMessage(message.Message))
+		c.chat.AddMessages(llm.NewDiscordChatMessage(message))
 
 		threadSummary, err := prompts.SummarizeDiscordThread(ctx, c.llmContainer.AssistantAPI, message.Content)
 		if err != nil {
@@ -231,7 +232,7 @@ func (c *DiscordChat) addThreadMessagesToChat(ctx context.Context) error {
 		for _, m := range channelMessages {
 			var role llm.ChatRole
 
-			// Apply Assistant role to channelMessages sent by bot
+			// Apply an Assistant role to channelMessages sent by bot
 			if m.Author.ID == c.session.State.User.ID {
 				log.Debug("resolved message to assistant", zap.String("ID", m.ID))
 				role = llm.ChatRoleAssistant

@@ -53,7 +53,7 @@ func HandleMessageCreate(session *discordgo.Session, manager *Manager, llmApi *l
 
 	if isOurThread || isMention || isDM ||
 		// Otherwise, check if message is worthy of reply
-		IsWorthyOfReply(llmApi, newMessage.Content) {
+		IsWorthyOfReply(nil, llmApi, newMessage.Content) {
 		log.Info("message is worthy of reply", zap.String("content", newMessage.Content))
 		doHandleNewMessage(log, session, newMessage, manager)
 	} else {
@@ -63,7 +63,7 @@ func HandleMessageCreate(session *discordgo.Session, manager *Manager, llmApi *l
 
 func doHandleNewMessage(log *zap.Logger, session *discordgo.Session, newMessage *discordgo.MessageCreate, manager *Manager) {
 	chat := manager.GetOrCreateChat(newMessage.ChannelID)
-	err := chat.HandleNewMessage(newMessage)
+	err := chat.HandleNewMessage(newMessage.Message)
 	if err != nil {
 		log.Error("handle new message error", zap.Error(err))
 		discord.ReportErrorChannel(session, newMessage.ChannelID, err)

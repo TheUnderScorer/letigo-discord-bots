@@ -118,9 +118,10 @@ func main() {
 	interaction.Init(botsArr)
 
 	domain.Init(&domain.Container{
-		ChatManager: chatManager,
-		LlmApi:      llmContainer.FreeAPI,
-		Bots:        botsArr,
+		ChatManager:  chatManager,
+		LlmApi:       llmContainer.FreeAPI,
+		LlmContainer: llmContainer,
+		Bots:         botsArr,
 		CommandsContainer: &interaction.CommandsContainer{
 			TriviaManager:        triviaManager,
 			ChannelPlayerManager: channelPlayerManager,

@@ -8,7 +8,6 @@ import (
 	"go.uber.org/zap"
 	"math"
 	"strconv"
-	"time"
 )
 
 const MinMessageLength = 25
@@ -17,7 +16,7 @@ const MaxProbability = 0.9  // Maximum probability cap for very long messages
 const LengthFactor = 0.001  // How quickly probability increases with length
 
 // IsWorthyOfReply determines if a given message warrants a reply based on length, probability, and an LLM-generated evaluation.
-func IsWorthyOfReply(llmClient *llm.API, message string) bool {
+func IsWorthyOfReply(ctx context.Context, llmClient *llm.API, message string) bool {
 	if len(message) == 0 {
 		chatLog.Warn("message is empty")
 		return false
@@ -46,9 +45,7 @@ func IsWorthyOfReply(llmClient *llm.API, message string) bool {
 		return false
 	}
 
-	requestCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
-	response, _, err := llmClient.Prompt(requestCtx, llm.Prompt{
+	response, _, err := llmClient.Prompt(ctx, llm.Prompt{
 		Phrase: getPromptPhrase(message),
 	})
 
