@@ -48,7 +48,7 @@ func IsWorthyOfReply(llmClient *llm.API, message string) bool {
 
 	requestCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
-	response, err := llmClient.Prompt(requestCtx, llm.Prompt{
+	response, _, err := llmClient.Prompt(requestCtx, llm.Prompt{
 		Phrase: getPromptPhrase(message),
 	})
 

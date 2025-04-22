@@ -96,6 +96,11 @@ type ChatReplyMetadata struct {
 	IsGoodbye          bool
 }
 
+type PromptReplyMetadata struct {
+	// HasMemoryReference indicates whether the requested prompt triggered a memory reference.
+	HasMemoryReference *bool
+}
+
 type Chat struct {
 	mu       sync.Mutex
 	Messages []*ChatMessage    `json:"messages"`

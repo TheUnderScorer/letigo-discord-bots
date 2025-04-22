@@ -62,7 +62,7 @@ func NewOpenAIAssistantAdapter(client *openai.Client, assistant OpenAIAssistantD
 	}
 }
 
-func (o *OpenAIAssistantAdapter) Prompt(ctx context.Context, p Prompt) (string, error) {
+func (o *OpenAIAssistantAdapter) Prompt(ctx context.Context, p Prompt) (string, *PromptReplyMetadata, error) {
 	var messages []*ChatMessage
 
 	if p.Traits != "" {
@@ -83,10 +83,10 @@ func (o *OpenAIAssistantAdapter) Prompt(ctx context.Context, p Prompt) (string, 
 	}
 	message, _, err := o.Chat(ctx, chat)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return message.Contents, nil
+	return message.Contents, nil, nil
 }
 
 func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMessage, *ChatReplyMetadata, error) {

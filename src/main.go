@@ -93,10 +93,10 @@ func main() {
 	assistantApi := llm.NewAPI(openAIAssistantAdapter, "openai")
 
 	openAIAdapter := llm.NewOpenAIAdapter(&openAIClient, llm.OpenAIModelDefinition{
-		Model:         openai.ChatModelGPT4oMini,
+		Model:         "gpt-4.1-mini",
 		ContextWindow: 128_000,
 		Encoding:      tiktoken.MODEL_O200K_BASE,
-	})
+	}, env.Env.OpenAIAssistantVectorStoreID)
 	openAIApi := llm.NewAPI(openAIAdapter, "openai")
 
 	llmContainer := &llm.Container{

@@ -56,12 +56,12 @@ func (api *API) Chat(ctx context.Context, chat *Chat) (*Chat, *ChatMessage, *Cha
 }
 
 // Prompt sends a request to the LLM with given prompt
-func (api *API) Prompt(ctx context.Context, prompt Prompt) (*PromptResponse, error) {
+func (api *API) Prompt(ctx context.Context, prompt Prompt) (*PromptResponse, *PromptReplyMetadata, error) {
 	api.logger.Debug("sending prompt request", zap.Any("prompt", prompt))
 
 	measure := metrics.NewMeasure()
 	measure.Start()
-	response, err := api.adapter.Prompt(ctx, prompt)
+	response, metadata, err := api.adapter.Prompt(ctx, prompt)
 	measure.End()
 
 	api.logger.Debug("prompt response finished", zap.Any("response", response), zap.Duration("duration", measure.Duration()))
@@ -69,7 +69,7 @@ func (api *API) Prompt(ctx context.Context, prompt Prompt) (*PromptResponse, err
 	if err != nil {
 		publicErr := errors.NewPublicErrorCause(arrayutil.RandomElement(messages.Messages.Chat.FailedToReply), err)
 
-		return nil, publicErr
+		return nil, metadata, publicErr
 	}
 
 	promptResponse := &PromptResponse{
@@ -77,5 +77,5 @@ func (api *API) Prompt(ctx context.Context, prompt Prompt) (*PromptResponse, err
 		Duration: measure.Duration().Seconds(),
 	}
 
-	return promptResponse, nil
+	return promptResponse, metadata, nil
 }

@@ -1,9 +1,7 @@
 package chat
 
 import (
-	chatevents "app/domain/chat/events"
 	"app/errors"
-	"app/events"
 	"app/llm"
 	"app/llm/prompts"
 	"app/logging"
@@ -41,6 +39,7 @@ type DiscordChat struct {
 	chat *llm.Chat
 	// onDiscussionEnded is called after discussion is ended
 	onDiscussionEnded *func(chat *DiscordChat)
+	memory            *DiscordChatMemory
 }
 
 func NewDiscordChat(session *discordgo.Session, cid string, llmContainer *llm.Container) *DiscordChat {
@@ -52,6 +51,7 @@ func NewDiscordChat(session *discordgo.Session, cid string, llmContainer *llm.Co
 		log:          logger,
 		llmContainer: llmContainer,
 		chat:         llm.NewChat(),
+		memory:       NewDiscordChatMemory(session, llmContainer),
 	}
 }
 
@@ -113,9 +113,7 @@ func (c *DiscordChat) HandleNewMessage(message *discordgo.MessageCreate) error {
 		return c.EndDiscussion(ctx, message.Message)
 	}
 
-	if newMessageMetadata.IsWorthRemembering {
-		go c.remember(sentMessage.ID)
-	}
+	go c.memory.AddMessage(message.Message)
 
 	return nil
 }
@@ -126,59 +124,26 @@ func (c *DiscordChat) EndDiscussion(ctx context.Context, message *discordgo.Mess
 		return goerrors.New("unable to end discussion, no thread exists")
 	}
 
+	go func() {
+		err := c.memory.ForceRemember()
+		if err != nil {
+			log.Error("failed to force remember messages", zap.Error(err))
+		}
+	}()
+
 	err := c.session.MessageReactionAdd(c.thread.ID, message.ID, "👋", discordgo.WithContext(ctx))
 	if err != nil {
-		return errors.Wrap(err, "failed to react to goodbye message")
+		log.Error("failed to react to goodbye message", zap.Error(err))
 	}
 
 	c.isFinished = true
+	c.memory.StopTick()
 
 	if c.onDiscussionEnded != nil {
 		(*c.onDiscussionEnded)(c)
 	}
 
 	return nil
-}
-
-// Remember handles process of asking LLM to remember details from the current discord chat. It is meant to run in a separate go routine.
-func (c *DiscordChat) remember(messageID string) {
-	log := c.log.With(zap.String("messageID", messageID)).Named("remember")
-
-	if c.thread == nil {
-		log.Warn("unable to remember, no thread exists")
-		return
-	}
-
-	// Process only user messages
-	userMessages := arrayutil.Filter(c.chat.Messages, func(message *llm.ChatMessage) bool {
-		return message.Role == llm.ChatRoleUser
-	})
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
-	systemPrompt := "You are a helpful assistant that parses messages, and extracts details from them. Extract details from this chat messages someone else should remember, and return ONLY them. Try to answer following questions: WHO? and WHAT? Return single sentence that answers these both questions. If message does not contain anything relevant, or you are enable to answer BOTH of these questions, return an empty string. Ignore informations that YOU already know."
-
-	chat := llm.NewChat()
-	chat.AddMessages(llm.NewChatMessage(systemPrompt, llm.ChatRoleSystem))
-	chat.AddMessages(userMessages...)
-
-	_, reply, _, err := c.llmContainer.ExpensiveAPI.Chat(ctx, chat)
-	if err != nil {
-		log.Error("failed to extract details to remember", zap.Error(err))
-	}
-
-	if reply.Contents == "" {
-		log.Error("message has no contents")
-	}
-
-	err = events.Dispatch(ctx, chatevents.MemoryDetailsExtracted{
-		Details:         reply.Contents,
-		DiscordThreadID: c.thread.ID,
-	})
-	if err != nil {
-		log.Error("failed to dispatch MemoryDetailsExtracted event", zap.Error(err))
-	}
 }
 
 // ensureThread ensures a message thread is created for the given message. If the thread does not exist, it creates one.

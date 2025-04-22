@@ -64,7 +64,7 @@ func (o *OllamaAdapter) Chat(ctx context.Context, request *Chat) (*ChatMessage, 
 	}, nil, nil
 }
 
-func (o *OllamaAdapter) Prompt(ctx context.Context, p Prompt) (string, error) {
+func (o *OllamaAdapter) Prompt(ctx context.Context, p Prompt) (string, *PromptReplyMetadata, error) {
 	stream := true
 
 	req := &ollama.GenerateRequest{
@@ -81,12 +81,12 @@ func (o *OllamaAdapter) Prompt(ctx context.Context, p Prompt) (string, error) {
 	})
 
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	log.Debug("got response from llm", zap.String("prompt", p.Phrase), zap.String("model", o.model), zap.String("system", p.Traits), zap.Any("response", handler))
 
-	return strings.TrimSpace(strings.Join(handler.MessageParts, "")), nil
+	return strings.TrimSpace(strings.Join(handler.MessageParts, "")), nil, nil
 }
 
 type streamHandler struct {
