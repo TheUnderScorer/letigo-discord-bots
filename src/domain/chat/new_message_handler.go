@@ -39,7 +39,7 @@ func HandleMessageCreate(session *discordgo.Session, manager *Manager, llmApi *l
 		log.Debug("channel is DM")
 	}
 
-	// Check if this channel is a thread, and if it was started by us before
+	// Check if this channel is a thread and if it was started by us before
 	isOurThread := channel.IsThread() && channel.OwnerID == sessionUserID
 	if isOurThread {
 		log.Debug("channel is a thread started by us before")
@@ -51,9 +51,7 @@ func HandleMessageCreate(session *discordgo.Session, manager *Manager, llmApi *l
 		log.Debug("message mentions us explicitly")
 	}
 
-	if isOurThread || isMention || isDM ||
-		// Otherwise, check if message is worthy of reply
-		IsWorthyOfReply(nil, llmApi, newMessage.Content) {
+	if isOurThread || isMention || isDM {
 		log.Info("message is worthy of reply", zap.String("content", newMessage.Content))
 		doHandleNewMessage(log, session, newMessage, manager)
 	} else {
