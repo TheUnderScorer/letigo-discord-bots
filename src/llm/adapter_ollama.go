@@ -2,8 +2,6 @@ package llm
 
 import (
 	"app/logging"
-	"bytes"
-	"compress/gzip"
 	"context"
 	"fmt"
 	ollama "github.com/ollama/ollama/api"
@@ -215,24 +213,4 @@ func (o *OllamaAdapter) describeFile(ctx context.Context, file File) string {
 	description := strings.TrimSpace(strings.Join(handler.MessageParts, ""))
 	fileLogger.Info("got description", zap.String("description", description))
 	return description
-}
-
-// compressData compresses the input data using gzip compression
-func compressData(data []byte) ([]byte, error) {
-	var compressedData bytes.Buffer
-	gzipWriter, err := gzip.NewWriterLevel(&compressedData, gzip.BestCompression)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = gzipWriter.Write(data)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := gzipWriter.Close(); err != nil {
-		return nil, err
-	}
-
-	return compressedData.Bytes(), nil
 }
