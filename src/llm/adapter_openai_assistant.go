@@ -244,26 +244,10 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 
 // sendMessageToThread sends a message to an existing thread and returns the response message or an error if it fails.
 func (o *OpenAIAssistantAdapter) sendMessageToThread(ctx context.Context, message *ChatMessage, threadId string) error {
-	var attachments []openai.BetaThreadMessageNewParamsAttachment
 	fileIds, err := o.handleAttachments(ctx, message)
 	if err != nil {
 		log.Error("failed to handle attachments", zap.Error(err))
 	}
-	if len(fileIds) > 0 {
-		for _, id := range fileIds {
-			attachments = append(attachments, openai.BetaThreadMessageNewParamsAttachment{
-				FileID: openai.String(id),
-				Tools: []openai.BetaThreadMessageNewParamsAttachmentToolUnion{
-					{
-						OfFileSearch: &openai.BetaThreadMessageNewParamsAttachmentToolFileSearch{
-							Type: "file_search",
-						},
-					},
-				},
-			})
-		}
-	}
-
 	messageMetadata := mapMetadata(message)
 
 	content := openai.BetaThreadMessageNewParamsContentUnion{
