@@ -1,3 +1,13 @@
+# [2.17.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.16.0...v2.17.0) (2025-04-23)
+
+
+### Features
+
+* add chat scanner ([426eeea](https://github.com/TheUnderScorer/letigo-discord-bots/commit/426eeeac70f6ba0fd41c60d46e4671c65b9f2263))
+* add vision support ([a4e6c4f](https://github.com/TheUnderScorer/letigo-discord-bots/commit/a4e6c4f29d041a106eefb6ffeceed0dcc7aa34c7))
+* remove worthness check in new message handler ([cc7f1c6](https://github.com/TheUnderScorer/letigo-discord-bots/commit/cc7f1c6219dd696d0397649cb163374ad3c97a66))
+* rework memory system to use batching and intervals ([4c03fa9](https://github.com/TheUnderScorer/letigo-discord-bots/commit/4c03fa9bf522c20f29065e1ad6d9c23053546c83))
+
 # [2.16.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.15.0...v2.16.0) (2025-04-18)
 
 
