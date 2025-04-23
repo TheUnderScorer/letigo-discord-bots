@@ -33,14 +33,14 @@ func NewAPI(adapter Adapter, name string) *API {
 
 // Chat creates, or continues given chat discussion between user and the assistant (llm model)
 func (api *API) Chat(ctx context.Context, chat *Chat) (*Chat, *ChatMessage, *ChatReplyMetadata, error) {
-	api.logger.Debug("sending chat request", zap.Any("chat", chat))
+	api.logger.Info("sending chat request", zap.Any("chat", chat))
 
 	measure := metrics.NewMeasure()
 	measure.Start()
 	response, metadata, err := api.adapter.Chat(ctx, chat)
 	measure.End()
 
-	api.logger.Debug("chat request finished", zap.Duration("duration", measure.Duration()), zap.Any("response", response))
+	api.logger.Info("chat request finished", zap.Duration("duration", measure.Duration()), zap.Any("response", response))
 
 	if err != nil {
 		api.logger.Error("failed to send chat request", zap.Error(err))
@@ -58,14 +58,14 @@ func (api *API) Chat(ctx context.Context, chat *Chat) (*Chat, *ChatMessage, *Cha
 // Prompt sends a request to the LLM with the given prompt
 func (api *API) Prompt(ctx context.Context, prompt Prompt) (*PromptResponse, *PromptReplyMetadata, error) {
 	log := api.logger.With(zap.String("prompt", prompt.Phrase), zap.String("traits", prompt.Traits), zap.Bool("hasFiles", len(prompt.Files) > 0))
-	log.Debug("sending prompt request")
+	log.Info("sending prompt request")
 
 	measure := metrics.NewMeasure()
 	measure.Start()
 	response, metadata, err := api.adapter.Prompt(ctx, prompt)
 	measure.End()
 
-	log.Debug("prompt response finished", zap.Any("response", response), zap.Duration("duration", measure.Duration()))
+	log.Info("prompt response finished", zap.Any("response", response), zap.Duration("duration", measure.Duration()))
 
 	if err != nil {
 		publicErr := errors.NewErrPublicCause(arrayutil.RandomElement(messages.Messages.Chat.FailedToReply), err)

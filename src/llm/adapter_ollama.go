@@ -61,7 +61,7 @@ func (o *OllamaAdapter) Chat(ctx context.Context, request *Chat) (*ChatMessage, 
 		return nil, nil, err
 	}
 
-	log.Debug("got response from llm", zap.Any("request", request), zap.String("model", o.model), zap.Strings("response", handler.MessageParts), zap.Strings("thinking", handler.ThinkingParts))
+	log.Info("got response from llm", zap.Any("request", request), zap.String("model", o.model), zap.Strings("response", handler.MessageParts), zap.Strings("thinking", handler.ThinkingParts))
 
 	return &ChatMessage{
 		Role:     ChatRoleAssistant,
@@ -94,7 +94,7 @@ func (o *OllamaAdapter) Prompt(ctx context.Context, p Prompt) (string, *PromptRe
 		return "", nil, err
 	}
 
-	log.Debug("got response from llm", zap.String("prompt", p.Phrase), zap.String("model", o.model), zap.String("system", p.Traits), zap.Strings("response", handler.MessageParts), zap.Strings("thinking", handler.ThinkingParts))
+	log.Info("got response from llm", zap.String("prompt", p.Phrase), zap.String("model", o.model), zap.String("system", p.Traits), zap.Strings("response", handler.MessageParts), zap.Strings("thinking", handler.ThinkingParts))
 
 	return strings.TrimSpace(strings.Join(handler.MessageParts, "")), nil, nil
 }
