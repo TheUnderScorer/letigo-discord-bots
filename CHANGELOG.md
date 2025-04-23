@@ -1,3 +1,10 @@
+# [2.20.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.19.0...v2.20.0) (2025-04-23)
+
+
+### Features
+
+* add vision model to ollama adapter ([475edf1](https://github.com/TheUnderScorer/letigo-discord-bots/commit/475edf12558698cfff63b995efd94c8ea2155502))
+
 # [2.19.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.18.0...v2.19.0) (2025-04-23)
 
 
