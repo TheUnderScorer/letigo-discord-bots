@@ -1,10 +1,12 @@
 package chat
 
 import (
+	"app/env"
 	"app/llm"
 	"app/random"
 	"context"
 	"fmt"
+	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
 	"math"
 	"strconv"
@@ -16,37 +18,48 @@ const MaxProbability = 0.9  // Maximum probability cap for very long messages
 const LengthFactor = 0.001  // How quickly probability increases with length
 
 // IsWorthyOfReply determines if a given message warrants a reply based on length, probability, and an LLM-generated evaluation.
-func IsWorthyOfReply(ctx context.Context, llmClient *llm.API, message string) bool {
-	if len(message) == 0 {
+func IsWorthyOfReply(ctx context.Context, llmClient *llm.API, message *discordgo.Message) bool {
+	if env.Env.AreAllMessagesReplyWorthy() {
+		chatLog.Info("message is worthy of reply because env.AreAllMessagesReplyWorthy is true")
+		return true
+	}
+
+	hasAttachments := len(message.Attachments) > 0
+	contentLength := len(message.Content)
+	if contentLength == 0 && hasAttachments {
 		chatLog.Warn("message is empty")
 		return false
 	}
 
-	if len(message) < MinMessageLength {
-		chatLog.Info("message is too short", zap.String("message", message))
+	if contentLength < MinMessageLength && !hasAttachments {
+		chatLog.Info("messageContent is too short", zap.String("messageContent", message.Content))
 
 		return false
 	}
 
-	// Calculate probability based on message length
-	// Start with BASE_PROBABILITY at MIN_MESSAGE_LENGTH
-	// and increase based on LENGTH_FACTOR
-	lengthFactor := float64(len(message)-MinMessageLength) * LengthFactor
-	probability := BaseProbability + lengthFactor
+	if contentLength > 0 {
+		// Calculate probability based on messageContent length
+		// Start with BASE_PROBABILITY at MIN_MESSAGE_LENGTH
+		// and increase based on LENGTH_FACTOR
+		lengthFactor := float64(contentLength-MinMessageLength) * LengthFactor
+		probability := BaseProbability + lengthFactor
 
-	// Cap the maximum probability
-	probability = math.Min(probability, MaxProbability)
+		// Cap the maximum probability
+		probability = math.Min(probability, MaxProbability)
 
-	if !random.ChanceOfTrue(probability) {
-		chatLog.Info("skipping message based on random chance",
-			zap.Int("messageLength", len(message)),
-			zap.Float64("probability", probability))
+		// TODO Remove env check?
+		if !random.ChanceOfTrue(probability) && env.IsProd() {
+			chatLog.Info("skipping messageContent based on random chance",
+				zap.Int("messageLength", contentLength),
+				zap.Float64("probability", probability))
 
-		return false
+			return false
+		}
 	}
 
 	response, _, err := llmClient.Prompt(ctx, llm.Prompt{
-		Phrase: getPromptPhrase(message),
+		Phrase: getPromptPhrase(message.Content),
+		Files:  llm.HandleDiscordMessageAttachments(message),
 	})
 
 	if err != nil {
@@ -64,5 +77,5 @@ func IsWorthyOfReply(ctx context.Context, llmClient *llm.API, message string) bo
 }
 
 func getPromptPhrase(message string) string {
-	return fmt.Sprintf("Judge if the following message is interesting enough to reply and have a meaningful discussion. Return ONLY 'true' if it is, otherwise return 'false. Never return anything else. Here's the message: \n\n %s", message)
+	return fmt.Sprintf("Judge if the following message is interesting enough to reply and have a meaningful discussion. Take into account files attached to it. Return ONLY 'true' if it is, otherwise return 'false. Never return anything else. Here's the message: \n\n %s", message)
 }

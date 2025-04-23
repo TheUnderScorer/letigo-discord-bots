@@ -3,6 +3,7 @@ package env
 import (
 	"github.com/caarlos0/env/v11"
 	"os"
+	"strconv"
 )
 
 type appEnv struct {
@@ -24,6 +25,15 @@ type appEnv struct {
 	OpenAIApiKey                 string `env:"OPENAI_API_KEY"`
 	OpenAIAssistantID            string `env:"OPENAI_ASSISTANT_ID"`
 	OpenAIAssistantVectorStoreID string `env:"OPENAI_ASSISTANT_VECTOR_STORE_ID"`
+	AllMessagesReplyWorthy       string `env:"ALL_MESSAGES_REPLY_WORTHY"`
+}
+
+func (e *appEnv) AreAllMessagesReplyWorthy() bool {
+	val, err := strconv.ParseBool(e.AllMessagesReplyWorthy)
+	if err != nil {
+		return false
+	}
+	return val
 }
 
 var Env appEnv

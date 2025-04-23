@@ -2,7 +2,9 @@ package llm
 
 import (
 	"app/logging"
+	"app/util/arrayutil"
 	"context"
+	"encoding/base64"
 	ollama "github.com/ollama/ollama/api"
 	"go.uber.org/zap"
 	"net/http"
@@ -10,7 +12,7 @@ import (
 	"strings"
 )
 
-var log = logging.Get().Named("llm").Named("adapter_ollama")
+var log = logging.Get().Named("llm").Named("AdapterOllama")
 
 const ThinkingStart = "<think>"
 const ThinkingEnd = "</think>"
@@ -37,6 +39,9 @@ func (o *OllamaAdapter) Chat(ctx context.Context, request *Chat) (*ChatMessage, 
 		messages = append(messages, ollama.Message{
 			Content: m.Contents,
 			Role:    mapOllamaRole(m.Role),
+			Images: arrayutil.Map(m.Files, func(file File) ollama.ImageData {
+				return file.Data
+			}),
 		})
 	}
 
@@ -72,6 +77,11 @@ func (o *OllamaAdapter) Prompt(ctx context.Context, p Prompt) (string, *PromptRe
 		Model:  o.model,
 		System: p.Traits,
 		Stream: &stream,
+		Images: arrayutil.Map(p.Files, func(file File) ollama.ImageData {
+			b64 := make([]byte, base64.StdEncoding.EncodedLen(len(file.Data)))
+			base64.StdEncoding.Encode(b64, file.Data)
+			return b64
+		}),
 	}
 
 	handler := newStreamHandler()
@@ -105,11 +115,13 @@ func newStreamHandler() *streamHandler {
 
 func (h *streamHandler) Handle(contents string) error {
 	if contents == ThinkingStart {
+		log.Debug("llm started thinking")
 		h.isThinking = true
 		return nil
 	}
 
 	if contents == ThinkingEnd {
+		log.Debug("llm stopped thinking")
 		h.isThinking = false
 		return nil
 	}

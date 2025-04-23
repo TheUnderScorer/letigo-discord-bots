@@ -6,6 +6,7 @@ import (
 	"app/logging"
 	appmessages "app/messages"
 	"app/util/arrayutil"
+	"bytes"
 	"context"
 	_ "embed"
 	goerrors "errors"
@@ -62,6 +63,7 @@ func NewOpenAIAssistantAdapter(client *openai.Client, assistant OpenAIAssistantD
 	}
 }
 
+// TODO Add support for attachments
 func (o *OpenAIAssistantAdapter) Prompt(ctx context.Context, p Prompt) (string, *PromptReplyMetadata, error) {
 	var messages []*ChatMessage
 
@@ -242,12 +244,32 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 
 // sendMessageToThread sends a message to an existing thread and returns the response message or an error if it fails.
 func (o *OpenAIAssistantAdapter) sendMessageToThread(ctx context.Context, message *ChatMessage, threadId string) error {
+	var attachments []openai.BetaThreadMessageNewParamsAttachment
+	fileIds, err := o.handleAttachments(ctx, message)
+	if err != nil {
+		log.Error("failed to handle attachments", zap.Error(err))
+	}
+	if len(fileIds) > 0 {
+		for _, id := range fileIds {
+			attachments = append(attachments, openai.BetaThreadMessageNewParamsAttachment{
+				FileID: openai.String(id),
+				Tools: []openai.BetaThreadMessageNewParamsAttachmentToolUnion{
+					{
+						OfFileSearch: &openai.BetaThreadMessageNewParamsAttachmentToolFileSearch{
+							Type: "file_search",
+						},
+					},
+				},
+			})
+		}
+	}
+
 	messageMetadata := mapMetadata(message)
 
 	content := openai.BetaThreadMessageNewParamsContentUnion{
-		OfString: openai.String(message.ChatMessage()),
+		OfArrayOfContentParts: createMessageContentParts(message, fileIds),
 	}
-	_, err := o.client.Beta.Threads.Messages.New(ctx, threadId, openai.BetaThreadMessageNewParams{
+	_, err = o.client.Beta.Threads.Messages.New(ctx, threadId, openai.BetaThreadMessageNewParams{
 		Content:  content,
 		Metadata: messageMetadata,
 		Role:     mapRole(message),
@@ -258,6 +280,26 @@ func (o *OpenAIAssistantAdapter) sendMessageToThread(ctx context.Context, messag
 	}
 
 	return nil
+}
+
+func (o *OpenAIAssistantAdapter) handleAttachments(ctx context.Context, message *ChatMessage) ([]string, error) {
+	var fileIds []string
+	if len(message.Files) > 0 {
+		for _, file := range message.Files {
+			// TODO In next release, search existing files first to avoid duplicates
+			file := openai.File(bytes.NewBuffer(file.Data), file.Name, file.ContentType)
+			uploadedFile, err := o.client.Files.New(ctx, openai.FileNewParams{
+				File:    file,
+				Purpose: openai.FilePurposeVision,
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to upload file")
+			}
+
+			fileIds = append(fileIds, uploadedFile.ID)
+		}
+	}
+	return fileIds, nil
 }
 
 // listMessageIds retrieves a list of message IDs from the specified thread using OpenAI client pagination.
@@ -286,7 +328,9 @@ func (o *OpenAIAssistantAdapter) createThread(ctx context.Context, chat *Chat) (
 	chatMessages := arrayutil.Filter(chat.Messages, func(message *ChatMessage) bool {
 		return message.Role != ChatRoleSystem
 	})
-	messages := arrayutil.Map(chatMessages, chatMessageToThreadMessage)
+	messages := arrayutil.Map(chatMessages, func(m *ChatMessage) openai.BetaThreadNewParamsMessage {
+		return o.chatMessageToThreadMessage(ctx, m)
+	})
 	createdThread, err := o.client.Beta.Threads.New(ctx, openai.BetaThreadNewParams{
 		Metadata: metadata,
 		Messages: messages,
@@ -300,17 +344,45 @@ func (o *OpenAIAssistantAdapter) createThread(ctx context.Context, chat *Chat) (
 	return createdThread, err
 }
 
-func chatMessageToThreadMessage(message *ChatMessage) openai.BetaThreadNewParamsMessage {
+func (o *OpenAIAssistantAdapter) chatMessageToThreadMessage(ctx context.Context, message *ChatMessage) openai.BetaThreadNewParamsMessage {
 	messageMetadata := mapMetadata(message)
 	role := mapRoleToString(message)
+
+	fileIds, err := o.handleAttachments(ctx, message)
+	if err != nil {
+		log.Error("failed to handle attachments", zap.Error(err))
+	}
+
+	contents := createMessageContentParts(message, fileIds)
 
 	return openai.BetaThreadNewParamsMessage{
 		Role:     role,
 		Metadata: messageMetadata,
 		Content: openai.BetaThreadNewParamsMessageContentUnion{
-			OfString: openai.String(message.ChatMessage()),
+			OfArrayOfContentParts: contents,
 		},
 	}
+}
+
+func createMessageContentParts(message *ChatMessage, fileIds []string) []openai.MessageContentPartParamUnion {
+	var contents []openai.MessageContentPartParamUnion
+	contents = append(contents, openai.MessageContentPartParamUnion{
+		OfText: &openai.TextContentBlockParam{
+			Text: message.ChatMessage(),
+		},
+	})
+	if len(fileIds) > 0 {
+		for _, fileId := range fileIds {
+			contents = append(contents, openai.MessageContentPartParamUnion{
+				OfImageFile: &openai.ImageFileContentBlockParam{
+					ImageFile: openai.ImageFileParam{
+						FileID: fileId,
+					},
+				},
+			})
+		}
+	}
+	return contents
 }
 
 func mapMetadata(message *ChatMessage) openai.MetadataParam {

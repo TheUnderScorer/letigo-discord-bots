@@ -20,6 +20,7 @@ type ChatMessage struct {
 	Role       ChatRole          `json:"role"`
 	Metadata   map[string]string `json:"metadata"`
 	AuthorName string            `json:"author_name"`
+	Files      []File            `json:"files"`
 }
 
 func NewAssistantChatMessage(contents string, messageID string) *ChatMessage {
@@ -29,6 +30,7 @@ func NewAssistantChatMessage(contents string, messageID string) *ChatMessage {
 		Role:       ChatRoleAssistant,
 		AuthorName: "Assistant",
 		Metadata:   make(map[string]string),
+		Files:      make([]File, 0),
 	}
 }
 
@@ -47,6 +49,7 @@ func NewDiscordChatMessage(message *discordgo.Message) *ChatMessage {
 		Role:       ChatRoleUser,
 		AuthorName: authorName,
 		Metadata:   make(map[string]string),
+		Files:      HandleDiscordMessageAttachments(message),
 	}
 }
 
@@ -57,6 +60,7 @@ func NewUserChatMessage(contents string, messageID string, authorName string) *C
 		Role:       ChatRoleUser,
 		AuthorName: authorName,
 		Metadata:   make(map[string]string),
+		Files:      make([]File, 0),
 	}
 }
 
@@ -65,6 +69,7 @@ func NewChatMessage(contents string, role ChatRole) *ChatMessage {
 		Contents: contents,
 		Role:     role,
 		Metadata: make(map[string]string),
+		Files:    make([]File, 0),
 	}
 }
 
@@ -74,6 +79,7 @@ func NewChatMessageID(ID string, contents string, role ChatRole) *ChatMessage {
 		Contents: contents,
 		Role:     role,
 		Metadata: make(map[string]string),
+		Files:    make([]File, 0),
 	}
 }
 

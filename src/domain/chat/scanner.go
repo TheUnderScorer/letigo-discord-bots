@@ -157,7 +157,7 @@ func (d *DiscordChannelScanner) filterWorthyMessages(ctx context.Context, messag
 		}
 
 		// Check if the message is long enough and worthy of reply
-		return IsWorthyOfReply(ctx, d.llmApi, message.Content)
+		return IsWorthyOfReply(ctx, d.llmApi, message)
 	})
 
 	return worthyMessages
