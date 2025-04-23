@@ -10,7 +10,7 @@ import (
 )
 
 func prepareErrorReportEmbed(err error) []*discordgo.MessageEmbed {
-	var publicError *errors.PublicError
+	var publicError *errors.ErrPublic
 	fields := make(map[string]string)
 	fields["Error"] = err.Error()
 

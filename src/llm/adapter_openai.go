@@ -124,7 +124,7 @@ func (o *OpenAIAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMessage, *Ch
 	message := completion.Choices[0].Message
 	if message.Refusal != "" {
 		lastMessage, lastMessageOk := arrayutil.Last(chat.Messages)
-		userFriendlyError := errors.NewPublicError(arrayutil.RandomElement(messages2.Messages.Chat.RefuseToReply))
+		userFriendlyError := errors.NewErrPublic(arrayutil.RandomElement(messages2.Messages.Chat.RefuseToReply))
 		userFriendlyError.AddContext("refusal", message.Refusal)
 
 		if lastMessageOk {

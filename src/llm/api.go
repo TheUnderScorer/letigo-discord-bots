@@ -45,7 +45,7 @@ func (api *API) Chat(ctx context.Context, chat *Chat) (*Chat, *ChatMessage, *Cha
 	if err != nil {
 		api.logger.Error("failed to send chat request", zap.Error(err))
 
-		publicErr := errors.NewPublicErrorCause(arrayutil.RandomElement(messages.Messages.Chat.FailedToReply), err)
+		publicErr := errors.NewErrPublicCause(arrayutil.RandomElement(messages.Messages.Chat.FailedToReply), err)
 
 		return nil, nil, nil, publicErr
 	}
@@ -68,7 +68,7 @@ func (api *API) Prompt(ctx context.Context, prompt Prompt) (*PromptResponse, *Pr
 	log.Debug("prompt response finished", zap.Any("response", response), zap.Duration("duration", measure.Duration()))
 
 	if err != nil {
-		publicErr := errors.NewPublicErrorCause(arrayutil.RandomElement(messages.Messages.Chat.FailedToReply), err)
+		publicErr := errors.NewErrPublicCause(arrayutil.RandomElement(messages.Messages.Chat.FailedToReply), err)
 
 		return nil, metadata, publicErr
 	}

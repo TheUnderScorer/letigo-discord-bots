@@ -2,8 +2,8 @@ package errors
 
 import "errors"
 
-// PublicError defines error struct that can be exposed to users
-type PublicError struct {
+// ErrPublic defines error struct that can be exposed to users
+type ErrPublic struct {
 	// Message is an error message, it should be user-friendly
 	Message string `json:"message,omitempty"`
 	// Cause is an underlying cause of the error
@@ -12,18 +12,18 @@ type PublicError struct {
 	Context map[string]any `json:"context,omitempty"`
 }
 
-func NewPublicError(err string) *PublicError {
-	return &PublicError{Message: err, Context: make(map[string]any)}
+func NewErrPublic(err string) *ErrPublic {
+	return &ErrPublic{Message: err, Context: make(map[string]any)}
 }
 
-func NewPublicErrorCause(err string, cause error) error {
-	return errors.Join(cause, &PublicError{Message: err, Cause: cause, Context: make(map[string]any)})
+func NewErrPublicCause(err string, cause error) error {
+	return errors.Join(cause, &ErrPublic{Message: err, Cause: cause, Context: make(map[string]any)})
 }
 
-func (u *PublicError) Error() string {
+func (u *ErrPublic) Error() string {
 	return u.Message
 }
 
-func (u *PublicError) AddContext(key string, value any) {
+func (u *ErrPublic) AddContext(key string, value any) {
 	u.Context[key] = value
 }

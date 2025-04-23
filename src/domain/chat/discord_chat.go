@@ -90,7 +90,7 @@ func (c *DiscordChat) HandleNewMessage(message *discordgo.Message) error {
 	if err != nil {
 		log.Error("failed to get new chat from llmContainer", zap.Error(err))
 
-		var tooLongError llm.PromptTooLongError
+		var tooLongError llm.ErrPromptTooLong
 		if goerrors.As(err, &tooLongError) {
 			// DiscordChat got too long for llm to handle, finish the discussion
 			return c.EndDiscussion(ctx, message)

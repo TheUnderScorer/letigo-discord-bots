@@ -200,7 +200,7 @@ func (o *OpenAIAssistantAdapter) Chat(ctx context.Context, chat *Chat) (*ChatMes
 
 					if refusal.Refusal != "" {
 						log.Error("assistant refusal", zap.String("refusal", refusal.Refusal))
-						publicError := errors.NewPublicError(arrayutil.RandomElement(appmessages.Messages.Chat.RefuseToReply))
+						publicError := errors.NewErrPublic(arrayutil.RandomElement(appmessages.Messages.Chat.RefuseToReply))
 						publicError.AddContext("refusal", refusal.Refusal)
 
 						lastMessage, lastMessageOk := arrayutil.FindLast(chat.Messages, func(v *ChatMessage) bool {
@@ -348,6 +348,15 @@ func (o *OpenAIAssistantAdapter) chatMessageToThreadMessage(ctx context.Context,
 	}
 }
 
+func (o *OpenAIAssistantAdapter) countTokens(chat *Chat) (int32, error) {
+	var contents string
+	for _, message := range chat.Messages {
+		contents = contents + message.Contents
+	}
+
+	return openaiutil.CountTokens(contents, o.assistant.Encoding)
+}
+
 func createMessageContentParts(message *ChatMessage, fileIds []string) []openai.MessageContentPartParamUnion {
 	var contents []openai.MessageContentPartParamUnion
 	contents = append(contents, openai.MessageContentPartParamUnion{
@@ -400,13 +409,4 @@ func mapRoleToString(message *ChatMessage) string {
 	}
 
 	return role
-}
-
-func (o *OpenAIAssistantAdapter) countTokens(chat *Chat) (int32, error) {
-	var contents string
-	for _, message := range chat.Messages {
-		contents = contents + message.Contents
-	}
-
-	return openaiutil.CountTokens(contents, o.assistant.Encoding)
 }

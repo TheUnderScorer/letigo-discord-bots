@@ -221,7 +221,7 @@ var commandHandlers = map[bots.BotName]CommandHandlers{
 				if err != nil {
 					log.Error("failed to play next", zap.Error(err))
 
-					var userFriendly *errors.PublicError
+					var userFriendly *errors.ErrPublic
 
 					if errors2.As(err, &userFriendly) {
 						discord.FollowupInteractionErrorAndForget(s, i.Interaction, err)
@@ -253,7 +253,7 @@ var commandHandlers = map[bots.BotName]CommandHandlers{
 				if err != nil {
 					log.Error("failed to play", zap.Error(err))
 
-					var userFriendly *errors.PublicError
+					var userFriendly *errors.ErrPublic
 
 					if errors2.As(err, &userFriendly) {
 						discord.FollowupInteractionErrorAndForget(s, i.Interaction, err)

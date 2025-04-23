@@ -10,7 +10,7 @@ import (
 
 func ReplyToError(err error, s *discordgo.Session, i *discordgo.Interaction) {
 	if err != nil {
-		var userFriendly *errors.PublicError
+		var userFriendly *errors.ErrPublic
 		if errors2.As(err, &userFriendly) {
 			discord.FollowupInteractionErrorAndForget(s, i, err)
 		} else {

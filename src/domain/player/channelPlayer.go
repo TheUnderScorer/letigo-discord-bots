@@ -78,7 +78,7 @@ func (p *ChannelPlayer) Dispose() {
 
 func (p *ChannelPlayer) Next() error {
 	if len(p.queue) == 0 {
-		return errors2.NewPublicError(messages.Messages.Player.NoMoreSongs)
+		return errors2.NewErrPublic(messages.Messages.Player.NoMoreSongs)
 	}
 
 	p.mu.Lock()
