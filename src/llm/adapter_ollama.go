@@ -2,9 +2,10 @@ package llm
 
 import (
 	"app/logging"
-	"app/util/arrayutil"
+	"bytes"
+	"compress/gzip"
 	"context"
-	"encoding/base64"
+	"fmt"
 	ollama "github.com/ollama/ollama/api"
 	"go.uber.org/zap"
 	"net/http"
@@ -21,6 +22,8 @@ type OllamaAdapter struct {
 	client *ollama.Client
 	// an Ollama model to use
 	model string
+	// visionModel is an optional model for vision-related operations
+	visionModel *string
 }
 
 func NewOllamaAdapter(model string, base *url.URL, http *http.Client) *OllamaAdapter {
@@ -30,18 +33,25 @@ func NewOllamaAdapter(model string, base *url.URL, http *http.Client) *OllamaAda
 	}
 }
 
+func (o *OllamaAdapter) WithVision(model string) {
+	o.visionModel = &model
+}
+
 func (o *OllamaAdapter) Chat(ctx context.Context, request *Chat) (*ChatMessage, *ChatReplyMetadata, error) {
 	stream := true
 
 	var messages []ollama.Message
 
-	for _, m := range request.Messages {
+	for _, message := range request.Messages {
+		content := o.getMessageContent(ctx, message.Contents, message.Files)
+
 		messages = append(messages, ollama.Message{
-			Content: m.Contents,
-			Role:    mapOllamaRole(m.Role),
-			Images: arrayutil.Map(m.Files, func(file File) ollama.ImageData {
+			Content: content,
+			Role:    mapOllamaRole(message.Role),
+			// Currently used model does not support Images, so we pass them as base64 instead
+			/*Images: arrayutil.Map(message.Files, func(file File) ollama.ImageData {
 				return file.Data
-			}),
+			}),*/
 		})
 	}
 
@@ -73,15 +83,16 @@ func (o *OllamaAdapter) Prompt(ctx context.Context, p Prompt) (string, *PromptRe
 	stream := true
 
 	req := &ollama.GenerateRequest{
-		Prompt: p.Phrase,
+		Prompt: o.getMessageContent(ctx, p.Phrase, p.Files),
 		Model:  o.model,
 		System: p.Traits,
 		Stream: &stream,
-		Images: arrayutil.Map(p.Files, func(file File) ollama.ImageData {
+		// Currently used model does not support Images, so we pass them as base64 instead
+		/*	Images: arrayutil.Map(p.Files, func(file File) ollama.ImageData {
 			b64 := make([]byte, base64.StdEncoding.EncodedLen(len(file.Data)))
 			base64.StdEncoding.Encode(b64, file.Data)
 			return b64
-		}),
+		}),*/
 	}
 
 	handler := newStreamHandler()
@@ -148,4 +159,80 @@ func mapOllamaRole(role ChatRole) string {
 
 	}
 	return ""
+}
+
+func (o *OllamaAdapter) getMessageContent(ctx context.Context, messageContent string, files []File) string {
+	content := messageContent
+
+	if o.visionModel == nil {
+		return content
+	}
+
+	var fileRelatedContent string
+
+	if len(files) > 0 {
+		for _, file := range files {
+			description := o.describeFile(ctx, file)
+			if description != "" {
+				fileRelatedContent += fmt.Sprintf("- %s: %s", file.Name, description) + "\n"
+			}
+		}
+	}
+
+	if fileRelatedContent != "" {
+		content += "\n\n This message contains following files: \n"
+		content += fileRelatedContent + "\n"
+	}
+
+	return content
+}
+
+func (o *OllamaAdapter) describeFile(ctx context.Context, file File) string {
+	if o.visionModel == nil {
+		return ""
+	}
+
+	handler := newStreamHandler()
+
+	fileLogger := log.With(zap.String("filename", file.Name))
+
+	fileLogger.Info("describing file")
+
+	err := o.client.Generate(ctx, &ollama.GenerateRequest{
+		Prompt: "Describe what you see in the given file in short sentence.",
+		Images: []ollama.ImageData{
+			file.Data,
+		},
+		Model: *o.visionModel,
+	}, func(response ollama.GenerateResponse) error {
+		return handler.Handle(response.Response)
+	})
+	if err != nil {
+		log.Error("failed to describe file", zap.Error(err), zap.String("filename", file.Name))
+		return ""
+	}
+
+	description := strings.TrimSpace(strings.Join(handler.MessageParts, ""))
+	fileLogger.Info("got description", zap.String("description", description))
+	return description
+}
+
+// compressData compresses the input data using gzip compression
+func compressData(data []byte) ([]byte, error) {
+	var compressedData bytes.Buffer
+	gzipWriter, err := gzip.NewWriterLevel(&compressedData, gzip.BestCompression)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = gzipWriter.Write(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := gzipWriter.Close(); err != nil {
+		return nil, err
+	}
+
+	return compressedData.Bytes(), nil
 }

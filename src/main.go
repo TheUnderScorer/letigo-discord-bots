@@ -82,6 +82,10 @@ func main() {
 	}
 
 	ollamaAdapter := llm.NewOllamaAdapter(env.Env.OllamaModel, ollamaUrl, httpClient)
+	if env.Env.OllamaVisionModel != "" {
+		ollamaAdapter.WithVision(env.Env.OllamaVisionModel)
+	}
+
 	ollamaApi := llm.NewAPI(ollamaAdapter, "ollama")
 	openAIClient := openai.NewClient(option.WithAPIKey(env.Env.OpenAIApiKey))
 	openAIAssistantDefinition := llm.OpenAIAssistantDefinition{
