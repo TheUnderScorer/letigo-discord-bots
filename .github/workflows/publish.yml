@@ -41,6 +41,6 @@ jobs:
       - name: Push with tag
         if: github.event_name == 'release'
         run: |
-          docker tag ${{ vars.DOCKERHUB_USERNAME }}/letigo-discord-bots:lates ${{ vars.DOCKERHUB_USERNAME }}/letigo-discord-bots:${{github.event.release.tag_name}}
+          docker tag ${{ vars.DOCKERHUB_USERNAME }}/letigo-discord-bots:latest ${{ vars.DOCKERHUB_USERNAME }}/letigo-discord-bots:${{github.event.release.tag_name}}
           docker push ${{ vars.DOCKERHUB_USERNAME }}/letigo-discord-bots:${{github.event.release.tag_name}}
           
