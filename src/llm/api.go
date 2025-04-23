@@ -55,16 +55,17 @@ func (api *API) Chat(ctx context.Context, chat *Chat) (*Chat, *ChatMessage, *Cha
 	return chat, response, metadata, nil
 }
 
-// Prompt sends a request to the LLM with given prompt
+// Prompt sends a request to the LLM with the given prompt
 func (api *API) Prompt(ctx context.Context, prompt Prompt) (*PromptResponse, *PromptReplyMetadata, error) {
-	api.logger.Debug("sending prompt request", zap.Any("prompt", prompt))
+	log := api.logger.With(zap.String("prompt", prompt.Phrase), zap.String("traits", prompt.Traits), zap.Bool("hasFiles", len(prompt.Files) > 0))
+	log.Debug("sending prompt request")
 
 	measure := metrics.NewMeasure()
 	measure.Start()
 	response, metadata, err := api.adapter.Prompt(ctx, prompt)
 	measure.End()
 
-	api.logger.Debug("prompt response finished", zap.Any("response", response), zap.Duration("duration", measure.Duration()))
+	log.Debug("prompt response finished", zap.Any("response", response), zap.Duration("duration", measure.Duration()))
 
 	if err != nil {
 		publicErr := errors.NewPublicErrorCause(arrayutil.RandomElement(messages.Messages.Chat.FailedToReply), err)
