@@ -1,3 +1,10 @@
+# [2.19.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.18.0...v2.19.0) (2025-04-23)
+
+
+### Features
+
+* improve logging ([10ba2c3](https://github.com/TheUnderScorer/letigo-discord-bots/commit/10ba2c3bdde587863d3a7652c19a541d75152b82))
+
 # [2.18.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.17.0...v2.18.0) (2025-04-23)
 
 
