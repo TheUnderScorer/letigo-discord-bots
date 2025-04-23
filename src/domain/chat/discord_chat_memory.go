@@ -53,13 +53,13 @@ func (m *DiscordChatMemory) StartTick() {
 		}
 	})
 
-	log.Debug("Started inactivity timer for 30 minutes")
+	log.Info("Started inactivity timer for 30 minutes")
 }
 
 func (m *DiscordChatMemory) StopTick() {
 	if m.inactivityTimer != nil {
 		m.inactivityTimer.Stop()
-		log.Debug("Stopped inactivity timer")
+		log.Info("Stopped inactivity timer")
 	}
 }
 
@@ -72,7 +72,7 @@ func (m *DiscordChatMemory) AddMessage(message *discordgo.Message) {
 	// Reset the inactivity timer when a new message arrives
 	if m.inactivityTimer != nil {
 		m.resetTimer()
-		log.Debug("Inactivity timer reset due to new message")
+		log.Info("Inactivity timer reset due to new message")
 	} else {
 		// Start tick after the first message is added
 		go m.StartTick()
@@ -195,7 +195,7 @@ func (m *DiscordChatMemory) filterDetails(ctx context.Context, details string, t
 		return "", nil
 	}
 
-	log.Debug("filtering details for duplicates", zap.String("threadID", threadID), zap.String("details", details))
+	log.Info("filtering details for duplicates", zap.String("threadID", threadID), zap.String("details", details))
 
 	// Create system prompt for filtering
 	systemPrompt := "You are a memory management assistant that identifies new vs. already known information. " +
@@ -223,7 +223,7 @@ func (m *DiscordChatMemory) filterDetails(ctx context.Context, details string, t
 
 	// If the response is empty or nil, assume no new details
 	if response == nil || response.Reply == "" {
-		log.Debug("no new details after filtering", zap.String("threadID", threadID))
+		log.Info("no new details after filtering", zap.String("threadID", threadID))
 		return "", nil
 	}
 
@@ -233,11 +233,11 @@ func (m *DiscordChatMemory) filterDetails(ctx context.Context, details string, t
 	// If the filtered response indicates all details are known, return empty string
 	if strings.Contains(strings.ToLower(filteredDetails), "already known") ||
 		strings.Contains(strings.ToLower(filteredDetails), "no new details") {
-		log.Debug("all details already known", zap.String("threadID", threadID))
+		log.Info("all details already known", zap.String("threadID", threadID))
 		return "", nil
 	}
 
-	log.Debug("filtered details", zap.String("filteredDetails", filteredDetails), zap.String("threadID", threadID))
+	log.Info("filtered details", zap.String("filteredDetails", filteredDetails), zap.String("threadID", threadID))
 	return filteredDetails, nil
 }
 
@@ -261,7 +261,7 @@ func (m *DiscordChatMemory) extractDetails(ctx context.Context, userMessages str
 		return "", err
 	}
 
-	log.Debug("extracted details", zap.String("details", response.Reply), zap.String("threadID", threadID))
+	log.Info("extracted details", zap.String("details", response.Reply), zap.String("threadID", threadID))
 
 	return response.Reply, nil
 }

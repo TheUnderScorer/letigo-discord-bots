@@ -10,7 +10,7 @@ import (
 
 func HandleMessageCreate(session *discordgo.Session, manager *Manager, llmApi *llm.API, newMessage *discordgo.MessageCreate) {
 	log := chatLog.With(zap.String("messageID", newMessage.ID))
-	log.Debug("handling message create")
+	log.Info("handling message create")
 
 	channel, err := session.Channel(newMessage.ChannelID)
 	if err != nil {

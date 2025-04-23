@@ -51,10 +51,10 @@ func (d *DiscordChannelScanner) Start() {
 	// Run the scan immediately on start
 	d.scanChannels()
 
-	d.log.Debug("scan on start finished")
+	d.log.Info("scan on start finished")
 
 	d.tickerDuration = util.RandomDuration(minDuration, maxDuration)
-	log.Debug("random duration", zap.Duration("duration", d.tickerDuration))
+	log.Info("random duration", zap.Duration("duration", d.tickerDuration))
 
 	ticker := time.NewTicker(d.tickerDuration)
 	defer ticker.Stop()
@@ -63,10 +63,10 @@ func (d *DiscordChannelScanner) Start() {
 		select {
 		case <-ticker.C:
 			d.scanChannels()
-			d.log.Debug("scan in ticker finished")
+			d.log.Info("scan in ticker finished")
 			// After scan, set random duration for next one
 			d.tickerDuration = util.RandomDuration(minDuration, maxDuration)
-			log.Debug("random duration", zap.Duration("duration", d.tickerDuration))
+			log.Info("random duration", zap.Duration("duration", d.tickerDuration))
 			ticker.Reset(d.tickerDuration)
 		case <-d.stopChan:
 			d.log.Info("stopping Discord channel scanner")

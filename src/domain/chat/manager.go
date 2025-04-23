@@ -59,7 +59,7 @@ func (m *Manager) GetOrCreateChat(cid string) *DiscordChat {
 
 	chat := m.GetChat(cid)
 	if chat == nil {
-		m.log.Debug("creating new chat", zap.String("parentCid", cid))
+		m.log.Info("creating new chat", zap.String("parentCid", cid))
 		chat = NewDiscordChat(m.session, cid, m.llmContainer)
 		onDiscussionEnd := func(chat *DiscordChat) {
 			m.mu.Lock()
@@ -70,7 +70,7 @@ func (m *Manager) GetOrCreateChat(cid string) *DiscordChat {
 		chat.onDiscussionEnded = &onDiscussionEnd
 		m.chats = append(m.chats, chat)
 	} else {
-		m.log.Debug("using existing chat", zap.String("parentCid", cid))
+		m.log.Info("using existing chat", zap.String("parentCid", cid))
 	}
 
 	return chat
