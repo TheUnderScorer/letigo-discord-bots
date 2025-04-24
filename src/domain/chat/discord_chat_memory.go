@@ -6,6 +6,7 @@ import (
 	"app/events"
 	"app/llm"
 	"app/logging"
+	"app/util/arrayutil"
 	"context"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
@@ -21,9 +22,10 @@ var log = logging.Get().Named("chat").Named("memory")
 
 type DiscordChatMemory struct {
 	// messages store the current batch of messages that will be parsed and remembered when length is > batchCount
-	messages     []*discordgo.Message
-	session      *discordgo.Session
-	llmContainer *llm.Container
+	messages           []*discordgo.Message
+	session            *discordgo.Session
+	llmContainer       *llm.Container
+	handledMessagesIds []string
 
 	inactivityTimer    *time.Timer
 	inactivityDuration time.Duration
@@ -37,6 +39,7 @@ func NewDiscordChatMemory(session *discordgo.Session, llmContainer *llm.Containe
 		messages:           []*discordgo.Message{},
 		llmContainer:       llmContainer,
 		inactivityDuration: 30 * time.Minute,
+		handledMessagesIds: make([]string, 0),
 	}
 }
 
@@ -68,6 +71,11 @@ func (m *DiscordChatMemory) AddMessage(message *discordgo.Message) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.messages = append(m.messages, message)
+
+	if arrayutil.Includes(m.handledMessagesIds, message.ID) {
+		log.Info("message already handled", zap.String("messageID", message.ID))
+		return
+	}
 
 	// Reset the inactivity timer when a new message arrives
 	if m.inactivityTimer != nil {
@@ -130,10 +138,12 @@ func (m *DiscordChatMemory) remember() error {
 	// Prepare user messages for extraction
 	userMessages := make([]string, 0, len(m.messages))
 	for _, msg := range m.messages {
-		// Skip bot messages
-		if msg.Author.Bot {
+		// Skip bot messages, or ours
+		if msg.Author.Bot || msg.Author.ID == m.session.State.User.ID {
 			continue
 		}
+
+		m.handledMessagesIds = append(m.handledMessagesIds, msg.ID)
 
 		var username string
 		friend, ok := discord.Friends[msg.Author.ID]
