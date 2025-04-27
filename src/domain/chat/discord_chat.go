@@ -40,7 +40,7 @@ type DiscordChat struct {
 	chat *llm.Chat
 	// onDiscussionEnded is called after discussion is ended
 	onDiscussionEnded *func(chat *DiscordChat)
-	memory            *DiscordChatMemory
+	//memory            *DiscordChatMemory
 }
 
 func NewDiscordChat(session *discordgo.Session, cid string, llmContainer *llm.Container) *DiscordChat {
@@ -52,7 +52,7 @@ func NewDiscordChat(session *discordgo.Session, cid string, llmContainer *llm.Co
 		log:          logger,
 		llmContainer: llmContainer,
 		chat:         llm.NewChat(),
-		memory:       NewDiscordChatMemory(session, llmContainer),
+		//memory:       NewDiscordChatMemory(session, llmContainer),
 	}
 }
 
@@ -114,7 +114,7 @@ func (c *DiscordChat) HandleNewMessage(message *discordgo.Message) error {
 		return c.EndDiscussion(ctx, message)
 	}
 
-	go c.memory.AddMessage(message)
+	//go c.memory.AddMessage(message)
 
 	return nil
 }
@@ -125,12 +125,12 @@ func (c *DiscordChat) EndDiscussion(ctx context.Context, message *discordgo.Mess
 		return goerrors.New("unable to end discussion, no thread exists")
 	}
 
-	go func() {
+	/*go func() {
 		err := c.memory.ForceRemember()
 		if err != nil {
 			log.Error("failed to force remember messages", zap.Error(err))
 		}
-	}()
+	}()*/
 
 	err := c.session.MessageReactionAdd(c.thread.ID, message.ID, discord.ReactionBye, discordgo.WithContext(ctx))
 	if err != nil {
@@ -138,7 +138,7 @@ func (c *DiscordChat) EndDiscussion(ctx context.Context, message *discordgo.Mess
 	}
 
 	c.isFinished = true
-	c.memory.StopTick()
+	//c.memory.StopTick()
 
 	if c.onDiscussionEnded != nil {
 		(*c.onDiscussionEnded)(c)
