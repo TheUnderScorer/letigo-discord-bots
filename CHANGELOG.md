@@ -1,3 +1,11 @@
+# [2.21.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.20.0...v2.21.0) (2025-05-05)
+
+
+### Features
+
+* disable automatic creation of new memories ([bb74204](https://github.com/TheUnderScorer/letigo-discord-bots/commit/bb74204b3ca2f38fb9f1da3aeaa865ac09164508))
+* **discord-chat:** track and skip previously handled messages for memory ([cf71dae](https://github.com/TheUnderScorer/letigo-discord-bots/commit/cf71dae70f47a26323c198ad313702a3d3ac69d2))
+
 # [2.20.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.19.0...v2.20.0) (2025-04-23)
 
 
