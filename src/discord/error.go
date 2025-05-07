@@ -2,11 +2,11 @@ package discord
 
 import (
 	"app/env"
-	"app/errors"
 	"app/messages"
 	goerrors "errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"lib/errors"
 )
 
 func prepareErrorReportEmbed(err error) []*discordgo.MessageEmbed {

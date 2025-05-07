@@ -1,4 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "files": ["./src/server/server.ts"]
+  "files": [
+    "./lib/server/server.ts"
+  ]
 }

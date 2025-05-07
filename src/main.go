@@ -1,23 +1,14 @@
 package main
 
 import (
-	"app/aws"
 	"app/bots"
-	"app/discord"
 	"app/domain"
-	"app/domain/chat"
 	"app/domain/interaction"
-	openaidomain "app/domain/openai"
-	"app/domain/player"
-	"app/domain/scheduler"
 	"app/domain/trivia"
 	"app/domain/tts"
 	"app/env"
-	"app/llm"
-	"app/logging"
 	"app/messages"
 	"app/metadata"
-	"app/server"
 	"context"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
@@ -26,10 +17,19 @@ import (
 	"github.com/openai/openai-go/option"
 	"github.com/pkoukk/tiktoken-go"
 	"go.uber.org/zap"
+	aws2 "lib/aws"
+	"lib/discord"
+	llm2 "lib/llm"
+	"lib/logging"
+	"lib/server"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"time"
+	chat2 "wojciech-bot/chat"
+	openaidomain "wojciech-bot/openai"
+	"wojciech-bot/player"
+	"wojciech-bot/scheduler"
 )
 
 var log = logging.Get().Named("server")
@@ -61,7 +61,7 @@ func main() {
 	}
 
 	ttsClient := tts.NewClient()
-	cfg, err := aws.NewConfig(context.Background())
+	cfg, err := aws2.NewConfig(context.Background())
 	if err != nil {
 		log.Fatal("failed to create aws config", zap.Error(err))
 	}
@@ -69,7 +69,7 @@ func main() {
 
 	channelPlayerManager := player.NewChannelPlayerManager()
 	triviaManager := trivia.NewManager(ttsClient)
-	awsS3 := aws.NewS3(s3Client)
+	awsS3 := aws2.NewS3(s3Client)
 
 	// Bots
 	wojciechBot := bots.NewBot(bots.BotNameWojciech, env.Env.WojciechBotToken)
@@ -81,35 +81,35 @@ func main() {
 		log.Fatal("failed to parse ollama host", zap.Error(err))
 	}
 
-	ollamaAdapter := llm.NewOllamaAdapter(env.Env.OllamaModel, ollamaUrl, httpClient)
+	ollamaAdapter := llm2.NewOllamaAdapter(env.Env.OllamaModel, ollamaUrl, httpClient)
 	if env.Env.OllamaVisionModel != "" {
 		ollamaAdapter.WithVision(env.Env.OllamaVisionModel)
 	}
 
-	ollamaApi := llm.NewAPI(ollamaAdapter, "ollama")
+	ollamaApi := llm2.NewAPI(ollamaAdapter, "ollama")
 	openAIClient := openai.NewClient(option.WithAPIKey(env.Env.OpenAIApiKey))
-	openAIAssistantDefinition := llm.OpenAIAssistantDefinition{
+	openAIAssistantDefinition := llm2.OpenAIAssistantDefinition{
 		ID:            env.Env.OpenAIAssistantID,
 		Encoding:      tiktoken.MODEL_O200K_BASE,
 		ContextWindow: 128_000,
 	}
-	openAIAssistantAdapter := llm.NewOpenAIAssistantAdapter(&openAIClient, openAIAssistantDefinition, env.Env.OpenAIAssistantVectorStoreID)
-	assistantApi := llm.NewAPI(openAIAssistantAdapter, "openai")
+	openAIAssistantAdapter := llm2.NewOpenAIAssistantAdapter(&openAIClient, openAIAssistantDefinition, env.Env.OpenAIAssistantVectorStoreID)
+	assistantApi := llm2.NewAPI(openAIAssistantAdapter, "openai")
 
-	openAIAdapter := llm.NewOpenAIAdapter(&openAIClient, llm.OpenAIModelDefinition{
+	openAIAdapter := llm2.NewOpenAIAdapter(&openAIClient, llm2.OpenAIModelDefinition{
 		Model:         "gpt-4.1-mini",
 		ContextWindow: 128_000,
 		Encoding:      tiktoken.MODEL_O200K_BASE,
 	}, env.Env.OpenAIAssistantVectorStoreID)
-	openAIApi := llm.NewAPI(openAIAdapter, "openai")
+	openAIApi := llm2.NewAPI(openAIAdapter, "openai")
 
-	llmContainer := &llm.Container{
+	llmContainer := &llm2.Container{
 		AssistantAPI: assistantApi,
 		FreeAPI:      ollamaApi,
 		ExpensiveAPI: openAIApi,
 	}
 
-	chatManager := chat.NewManager(wojciechBot.Session, llmContainer)
+	chatManager := chat2.NewManager(wojciechBot.Session, llmContainer)
 
 	botsArr := []*bots.Bot{wojciechBot, tadeuszBot}
 
@@ -132,7 +132,7 @@ func main() {
 			S3:                   awsS3,
 			ComponentInteractionHandlers: []discord.ComponentInteractionHandler{
 				trivia.NewComponentInteractionHandler(triviaManager),
-				chat.NewForgetComponentHandler(&openAIClient),
+				chat2.NewForgetComponentHandler(&openAIClient),
 			},
 		},
 	})

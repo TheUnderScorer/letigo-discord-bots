@@ -3,7 +3,6 @@ package main
 import (
 	"app/domain/trivia"
 	"app/messages"
-	"app/util"
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,6 +10,7 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/joho/godotenv"
 	"github.com/sashabaranov/go-openai"
+	"lib/util"
 	"os"
 	"strconv"
 	"sync"

@@ -2,10 +2,10 @@ package interaction
 
 import (
 	"app/discord"
-	"app/errors"
 	"app/messages"
 	errors2 "errors"
 	"github.com/bwmarrin/discordgo"
+	"lib/errors"
 )
 
 func ReplyToError(err error, s *discordgo.Session, i *discordgo.Interaction) {

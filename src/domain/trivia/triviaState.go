@@ -1,13 +1,13 @@
 package trivia
 
 import (
-	"app/aws"
-	"app/discord"
 	"app/messages"
-	"app/util/arrayutil"
 	"errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"lib/aws"
+	"lib/discord"
+	"lib/util/arrayutil"
 	"strings"
 )
 

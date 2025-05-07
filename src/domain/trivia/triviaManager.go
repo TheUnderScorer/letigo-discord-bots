@@ -1,11 +1,11 @@
 package trivia
 
 import (
-	"app/aws"
 	"app/domain/tts"
-	"app/logging"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
+	"lib/aws"
+	"lib/logging"
 	"sync"
 )
 

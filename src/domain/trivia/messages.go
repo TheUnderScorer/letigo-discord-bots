@@ -2,8 +2,8 @@ package trivia
 
 import (
 	"app/messages"
-	"app/util"
-	"app/util/arrayutil"
+	"lib/util"
+	"lib/util/arrayutil"
 )
 
 // GetInvalidAnswerPhraseParts returns a random phrase indicating an invalid answer

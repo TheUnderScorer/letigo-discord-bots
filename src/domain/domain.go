@@ -2,17 +2,17 @@ package domain
 
 import (
 	"app/bots"
-	"app/discord"
-	"app/domain/chat"
 	"app/domain/interaction"
-	"app/domain/openai"
 	"app/env"
-	"app/events"
-	"app/llm"
-	"app/logging"
 	"context"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
+	"lib/discord"
+	"lib/events"
+	llm2 "lib/llm"
+	"lib/logging"
+	chat2 "wojciech-bot/chat"
+	"wojciech-bot/openai"
 )
 
 var logger = logging.Get().Named("domain")
@@ -20,9 +20,9 @@ var logger = logging.Get().Named("domain")
 type Container struct {
 	*interaction.CommandsContainer
 	Bots         []*bots.Bot
-	ChatManager  *chat.Manager
-	LlmApi       *llm.API
-	LlmContainer *llm.Container
+	ChatManager  *chat2.Manager
+	LlmApi       *llm2.API
+	LlmContainer *llm2.Container
 }
 
 func Init(container *Container) {
@@ -48,12 +48,12 @@ func Init(container *Container) {
 
 }
 
-func InitWojciechBot(bot *bots.Bot, manager *chat.Manager, llmContainer *llm.Container) {
+func InitWojciechBot(bot *bots.Bot, manager *chat2.Manager, llmContainer *llm2.Container) {
 	session := bot.Session
 	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		chat.HandleMessageCreate(session, manager, llmContainer.FreeAPI, m)
+		chat2.HandleMessageCreate(session, manager, llmContainer.FreeAPI, m)
 	})
-	chatScanner := chat.NewDiscordChannelScanner(session, llmContainer.FreeAPI, func(message *discordgo.Message) {
+	chatScanner := chat2.NewDiscordChannelScanner(session, llmContainer.FreeAPI, func(message *discordgo.Message) {
 		err := bot.Session.MessageReactionAdd(message.ChannelID, message.ID, discord.ReactionSeen)
 		if err != nil {
 			logger.Error("failed to add seen reaction", zap.Error(err))
@@ -69,7 +69,7 @@ func InitWojciechBot(bot *bots.Bot, manager *chat.Manager, llmContainer *llm.Con
 
 	events.Handle(func(ctx context.Context, event openai.MemoryUpdated) error {
 		if event.DiscordThreadID != "" {
-			return chat.HandleMemoryUpdated(ctx, env.Env.OpenAIAssistantVectorStoreID, bot, event)
+			return chat2.HandleMemoryUpdated(ctx, env.Env.OpenAIAssistantVectorStoreID, bot, event)
 		}
 
 		return nil

@@ -1,9 +1,9 @@
 package discord
 
 import (
-	"app/logging"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
+	"lib/logging"
 )
 
 type InteractionReply struct {

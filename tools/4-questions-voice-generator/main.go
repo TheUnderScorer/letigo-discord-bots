@@ -1,14 +1,10 @@
 package main
 
 import (
-	"app/dca"
-	"app/discord"
 	"app/domain/trivia"
 	tts2 "app/domain/tts"
 	"app/env"
 	"app/messages"
-	util2 "app/util"
-	"app/util/arrayutil"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -17,6 +13,10 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/joho/godotenv"
 	"io"
+	"lib/dca"
+	"lib/discord"
+	util2 "lib/util"
+	"lib/util/arrayutil"
 	"os"
 	"sync"
 	"time"

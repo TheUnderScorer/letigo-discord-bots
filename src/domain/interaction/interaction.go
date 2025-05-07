@@ -3,9 +3,10 @@ package interaction
 import (
 	"app/bots"
 	"app/env"
-	"app/logging"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
+	"lib/discord"
+	"lib/logging"
 )
 
 type Command string
@@ -67,7 +68,7 @@ func Handle(session *discordgo.Session, botName bots.BotName, interaction *disco
 	if interaction.Type == discordgo.InteractionMessageComponent {
 		logger.Info("got component")
 
-		HandleComponentInteraction(container.ComponentInteractionHandlers, session, interaction)
+		discord.HandleComponentInteraction(container.ComponentInteractionHandlers, session, interaction)
 
 		return
 	}

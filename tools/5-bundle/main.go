@@ -1,11 +1,8 @@
 package main
 
 import (
-	"app/aws"
 	"app/domain/trivia"
 	"app/env"
-	util2 "app/util"
-	"app/util/arrayutil"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -15,6 +12,9 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/joho/godotenv"
 	"io"
+	"lib/aws"
+	util2 "lib/util"
+	"lib/util/arrayutil"
 	"os"
 	"path/filepath"
 	"strings"

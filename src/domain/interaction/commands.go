@@ -1,27 +1,28 @@
 package interaction
 
 import (
-	"app/aws"
 	"app/bots"
 	"app/discord"
-	"app/domain/player"
 	"app/domain/trivia"
-	"app/errors"
 	"app/messages"
-	"app/util"
-	"app/util/arrayutil"
 	errors2 "errors"
 	"github.com/bwmarrin/discordgo"
 	"github.com/charmbracelet/log"
 	"go.uber.org/zap"
+	"lib/aws"
+	discord2 "lib/discord"
+	"lib/errors"
+	"lib/util"
+	"lib/util/arrayutil"
 	"strconv"
+	player2 "wojciech-bot/player"
 )
 
 type CommandsContainer struct {
 	TriviaManager                *trivia.Manager
 	S3                           *aws.S3
-	ChannelPlayerManager         *player.ChannelPlayerManager
-	ComponentInteractionHandlers []discord.ComponentInteractionHandler
+	ChannelPlayerManager         *player2.ChannelPlayerManager
+	ComponentInteractionHandlers []discord2.ComponentInteractionHandler
 }
 
 var commands = map[bots.BotName][]*discordgo.ApplicationCommand{
@@ -232,7 +233,7 @@ var commandHandlers = map[bots.BotName]CommandHandlers{
 				discord.DeleteFollowupAndForget(s, i.Interaction)
 
 			case string(DjSubCommandPlayer):
-				component, err := player.GetPlayerComponent(channelPlayer)
+				component, err := player2.GetPlayerComponent(channelPlayer)
 				if err != nil {
 					log.Error("failed to get player component", zap.Error(err))
 

@@ -1,15 +1,15 @@
 package trivia
 
 import (
-	"app/aws"
-	"app/util"
-	"app/util/arrayutil"
 	"context"
 	"encoding/json"
 	"fmt"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"go.uber.org/zap"
 	"io"
+	"lib/aws"
+	util2 "lib/util"
+	"lib/util/arrayutil"
 	"path/filepath"
 	"time"
 )
@@ -53,14 +53,14 @@ func GetQuestions(s3 *aws.S3) (result []Question) {
 }
 
 func GetVoice(s3 *aws.S3, sentence string) (io.ReadCloser, error) {
-	return GetVoiceByHash(s3, util.Hash(sentence))
+	return GetVoiceByHash(s3, util2.Hash(sentence))
 }
 
 func GetVoiceByHash(s3 *aws.S3, hash string) (io.ReadCloser, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
-	i := util.RandomInt(0, 3)
+	i := util2.RandomInt(0, 3)
 	key := fmt.Sprintf("trivia/%s/%d.dca", hash, i)
 	contents, err := s3.Get(ctx, key)
 

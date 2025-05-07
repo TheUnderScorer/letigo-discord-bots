@@ -1,29 +1,29 @@
 package trivia
 
 import (
-	"app/aws"
-	"app/discord"
 	"app/domain/tts"
-	"app/domain/voice"
-	"app/logging"
+	"app/env"
 	"app/messages"
-	"app/util"
-	"app/util/arrayutil"
 	"bytes"
 	"context"
 	_ "embed"
 	"errors"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
+	"lib/aws"
+	discord2 "lib/discord"
+	"lib/logging"
+	util2 "lib/util"
+	"lib/util/arrayutil"
 	"strings"
 	"time"
 )
 
 type Trivia struct {
-	session         *discordgo.Session
+	bot             *discord2.Bot
 	channelID       string
 	onDisposed      func()
-	vm              *voice.Manager
+	vm              *discord2.Manager
 	tts             *tts.Client
 	logger          *zap.Logger
 	state           *State
@@ -44,15 +44,15 @@ var wrong []byte
 
 const questionTimeout = time.Second * 30
 
-func New(s3 *aws.S3, session *discordgo.Session, tts *tts.Client, channelID string, onDisposed func()) (*Trivia, error) {
-	vm, err := voice.NewManager(session, channelID, onDisposed)
+func New(s3 *aws.S3, bot *discord2.Bot, tts *tts.Client, channelID string, onDisposed func()) (*Trivia, error) {
+	vm, err := discord2.NewManager(bot, channelID, onDisposed)
 	if err != nil {
 		return nil, err
 	}
 
 	var players []*discordgo.User
 
-	members, err := discord.ListVoiceChannelMembers(session, channelID)
+	members, err := bot.ListVoiceChannelMembers(env.Env.GuildId, channelID)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func New(s3 *aws.S3, session *discordgo.Session, tts *tts.Client, channelID stri
 	}
 
 	trivia := &Trivia{
-		session:         session,
+		bot:             bot,
 		channelID:       channelID,
 		onDisposed:      onDisposed,
 		vm:              vm,
@@ -86,8 +86,8 @@ func (t *Trivia) Start() error {
 	}
 
 	msg := arrayutil.RandomElement(messages.Messages.Trivia.Start)
-	welcomeSentence := util.ApplyTokens(msg, map[string]string{
-		"MEMBERS_COUNT": util.PlayerCountSentence(len(t.state.players)),
+	welcomeSentence := util2.ApplyTokens(msg, map[string]string{
+		"MEMBERS_COUNT": util2.PlayerCountSentence(len(t.state.players)),
 	})
 
 	err := t.playIntro()
@@ -139,7 +139,7 @@ func (t *Trivia) NextQuestion() {
 	options := strings.Join(arrayutil.Shuffle(question.Options()), ", ")
 
 	var name string
-	friend, ok := discord.Friends[t.state.currentPlayer.ID]
+	friend, ok := discord2.Friends[t.state.currentPlayer.ID]
 	if ok {
 		name = friend.Nickname
 	} else {
@@ -161,7 +161,7 @@ func (t *Trivia) NextQuestion() {
 		return
 	}
 
-	validAnswerPhrase := util.ApplyTokens(arrayutil.RandomElement(validAnswers), tokens)
+	validAnswerPhrase := util2.ApplyTokens(arrayutil.RandomElement(validAnswers), tokens)
 
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(questionTimeout))
 	defer cancel()
@@ -172,8 +172,8 @@ func (t *Trivia) NextQuestion() {
 		return
 	}
 
-	messageContent := util.ApplyTokens(arrayutil.RandomElement(messages.Messages.Trivia.QuestionMessages), tokens)
-	m, err := t.session.ChannelMessageSendComplex(t.channelID, &discordgo.MessageSend{
+	messageContent := util2.ApplyTokens(arrayutil.RandomElement(messages.Messages.Trivia.QuestionMessages), tokens)
+	m, err := t.bot.ChannelMessageSendComplex(t.channelID, &discordgo.MessageSend{
 		Components: GetQuestionComponent(question, nil),
 		Content:    messageContent,
 	})
@@ -183,7 +183,7 @@ func (t *Trivia) NextQuestion() {
 		return
 	}
 	defer func() {
-		err = t.session.ChannelMessageDelete(t.channelID, m.ID)
+		err = t.bot.ChannelMessageDelete(t.channelID, m.ID)
 		if err != nil {
 			t.logger.Error("failed to delete question message", zap.Error(err))
 		}
@@ -196,7 +196,7 @@ func (t *Trivia) NextQuestion() {
 		component := GetQuestionComponent(question, &QuestionComponentOpts{
 			SelectedAnswer: answer,
 		})
-		_, err = t.session.ChannelMessageEditComplex(&discordgo.MessageEdit{
+		_, err = t.bot.ChannelMessageEditComplex(&discordgo.MessageEdit{
 			ID:         m.ID,
 			Channel:    t.channelID,
 			Components: &component,
@@ -231,7 +231,7 @@ func (t *Trivia) NextQuestion() {
 func (t *Trivia) maybeSayFunFact() {
 	q := t.state.currentQuestion
 
-	if q != nil && util.RandomBool() && len(q.FunFacts) > 0 {
+	if q != nil && util2.RandomBool() && len(q.FunFacts) > 0 {
 		err := t.speak(arrayutil.RandomElement(q.FunFacts))
 		if err != nil {
 			t.logger.Error("failed to speak fun fact", zap.Error(err))
@@ -262,7 +262,7 @@ func (t *Trivia) finish() {
 		winnerMsg = arrayutil.RandomElement(messages.Messages.Trivia.NoMoreQuestionsDraw)
 	}
 
-	winnerMsg = util.ApplyTokens(winnerMsg, map[string]string{
+	winnerMsg = util2.ApplyTokens(winnerMsg, map[string]string{
 		"MENTION": strings.Join(arrayutil.Map(winners, func(w *discordgo.User) string {
 			return w.Mention()
 		}), ", "),
@@ -280,7 +280,7 @@ func (t *Trivia) finish() {
 }
 
 func (t *Trivia) SendPointsMessage() {
-	discord.SendMessageAndForget(t.session, t.channelID, t.state.GetPointsMessageContents())
+	t.bot.SendMessageAndForget(t.channelID, t.state.GetPointsMessageContents())
 }
 
 func (t *Trivia) handleIncorrectAnswer() {
@@ -339,9 +339,9 @@ func (t *Trivia) handleCorrectAnswer(phrase string) {
 }
 
 func (t *Trivia) nominateForNextQuestion() {
-	m, err := t.session.ChannelMessageSendComplex(t.channelID, &discordgo.MessageSend{
+	m, err := t.bot.ChannelMessageSendComplex(t.channelID, &discordgo.MessageSend{
 		Components: GetQuestionNominationComponent(),
-		Content: util.ApplyTokens(messages.Messages.Trivia.PickNextPlayer, map[string]string{
+		Content: util2.ApplyTokens(messages.Messages.Trivia.PickNextPlayer, map[string]string{
 			"MENTION": t.state.currentPlayer.Mention(),
 		}),
 	})
@@ -350,7 +350,7 @@ func (t *Trivia) nominateForNextQuestion() {
 		return
 	}
 	defer func() {
-		err = t.session.ChannelMessageDelete(t.channelID, m.ID)
+		err = t.bot.ChannelMessageDelete(t.channelID, m.ID)
 		if err != nil {
 			t.logger.Error("failed to delete nomination message", zap.Error(err))
 		}
@@ -387,20 +387,20 @@ func (t *Trivia) speak(text string) error {
 		return err
 	}
 
-	speaker := voice.NewDcaSpeaker(v)
+	speaker := discord2.NewDcaSpeaker(v)
 
 	return t.vm.Speak(speaker)
 }
 
 func (t *Trivia) speakMultiple(texts ...string) error {
-	var voices []*voice.DcaSpeaker
+	var voices []*discord2.DcaSpeaker
 
 	for _, text := range texts {
 		v, err := GetVoice(t.s3, text)
 		if err != nil {
 			return err
 		}
-		voices = append(voices, voice.NewDcaSpeaker(v))
+		voices = append(voices, discord2.NewDcaSpeaker(v))
 	}
 
 	for _, speaker := range voices {
@@ -414,7 +414,7 @@ func (t *Trivia) speakMultiple(texts ...string) error {
 }
 
 func (t *Trivia) speakQuestion() error {
-	friend, ok := discord.Friends[t.state.currentPlayer.ID]
+	friend, ok := discord2.Friends[t.state.currentPlayer.ID]
 	if !ok {
 		return errors.New("friend not found")
 	}
@@ -432,7 +432,7 @@ func (t *Trivia) speakQuestion() error {
 		t.logger.Info("current player is not previous player")
 		questionPhraseTemplate = arrayutil.RandomElement(messages.Messages.Trivia.NextPlayerQuestion)
 	}
-	questionPhrase := util.ApplyTokens(questionPhraseTemplate, tokens)
+	questionPhrase := util2.ApplyTokens(questionPhraseTemplate, tokens)
 
 	return t.speakMultiple(questionPhrase, t.state.currentQuestion.ForSpeaking())
 }
@@ -446,7 +446,7 @@ func (t *Trivia) playBadSound() error {
 }
 
 func (t *Trivia) speakNonDcaBytes(v []byte) error {
-	speaker := voice.NewNonDcaSpeaker(bytes.NewReader(v))
+	speaker := discord2.NewNonDcaSpeaker(bytes.NewReader(v))
 
 	return t.vm.Speak(speaker)
 }

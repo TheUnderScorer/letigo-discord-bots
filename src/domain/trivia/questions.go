@@ -1,8 +1,8 @@
 package trivia
 
 import (
-	"app/logging"
-	"app/util"
+	"lib/logging"
+	"lib/util"
 	"strings"
 )
 

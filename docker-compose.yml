@@ -9,26 +9,29 @@ services:
       dockerfile: ../docker/tts/Dockerfile
     ports:
       - "8081:8080"
-  dev:
-    command: sh -c "go run src/main.go"
+  wojciech-bot-dev:
+    command: sh -c "go run wojciech-bot/main.go"
     image: letigo-discord-bots-base:latest
     volumes:
       - ./:/app:cached
     network_mode: host
     extra_hosts:
       - "host.docker.internal:host-gateway"
-  prod:
+    env_file:
+      - ./wojciech-bot/.env
+  wojciech-bot-prod:
     restart: always
     environment:
       GO_ENV: production
       GIN_MODE: release
     env_file:
-      - .env
-    image: schemik/letigo-discord-bots:latest
+      - wojciech-bot/.env
+    image: schemik/letigo-discord-bots-wojciech:latest
     ports:
       - "3000:3000"
     volumes:
       - ./logs:/app/logs
+      - ./cookies.txt:/app/cookies.txt
   devcontainer:
     image: letigo-discord-bots-base:latest
     volumes:

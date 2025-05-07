@@ -2,7 +2,6 @@ package tts
 
 import (
 	"app/env"
-	"app/logging"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -10,6 +9,7 @@ import (
 	"github.com/avast/retry-go/v4"
 	"go.uber.org/zap"
 	"io"
+	"lib/logging"
 	"net/http"
 	"sync"
 	"time"

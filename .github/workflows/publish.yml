@@ -5,7 +5,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
+  publish-wojciech-bot:
+    name: Publish Wojciech Bot
     runs-on: ubuntu-latest
     steps:
       - name: Login to Docker Hub
@@ -36,11 +37,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build and push Docker image
-        run: make publish_app_image
+        run: make publish_wojciech_bot_image
 
       - name: Push with tag
         if: github.event_name == 'release'
         run: |
-          docker tag ${{ vars.DOCKERHUB_USERNAME }}/letigo-discord-bots:latest ${{ vars.DOCKERHUB_USERNAME }}/letigo-discord-bots:${{github.event.release.tag_name}}
-          docker push ${{ vars.DOCKERHUB_USERNAME }}/letigo-discord-bots:${{github.event.release.tag_name}}
+          docker tag ${{ vars.DOCKERHUB_USERNAME }}/letigo-discord-bots-wojciech:latest ${{ vars.DOCKERHUB_USERNAME }}/letigo-discord-bots-wojciech:${{github.event.release.tag_name}}
+          docker push ${{ vars.DOCKERHUB_USERNAME }}/letigo-discord-bots-wojciech:${{github.event.release.tag_name}}
           

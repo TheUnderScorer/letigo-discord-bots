@@ -11,6 +11,8 @@ COPY package.json ./
 COPY scripts ./scripts
 COPY go.work go.work.sum ./
 COPY src ./src
+COPY lib ./lib
+COPY wojciech-bot ./wojciech-bot
 COPY tools ./tools
 
 # Download Go modules

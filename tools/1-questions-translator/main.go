@@ -2,14 +2,14 @@ package main
 
 import (
 	"app/domain/trivia"
-	"app/logging"
-	"app/util/arrayutil"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/sashabaranov/go-openai"
 	"go.uber.org/zap"
+	"lib/logging"
+	"lib/util/arrayutil"
 	"os"
 	"time"
 	openai2 "tools/shared/openai"

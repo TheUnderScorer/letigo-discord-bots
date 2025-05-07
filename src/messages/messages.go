@@ -1,10 +1,10 @@
 package messages
 
 import (
-	"app/logging"
 	_ "embed"
 	"encoding/json"
 	"go.uber.org/zap"
+	"lib/logging"
 )
 
 type Chat struct {

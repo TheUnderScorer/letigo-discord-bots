@@ -2,7 +2,6 @@ package env
 
 import (
 	"github.com/caarlos0/env/v11"
-	"os"
 	"strconv"
 )
 
@@ -43,8 +42,4 @@ func Init() {
 	if err := env.Parse(&Env); err != nil {
 		panic(err)
 	}
-}
-
-func IsProd() bool {
-	return os.Getenv("GO_ENV") == "production"
 }
