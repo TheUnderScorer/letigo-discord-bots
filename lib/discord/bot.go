@@ -241,7 +241,7 @@ func prepareErrorReportEmbed(err error) []*discordgo.MessageEmbed {
 
 	return []*discordgo.MessageEmbed{
 		{
-			Title:  "Error",
+			Title:  "Error details",
 			Fields: embedFields,
 			Color:  0xff0000,
 		},

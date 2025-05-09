@@ -210,6 +210,14 @@ func (d *Domain) Player(ctx context.Context, interaction *discordgo.Interaction)
 		return err
 	}
 
+	if channelPlayer.currentSong == nil {
+		d.bot.FollowupInteractionMessageAndForget(interaction, &discord.InteractionReply{
+			Content: messages.Messages.Player.NoMoreSongs,
+		})
+
+		return nil
+	}
+
 	component, err := GetPlayerComponent(channelPlayer)
 	if err != nil {
 		log.Error("failed to get player component", zap.Error(err))
@@ -219,9 +227,31 @@ func (d *Domain) Player(ctx context.Context, interaction *discordgo.Interaction)
 		return err
 	}
 
-	d.bot.SendMessageComplexAndForget(interaction.ChannelID, &discordgo.MessageSend{
+	message, err := d.bot.ChannelMessageSendComplex(interaction.ChannelID, &discordgo.MessageSend{
 		Components: *component,
-	})
+		Embeds: []*discordgo.MessageEmbed{
+			{
+				Fields: []*discordgo.MessageEmbedField{
+					{
+						Name:  "Tytuł",
+						Value: channelPlayer.currentSong.Name,
+					},
+					{
+						Name:  "URL",
+						Value: channelPlayer.currentSong.Url,
+					},
+				},
+			},
+		},
+	}, discordgo.WithContext(ctx))
+	if err != nil {
+		log.Error("failed to send message", zap.Error(err))
+	} else {
+		err = d.bot.ChannelMessagePin(interaction.ChannelID, message.ID, discordgo.WithContext(ctx))
+		if err != nil {
+			log.Error("failed to pin message", zap.Error(err))
+		}
+	}
 	d.bot.DeleteFollowupAndForget(interaction)
 	return nil
 }

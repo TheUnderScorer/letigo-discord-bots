@@ -30,7 +30,7 @@ import (
 var log = logging.Get().Named("wojciech-bot")
 
 func main() {
-	log.Info("Booting...")
+	log.Info("Booting app...")
 	log.Info("App version", zap.String("version", metadata.GetVersion()))
 	err := godotenv.Load()
 	if err != nil {

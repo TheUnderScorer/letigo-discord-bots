@@ -31,11 +31,13 @@ services:
       - "3000:3000"
     volumes:
       - ./logs:/app/logs
-      - ./cookies.txt:/app/cookies.txt
-  devcontainer:
-    image: letigo-discord-bots-base:latest
+      - ./wojciech-bot/cookies.txt:/app/cookies.txt
+  dev:
+    build:
+      dockerfile: ./docker/dev/Dockerfile
+      context: .
     volumes:
-      - ../..:/workspaces:cached
+      - ./:/workspaces:cached
     command: sleep infinity
     network_mode: host
     extra_hosts:

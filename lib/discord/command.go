@@ -24,7 +24,9 @@ func (b *Command) ToApplicationCommand() *discordgo.ApplicationCommand {
 	}
 }
 
-func (b *Command) Handle(ctx context.Context, bot *Bot, interaction *discordgo.InteractionCreate) {
+func (b *Command) Handle(bot *Bot, interaction *discordgo.InteractionCreate) {
+	ctx, cancel := NewInteractionContext(context.Background())
+	defer cancel()
 	data := interaction.ApplicationCommandData()
 	name := data.Name
 
