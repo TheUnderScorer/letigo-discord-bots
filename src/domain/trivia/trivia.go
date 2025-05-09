@@ -23,7 +23,7 @@ type Trivia struct {
 	bot             *discord2.Bot
 	channelID       string
 	onDisposed      func()
-	vm              *discord2.Manager
+	vm              *discord2.VoiceManager
 	tts             *tts.Client
 	logger          *zap.Logger
 	state           *State

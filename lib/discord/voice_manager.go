@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type Manager struct {
+type VoiceManager struct {
 	// Lock for voice connection. Should be used before speaking to avoid duplicate speakers
 	Lock sync.Mutex
 	// Channel that is emitted when voice connection is disposed
@@ -25,13 +25,13 @@ type Manager struct {
 	cleanupFns []func()
 }
 
-func NewManager(bot *Bot, guildID string, channelID string, onDisposed func()) (*Manager, error) {
+func NewManager(bot *Bot, guildID string, channelID string, onDisposed func()) (*VoiceManager, error) {
 	vc, err := bot.ChannelVoiceJoin(guildID, channelID, false, true)
 	if err != nil {
 		return nil, err
 	}
 
-	manager := &Manager{
+	manager := &VoiceManager{
 		vc:        vc,
 		bot:       bot,
 		channelID: channelID,
@@ -44,7 +44,7 @@ func NewManager(bot *Bot, guildID string, channelID string, onDisposed func()) (
 	return manager, nil
 }
 
-func (m *Manager) Dispose() {
+func (m *VoiceManager) Dispose() {
 	m.Lock.Lock()
 	defer m.Lock.Unlock()
 
@@ -72,7 +72,7 @@ func (m *Manager) Dispose() {
 	}
 }
 
-func (m *Manager) VoiceConnection() (*discordgo.VoiceConnection, error) {
+func (m *VoiceManager) VoiceConnection() (*discordgo.VoiceConnection, error) {
 	err := m.ReadyVoice()
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (m *Manager) VoiceConnection() (*discordgo.VoiceConnection, error) {
 	return m.vc, nil
 }
 
-func (m *Manager) initVoiceConnectionListener() {
+func (m *VoiceManager) initVoiceConnectionListener() {
 	m.Lock.Lock()
 	defer m.Lock.Unlock()
 
@@ -110,7 +110,7 @@ func (m *Manager) initVoiceConnectionListener() {
 	m.cleanupFns = append(m.cleanupFns, cleanup)
 }
 
-func (m *Manager) ReadyVoice() error {
+func (m *VoiceManager) ReadyVoice() error {
 	if m.vc == nil || !m.vc.Ready {
 		m.logger.Info("voice connection is not ready")
 
@@ -149,7 +149,7 @@ func (m *Manager) ReadyVoice() error {
 }
 
 // getSpeakerContext returns a context that is canceled when the manager is disposed
-func (m *Manager) getSpeakerContext(ctx context.Context) (context.Context, func()) {
+func (m *VoiceManager) getSpeakerContext(ctx context.Context) (context.Context, func()) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	go func() {
@@ -168,12 +168,12 @@ func (m *Manager) getSpeakerContext(ctx context.Context) (context.Context, func(
 }
 
 // Speak sends a message to the voice channel that is managed by this manager. It blocks until the speaker finishes speaking.
-func (m *Manager) Speak(speaker Speaker) error {
+func (m *VoiceManager) Speak(speaker Speaker) error {
 	return m.SpeakContext(context.Background(), speaker)
 }
 
 // SpeakContext sends a message to the voice channel that is managed by this manager. It blocks until the speaker finishes speaking.
-func (m *Manager) SpeakContext(ctx context.Context, speaker Speaker) error {
+func (m *VoiceManager) SpeakContext(ctx context.Context, speaker Speaker) error {
 	m.Lock.Lock()
 	defer m.Lock.Unlock()
 
@@ -181,12 +181,12 @@ func (m *Manager) SpeakContext(ctx context.Context, speaker Speaker) error {
 }
 
 // SpeakNonBlocking is a non-blocking version of Speak
-func (m *Manager) SpeakNonBlocking(speaker Speaker) error {
+func (m *VoiceManager) SpeakNonBlocking(speaker Speaker) error {
 	return m.SpeakNonBlockingContext(context.Background(), speaker)
 }
 
 // SpeakNonBlockingContext is a non-blocking version of Speak
-func (m *Manager) SpeakNonBlockingContext(ctx context.Context, speaker Speaker) error {
+func (m *VoiceManager) SpeakNonBlockingContext(ctx context.Context, speaker Speaker) error {
 	vc, err := m.VoiceConnection()
 	if err != nil {
 		return err
