@@ -12,6 +12,7 @@ import (
 	"lib/logging"
 	"lib/util"
 	"lib/util/arrayutil"
+	"lib/util/markdownutil"
 	ytdlp "lib/yt-dlp"
 	"strings"
 	"sync"
@@ -117,7 +118,7 @@ func (p *ChannelPlayer) Next() error {
 func (p *ChannelPlayer) PlaySong(song *Song) error {
 	logger := p.logger.With(zap.String("song", song.Name))
 
-	opusBytes, err := ytdlp.DownloadOpus(song.Url)
+	opusBytes, err := ytdlp.DownloadOpus(context.TODO(), song.Url)
 	if err != nil {
 		logger.Error("failed to download opus", zap.Error(err))
 		return err
@@ -267,7 +268,8 @@ func (p *ChannelPlayer) Queue() []*Song {
 
 // AddToQueue adds a song to the queue using the provided URL and user ID, returning the song's index or an error.
 func (p *ChannelPlayer) AddToQueue(url string, userID string) (int, error) {
-	title, err := ytdlp.GetTitle(url)
+	p.logger.Info("adding to queue", zap.String("url", url))
+	title, err := ytdlp.GetTitle(context.TODO(), url)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get title")
 	}
@@ -304,7 +306,7 @@ func (p *ChannelPlayer) ClearQueue() {
 func (p *ChannelPlayer) ListQueueForDisplay() string {
 	items := make([]string, 0)
 	for _, song := range p.queue.List() {
-		items = append(items, "* "+song.Name)
+		items = append(items, "* "+markdownutil.Link(song.Url, song.Name))
 	}
 	return strings.Join(items, "\n")
 }

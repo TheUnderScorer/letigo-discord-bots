@@ -1,6 +1,7 @@
 package ytdlp
 
 import (
+	"context"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"os"
@@ -9,7 +10,7 @@ import (
 
 // DownloadOpus downloads audio from the provided URL in Opus format, saves it temporarily, and returns its contents as bytes.
 // Returns an error if the download, file reading, or deletion process fails.
-func DownloadOpus(url string) ([]byte, error) {
+func DownloadOpus(ctx context.Context, url string) ([]byte, error) {
 	tempDir := os.TempDir()
 
 	fileNameUUID, err := uuid.NewUUID()
@@ -23,7 +24,7 @@ func DownloadOpus(url string) ([]byte, error) {
 	fileName := fileNameUUIdStr + ".opus"
 	filePath := path.Join(tempDir, fileName)
 
-	cmd := getCommand(url,
+	cmd := getCommand(ctx, url,
 		"--audio-format", "wav",
 		"--format", "bestaudio[ext=m4a]/bestaudio/best",
 		"-o", fileName,

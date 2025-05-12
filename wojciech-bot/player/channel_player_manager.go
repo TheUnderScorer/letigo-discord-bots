@@ -27,6 +27,7 @@ func (m *ChannelPlayerManager) GetOrCreate(bot *discord.Bot, channelID string) (
 	player, ok := m.players[channelID]
 
 	if !ok {
+		logger.Info("creating new player", zap.String("channelID", channelID))
 		player, err := NewChannelPlayer(bot, channelID, func() {
 			logger.Info("player disposed, removing reference", zap.String("channelID", channelID))
 			delete(m.players, channelID)
@@ -39,6 +40,8 @@ func (m *ChannelPlayerManager) GetOrCreate(bot *discord.Bot, channelID string) (
 		} else {
 			return nil, err
 		}
+	} else {
+		logger.Info("using existing player", zap.String("channelID", channelID))
 	}
 
 	return player, nil

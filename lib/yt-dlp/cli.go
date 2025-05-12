@@ -1,13 +1,15 @@
 package ytdlp
 
 import (
+	"context"
+	"go.uber.org/zap"
 	"os/exec"
 )
 
 const cli = "yt-dlp"
 
 // getCommand constructs an exec.Cmd to execute the yt-dlp command-line tool with the provided URL and additional arguments.
-func getCommand(url string, additionalArgs ...string) *exec.Cmd {
+func getCommand(ctx context.Context, url string, additionalArgs ...string) *exec.Cmd {
 	cookiesArgs := getCookiesArgs()
 
 	var args []string
@@ -19,7 +21,9 @@ func getCommand(url string, additionalArgs ...string) *exec.Cmd {
 	args = append(args, additionalArgs...)
 	args = append(args, url)
 
-	cmd := exec.Command(cli, args...)
+	cmd := exec.CommandContext(ctx, cli, args...)
+
+	log.Debug("created command", zap.String("cmd", cmd.String()))
 
 	return cmd
 }

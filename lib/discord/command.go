@@ -46,6 +46,8 @@ func (b *Command) Handle(bot *Bot, interaction *discordgo.InteractionCreate) {
 					interactionOptions: option.Options,
 				}
 
+				log.Debug("handling subcommand", zap.Any("subcommand", subCommand), zap.Any("interaction", interaction))
+
 				err := subCommand.Handle(ctx, cmdInteraction, interaction)
 				if err != nil {
 					log.Error("interaction failed", zap.Error(err), zap.Any("interaction", interaction))
