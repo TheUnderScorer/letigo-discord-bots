@@ -196,8 +196,10 @@ func (p *ChannelPlayer) doPlay() error {
 		// On end of stream, continue playback with next song
 		if err == io.EOF {
 			// Cleanup old stream
-			p.stream.Cleanup()
-			p.stream = nil
+			if p.stream != nil {
+				p.stream.Cleanup()
+				p.stream = nil
+			}
 
 			if p.queue.Length() > 0 {
 				err = p.Next()
