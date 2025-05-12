@@ -45,7 +45,7 @@ var wrong []byte
 const questionTimeout = time.Second * 30
 
 func New(s3 *aws.S3, bot *discord2.Bot, tts *tts.Client, channelID string, onDisposed func()) (*Trivia, error) {
-	vm, err := discord2.NewManager(bot, channelID, onDisposed)
+	vm, err := discord2.NewVoiceManager(bot, channelID, onDisposed)
 	if err != nil {
 		return nil, err
 	}

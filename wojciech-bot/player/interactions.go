@@ -14,13 +14,13 @@ import (
 	"wojciech-bot/messages"
 )
 
-type Domain struct {
+type Interactions struct {
 	playerManager *ChannelPlayerManager
 	bot           *discord.Bot
 }
 
-func NewDomain(playerManager *ChannelPlayerManager, bot *discord.Bot) *Domain {
-	return &Domain{
+func NewInteractions(playerManager *ChannelPlayerManager, bot *discord.Bot) *Interactions {
+	return &Interactions{
 		playerManager: playerManager,
 		bot:           bot,
 	}
@@ -28,7 +28,7 @@ func NewDomain(playerManager *ChannelPlayerManager, bot *discord.Bot) *Domain {
 
 var ErrSongUrlEmpty = errors.New("song url is empty")
 
-func (d *Domain) ensureVoiceChannel(ctx context.Context, interaction *discordgo.Interaction) error {
+func (d *Interactions) ensureVoiceChannel(ctx context.Context, interaction *discordgo.Interaction) error {
 	channel, err := d.bot.Channel(interaction.ChannelID, discordgo.WithContext(ctx))
 	if err != nil {
 		log.Error("failed to get channel", zap.Error(err))
@@ -49,7 +49,7 @@ func (d *Domain) ensureVoiceChannel(ctx context.Context, interaction *discordgo.
 	return nil
 }
 
-func (d *Domain) List(ctx context.Context, interaction *discordgo.Interaction) error {
+func (d *Interactions) List(ctx context.Context, interaction *discordgo.Interaction) error {
 	err := d.ensureVoiceChannel(ctx, interaction)
 	if err != nil {
 		return err
@@ -72,7 +72,7 @@ func (d *Domain) List(ctx context.Context, interaction *discordgo.Interaction) e
 	return nil
 }
 
-func (d *Domain) ClearQueue(ctx context.Context, interaction *discordgo.Interaction) error {
+func (d *Interactions) ClearQueue(ctx context.Context, interaction *discordgo.Interaction) error {
 	err := d.ensureVoiceChannel(ctx, interaction)
 	if err != nil {
 		return err
@@ -90,7 +90,7 @@ func (d *Domain) ClearQueue(ctx context.Context, interaction *discordgo.Interact
 	return nil
 }
 
-func (d *Domain) Next(ctx context.Context, interaction *discordgo.Interaction) error {
+func (d *Interactions) Next(ctx context.Context, interaction *discordgo.Interaction) error {
 	err := d.ensureVoiceChannel(ctx, interaction)
 	if err != nil {
 		return err
@@ -113,7 +113,7 @@ func (d *Domain) Next(ctx context.Context, interaction *discordgo.Interaction) e
 	return nil
 }
 
-func (d *Domain) Play(ctx context.Context, interaction *discordgo.Interaction) error {
+func (d *Interactions) Play(ctx context.Context, interaction *discordgo.Interaction) error {
 	err := d.ensureVoiceChannel(ctx, interaction)
 	if err != nil {
 		return err
@@ -136,7 +136,7 @@ func (d *Domain) Play(ctx context.Context, interaction *discordgo.Interaction) e
 	return nil
 }
 
-func (d *Domain) Pause(ctx context.Context, interaction *discordgo.Interaction) error {
+func (d *Interactions) Pause(ctx context.Context, interaction *discordgo.Interaction) error {
 	err := d.ensureVoiceChannel(ctx, interaction)
 	if err != nil {
 		return err
@@ -159,7 +159,7 @@ func (d *Domain) Pause(ctx context.Context, interaction *discordgo.Interaction) 
 	return nil
 }
 
-func (d *Domain) Queue(ctx context.Context, interaction *discordgo.Interaction, songURL string) error {
+func (d *Interactions) Queue(ctx context.Context, interaction *discordgo.Interaction, songURL string) error {
 	if songURL == "" {
 		return ErrSongUrlEmpty
 	}
@@ -203,7 +203,7 @@ func (d *Domain) Queue(ctx context.Context, interaction *discordgo.Interaction, 
 	return nil
 }
 
-func (d *Domain) Player(ctx context.Context, interaction *discordgo.Interaction) error {
+func (d *Interactions) Player(ctx context.Context, interaction *discordgo.Interaction) error {
 	channelPlayer, err := d.playerManager.GetOrCreate(d.bot, interaction.ChannelID)
 	if err != nil {
 		log.Error("failed to get channel player", zap.Error(err))

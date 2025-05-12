@@ -2,6 +2,7 @@ package player
 
 import (
 	"bytes"
+	"context"
 	"github.com/charmbracelet/log"
 	jonasdca "github.com/jonas747/dca/v2"
 	"go.uber.org/zap"
@@ -22,16 +23,20 @@ import (
 // ChannelPlayer manages audio playback and queue in a Discord voice channel.
 // It handles playing, queuing, and streaming of audio tracks using Discord voice capabilities.
 type ChannelPlayer struct {
-	queue       *SongQueue
-	bot         *libdiscord.Bot
-	channelID   string
-	vm          *libdiscord.VoiceManager
-	logger      *zap.Logger
-	isSpeaking  bool
-	nextSong    chan *Song
+	logger *zap.Logger
+
+	bot          *libdiscord.Bot
+	channelID    string
+	voiceManager *libdiscord.VoiceManager
+
 	stream      *jonasdca.EncodeSession
+	queue       *SongQueue
 	currentSong *Song
-	mu          sync.Mutex
+
+	mu sync.Mutex
+
+	nextSong       chan *Song
+	pauseRequested chan bool
 }
 
 var logger = logging.Get().Named("channelPlayer")
@@ -41,23 +46,23 @@ var logger = logging.Get().Named("channelPlayer")
 // Returns a pointer to the created ChannelPlayer and an error if initialization fails.
 func NewChannelPlayer(bot *libdiscord.Bot, channelID string, onDisposed func()) (*ChannelPlayer, error) {
 	player := &ChannelPlayer{
-		bot:         bot,
-		channelID:   channelID,
-		logger:      logger.With(zap.String("channelID", channelID)),
-		queue:       NewSongQueue(),
-		isSpeaking:  false,
-		nextSong:    make(chan *Song),
-		currentSong: nil,
-		stream:      nil,
+		bot:            bot,
+		channelID:      channelID,
+		logger:         logger.With(zap.String("channelID", channelID)),
+		queue:          NewSongQueue(),
+		nextSong:       make(chan *Song),
+		pauseRequested: make(chan bool),
+		currentSong:    nil,
+		stream:         nil,
 	}
-	vm, err := libdiscord.NewManager(bot, env.Env.GuildId, channelID, func() {
+	voiceManager, err := libdiscord.NewVoiceManager(bot, env.Env.GuildId, channelID, func() {
 		onDisposed()
 		player.Dispose()
 	})
 	if err != nil {
 		return nil, err
 	}
-	player.vm = vm
+	player.voiceManager = voiceManager
 
 	return player, nil
 }
@@ -75,7 +80,7 @@ func (p *ChannelPlayer) Dispose() {
 	p.queue.Clear()
 	p.currentSong = nil
 
-	p.vm.Dispose()
+	p.voiceManager.Dispose()
 }
 
 // Next advances to the next song in the queue, playing it if available, or signaling the end of the queue if empty.
@@ -112,12 +117,6 @@ func (p *ChannelPlayer) Next() error {
 func (p *ChannelPlayer) PlaySong(song *Song) error {
 	logger := p.logger.With(zap.String("song", song.Name))
 
-	err := p.vm.ReadyVoice()
-	if err != nil {
-		logger.Error("failed to ready voice", zap.Error(err))
-		return err
-	}
-
 	opusBytes, err := ytdlp.DownloadOpus(song.Url)
 	if err != nil {
 		logger.Error("failed to download opus", zap.Error(err))
@@ -133,17 +132,27 @@ func (p *ChannelPlayer) PlaySong(song *Song) error {
 	p.stream = dcaStream
 	p.currentSong = song
 
-	return p.playSession()
+	p.doPlayRoutine()
+
+	return nil
 }
 
-// playSession handles the playback of the current song in the voice channel, managing states and transitions.
-func (p *ChannelPlayer) playSession() error {
+// doPlayRoutine invokes the doPlay method in a separate goroutine, handling playback errors and logging them.
+func (p *ChannelPlayer) doPlayRoutine() {
+	go func() {
+		err := p.doPlay()
+		if err != nil {
+			log.Error("failed to play", zap.Error(err))
+		}
+	}()
+}
+
+// doPlay handles the playback of the current song in the voice channel, managing states and transitions.
+func (p *ChannelPlayer) doPlay() error {
 	err := p.bot.UpdateListeningStatus(p.currentSong.Name)
 	if err != nil {
 		log.Error("failed to update listening status", zap.Error(err))
 	}
-
-	isFinished := false
 
 	time.Sleep(500 * time.Millisecond)
 
@@ -152,97 +161,85 @@ func (p *ChannelPlayer) playSession() error {
 		if err != nil {
 			log.Error("failed to clear listening status", zap.Error(err))
 		}
-
-		if isFinished {
-			p.stream.Cleanup()
-			p.stream = nil
-		}
 	}()
-
-	vc, err := p.vm.VoiceConnection()
-	if err != nil {
-		return err
-	}
-	err = vc.Speaking(true)
-	if err != nil {
-		return err
-	}
-	p.isSpeaking = true
 
 	p.bot.SendMessageAndForget(p.channelID, util.ApplyTokens(arrayutil.RandomElement(messages.Messages.Player.NowPlaying), map[string]string{
 		"SONG_NAME": p.currentSong.Name,
 	}))
 
-	for {
-		select {
-		case <-p.nextSong:
-			p.logger.Info("next song requested, aborting current playback", zap.Any("song", p.currentSong))
-			return nil
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-		case <-p.vm.Disposed:
-			p.logger.Info("player Disposed, aborting current playback", zap.Any("song", p.currentSong))
-			return nil
+	go func() {
+		for {
+			select {
+			case <-p.nextSong:
+				p.logger.Info("next song requested, aborting current playback", zap.Any("song", p.currentSong))
+				cancel()
+				return
 
-		default:
-			if !p.isSpeaking {
-				p.logger.Info("not speaking, pausing current playback", zap.Any("song", p.currentSong))
-				return nil
+			case <-p.pauseRequested:
+				p.logger.Info("pause requested, aborting current playback", zap.Any("song", p.currentSong))
+				cancel()
+				return
+
+			case <-ctx.Done():
+				p.logger.Info("context done")
+				return
 			}
+		}
+	}()
 
-			if !vc.Ready {
-				p.logger.Info("voice connection not ready, pausing current playback", zap.Any("song", p.currentSong))
-				return nil
-			}
+	err = p.voiceManager.SpeakOpusReaderContext(ctx, p.stream)
+	log.Info("finished playing", zap.Error(err))
+	if err != nil {
+		// On end of stream, continue playback with next song
+		if err == io.EOF {
+			// Cleanup old stream
+			p.stream.Cleanup()
+			p.stream = nil
 
-			frame, err := p.stream.OpusFrame()
-
-			if err != nil {
-				if err == io.EOF {
-					isFinished = true
-					p.logger.Info("reached end of stream")
-
-				} else {
-					p.logger.Error("failed to get opus frame", zap.Error(err))
-
+			if p.queue.Length() > 0 {
+				err = p.Next()
+				if err != nil {
+					p.logger.Error("failed to play next song", zap.Error(err))
+				}
+			} else {
+				err = p.Pause()
+				if err != nil {
+					p.logger.Error("failed to pause", zap.Error(err))
 				}
 
-				if p.queue.Length() > 0 {
-					err = p.Next()
-					if err != nil {
-						p.logger.Error("failed to play next song", zap.Error(err))
-					}
-				} else {
-					err = p.Pause()
-					if err != nil {
-						p.logger.Error("failed to pause", zap.Error(err))
-					}
-
-					p.bot.SendMessageAndForget(p.channelID, messages.Messages.Player.NoMoreSongs)
-				}
-
-				return nil
+				p.bot.SendMessageAndForget(p.channelID, messages.Messages.Player.NoMoreSongs)
 			}
+		} else {
+			log.Error("SpeakOpusReaderContext returned error", zap.Error(err))
 
-			vc.OpusSend <- frame
+			return err
 		}
 	}
 
+	return nil
 }
 
 // Pause stops the bot from speaking in the voice channel and updates its speaking state. Returns an error if unsuccessful.
 func (p *ChannelPlayer) Pause() error {
-	vc, err := p.vm.VoiceConnection()
-	if err != nil {
-		return err
+	p.logger.Info("pausing")
+	select {
+	case p.pauseRequested <- true:
+		p.logger.Info("pauseRequested sent")
+		return nil
+
+	default:
+		p.logger.Info("pauseRequested not sent")
+		return nil
 	}
 
-	p.isSpeaking = false
-	return vc.Speaking(false)
 }
 
 // Play starts playing the current audio stream in the voice channel if available, establishing the voice connection if needed.
 func (p *ChannelPlayer) Play() error {
-	vc, err := p.vm.VoiceConnection()
+	vc, err := p.voiceManager.VoiceConnection()
 	if err != nil {
 		return err
 	}
@@ -253,7 +250,9 @@ func (p *ChannelPlayer) Play() error {
 	}
 
 	if p.stream != nil {
-		return p.playSession()
+		p.doPlayRoutine()
+
+		return nil
 	}
 
 	return nil
@@ -280,7 +279,7 @@ func (p *ChannelPlayer) AddToQueue(url string, userID string) (int, error) {
 	itemIndex := p.queue.Length()
 	p.queue.Enqueue(song)
 
-	if !p.isSpeaking {
+	if !p.voiceManager.IsSpeaking() {
 		p.logger.Info("not speaking, playing first queue item", zap.Any("song", song))
 		err = p.Next()
 		return itemIndex, err

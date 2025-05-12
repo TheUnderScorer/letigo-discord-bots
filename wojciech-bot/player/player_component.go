@@ -20,7 +20,7 @@ func GetPlayerComponent(player *ChannelPlayer) (*[]discordgo.MessageComponent, e
 
 	var actionBtn discordgo.Button
 
-	if player.isSpeaking {
+	if player.voiceManager.IsSpeaking() {
 		actionBtn = discordgo.Button{
 			Style:    discordgo.PrimaryButton,
 			CustomID: string(ButtonPause),
@@ -47,7 +47,7 @@ func GetPlayerComponent(player *ChannelPlayer) (*[]discordgo.MessageComponent, e
 					discordgo.Button{
 						Style:    discordgo.SecondaryButton,
 						CustomID: string(ButtonNext),
-						Disabled: len(player.queue) == 0,
+						Disabled: player.queue.Length() == 0,
 						Emoji: &discordgo.ComponentEmoji{
 							Name: "⏭️",
 						},

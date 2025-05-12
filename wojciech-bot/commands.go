@@ -9,7 +9,7 @@ import (
 
 const DjQueueOptionSong = "piosenka"
 
-func NewDJCommand(domain *player.Domain) discord.Command {
+func NewDJCommand(interactions *player.Interactions) discord.Command {
 	return discord.Command{
 		Name:        "dj",
 		Description: "Pobaw się w DJa!",
@@ -18,7 +18,7 @@ func NewDJCommand(domain *player.Domain) discord.Command {
 				Name:        "list",
 				Description: "Pokaż listę utworów",
 				Handler: func(ctx context.Context, options discord.CommandInteractionOptions, interaction *discordgo.InteractionCreate) error {
-					return domain.List(ctx, interaction.Interaction)
+					return interactions.List(ctx, interaction.Interaction)
 				},
 			},
 			{
@@ -34,42 +34,42 @@ func NewDJCommand(domain *player.Domain) discord.Command {
 				},
 				Handler: func(ctx context.Context, options discord.CommandInteractionOptions, interaction *discordgo.InteractionCreate) error {
 					songUrl := options.Option(DjQueueOptionSong).String()
-					return domain.Queue(ctx, interaction.Interaction, songUrl)
+					return interactions.Queue(ctx, interaction.Interaction, songUrl)
 				},
 			},
 			{
 				Name:        "next",
 				Description: "Odtwórz następny utwór w kolejce",
 				Handler: func(ctx context.Context, options discord.CommandInteractionOptions, interaction *discordgo.InteractionCreate) error {
-					return domain.Next(ctx, interaction.Interaction)
+					return interactions.Next(ctx, interaction.Interaction)
 				},
 			},
 			{
 				Name:        "odtwarzaj",
 				Description: "Rozpocznij odtwarzanie utworu/kolejki",
 				Handler: func(ctx context.Context, options discord.CommandInteractionOptions, interaction *discordgo.InteractionCreate) error {
-					return domain.Play(ctx, interaction.Interaction)
+					return interactions.Play(ctx, interaction.Interaction)
 				},
 			},
 			{
 				Name:        "pauza",
 				Description: "Wstrzymaj odtwarzanie",
 				Handler: func(ctx context.Context, options discord.CommandInteractionOptions, interaction *discordgo.InteractionCreate) error {
-					return domain.Pause(ctx, interaction.Interaction)
+					return interactions.Pause(ctx, interaction.Interaction)
 				},
 			},
 			{
 				Name:        "wyczysc-kolejke",
 				Description: "Wyczyść kolejkę",
 				Handler: func(ctx context.Context, options discord.CommandInteractionOptions, interaction *discordgo.InteractionCreate) error {
-					return domain.ClearQueue(ctx, interaction.Interaction)
+					return interactions.ClearQueue(ctx, interaction.Interaction)
 				},
 			},
 			{
 				Name:        "odtwarzacz",
 				Description: "Pokaż obecny status odtwarzacza",
 				Handler: func(ctx context.Context, options discord.CommandInteractionOptions, interaction *discordgo.InteractionCreate) error {
-					return domain.Player(ctx, interaction.Interaction)
+					return interactions.Player(ctx, interaction.Interaction)
 				},
 			},
 		},

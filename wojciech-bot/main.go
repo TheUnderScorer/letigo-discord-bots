@@ -58,7 +58,7 @@ func main() {
 
 	// Player
 	channelPlayerManager := player.NewChannelPlayerManager()
-	playerDomain := player.NewDomain(channelPlayerManager, bot)
+	playerDomain := player.NewInteractions(channelPlayerManager, bot)
 
 	// DiscordChat
 	ollamaUrl, err := url.Parse(env.Env.OllamaHost)
