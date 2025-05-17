@@ -13,7 +13,7 @@ build_wojciech_bot_docker:
 	docker build -f ./docker/wojciech-bot/Dockerfile -t schemik/letigo-discord-bots-wojciech:latest .
 
 push_wojciech_bot_app_image:
-	docker push schemik/letigo-discord-bots:latest
+	docker push schemik/letigo-discord-bots-wojciech:latest
 
 publish_wojciech_bot_image: build_base_dockerx build_wojciech_bot_dockerx push_wojciech_bot_app_image
 
