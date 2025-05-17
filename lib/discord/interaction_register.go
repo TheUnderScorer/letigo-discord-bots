@@ -16,7 +16,7 @@ func RegisterCommands(bot *Bot, guildId string, commands ...Command) {
 	unregisterCommands(bot, guildId, discordCommands)
 
 	for _, command := range discordCommands {
-		cmd, err := bot.ApplicationCommandCreate(bot.Session.State.User.ID, guildId, command)
+		cmd, err := bot.ApplicationCommandCreate(bot.State.User.ID, guildId, command)
 		if err != nil {
 			logger.Error("failed to create command", zap.String("command", command.Name), zap.Error(err))
 		}
