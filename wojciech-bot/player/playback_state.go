@@ -14,7 +14,6 @@ type playbackState struct {
 	song              *Song
 	isPlaying         func() bool
 	remainingDuration time.Duration
-	progressPlayed    int64
 
 	progress *progress.Bar
 }
