@@ -1,13 +1,3 @@
-# [2.22.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.21.0...v2.22.0) (2025-05-17)
-
-
-### Features
-
-* move wojciech-bot to a separate module ([9db1132](https://github.com/TheUnderScorer/letigo-discord-bots/commit/9db113273395ae60be546ba4bd40f679bd67c0c0))
-* **player:** improve player message ([ba8aeeb](https://github.com/TheUnderScorer/letigo-discord-bots/commit/ba8aeeb2f13e0d912d7a1683c913c613a54709b4))
-* use "tamako" instead of "marek" ([0f9c774](https://github.com/TheUnderScorer/letigo-discord-bots/commit/0f9c774c4709ba58b6d9bddcede0262952dbd2ca))
-* use yt-dlp for downloading youtube audio ([87a791a](https://github.com/TheUnderScorer/letigo-discord-bots/commit/87a791a2b6284c40491a2fdb9a6865080fa21a54))
-
 # [2.21.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.20.0...v2.21.0) (2025-05-05)
 
 
