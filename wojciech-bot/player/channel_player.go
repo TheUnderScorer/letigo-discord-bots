@@ -41,8 +41,9 @@ type ChannelPlayer struct {
 
 	mu sync.Mutex
 
-	nextSong       chan *Song
-	pauseRequested chan bool
+	nextSong         chan *Song
+	pauseRequested   chan bool
+	disposeRequested chan bool
 
 	playbackState *playbackState
 
@@ -56,14 +57,15 @@ var logger = logging.Get().Named("channelPlayer")
 // Returns a pointer to the created ChannelPlayer and an error if initialization fails.
 func NewChannelPlayer(bot *libdiscord.Bot, channelID string, onDisposed func()) (*ChannelPlayer, error) {
 	player := &ChannelPlayer{
-		bot:            bot,
-		channelID:      channelID,
-		logger:         logger.With(zap.String("channelID", channelID)),
-		queue:          NewSongQueue(),
-		nextSong:       make(chan *Song),
-		pauseRequested: make(chan bool),
-		currentSong:    nil,
-		stream:         nil,
+		bot:              bot,
+		channelID:        channelID,
+		logger:           logger.With(zap.String("channelID", channelID)),
+		queue:            NewSongQueue(),
+		nextSong:         make(chan *Song),
+		pauseRequested:   make(chan bool),
+		disposeRequested: make(chan bool),
+		currentSong:      nil,
+		stream:           nil,
 	}
 	voiceManager, err := libdiscord.NewVoiceManager(bot, env.Env.GuildId, channelID, func() {
 		onDisposed()
@@ -79,6 +81,14 @@ func NewChannelPlayer(bot *libdiscord.Bot, channelID string, onDisposed func()) 
 
 // Dispose releases resources and clears playbackState queue
 func (p *ChannelPlayer) Dispose() {
+	select {
+	case p.disposeRequested <- true:
+		p.logger.Info("disposeRequested sent")
+		return
+	default:
+		p.logger.Info("disposeRequested not sent")
+	}
+
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -295,6 +305,11 @@ func (p *ChannelPlayer) handlePlaybackCancellation(ctx context.Context, cancel c
 
 		case <-p.pauseRequested:
 			p.logger.Info("pause requested, aborting current playback", zap.Any("playbackState", p.currentSong))
+			cancel()
+			return
+
+		case <-p.disposeRequested:
+			p.logger.Info("dispose requested, aborting current playback", zap.Any("playbackState", p.currentSong))
 			cancel()
 			return
 
