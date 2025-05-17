@@ -13,6 +13,12 @@ var (
 	ButtonNext  = ButtonID("next")
 )
 
+var buttons = []string{
+	string(ButtonPlay),
+	string(ButtonPause),
+	string(ButtonNext),
+}
+
 func GetPlayerComponent(player *ChannelPlayer) (*[]discordgo.MessageComponent, error) {
 	if player == nil {
 		return &[]discordgo.MessageComponent{}, errors.New("player is nil")

@@ -446,7 +446,7 @@ func (t *Trivia) playBadSound() error {
 }
 
 func (t *Trivia) speakNonDcaBytes(v []byte) error {
-	speaker := discord2.NewNonDcaSpeaker(bytes.NewReader(v))
+	speaker := discord2.NewBytesSpeaker(bytes.NewReader(v))
 
 	return t.vm.Speak(speaker)
 }

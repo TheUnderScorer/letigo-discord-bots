@@ -15,14 +15,14 @@ func NewSongQueue() *SongQueue {
 	}
 }
 
-// Enqueue adds a new song to the end of the SongQueue in a thread-safe manner.
+// Enqueue adds a new playbackState to the end of the SongQueue in a thread-safe manner.
 func (q *SongQueue) Enqueue(song *Song) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	q.songs = append(q.songs, song)
 }
 
-// Dequeue removes and returns the first song in the queue. Returns nil if the queue is empty. Thread-safe.
+// Dequeue removes and returns the first playbackState in the queue. Returns nil if the queue is empty. Thread-safe.
 func (q *SongQueue) Dequeue() *Song {
 	q.mu.Lock()
 	defer q.mu.Unlock()

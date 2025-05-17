@@ -124,10 +124,13 @@ func main() {
 	discord.RegisterCommands(bot, env.Env.GuildId, commands...)
 	componentInteractionHandlers := []discord.ComponentInteractionHandler{
 		chat.NewForgetComponentHandler(&openAIClient),
+		player.NewComponentHandler(channelPlayerManager),
 	}
 	bot.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type == discordgo.InteractionMessageComponent {
 			discord.HandleComponentInteraction(componentInteractionHandlers, bot, i)
+
+			return
 		}
 
 		discord.HandleInteraction(bot, commands, i)

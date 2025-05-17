@@ -26,7 +26,7 @@ func NewInteractions(playerManager *ChannelPlayerManager, bot *discord.Bot) *Int
 	}
 }
 
-var ErrSongUrlEmpty = errors.New("song url is empty")
+var ErrSongUrlEmpty = errors.New("playbackState url is empty")
 
 func (d *Interactions) ensureVoiceChannel(ctx context.Context, interaction *discordgo.Interaction) error {
 	channel, err := d.bot.Channel(interaction.ChannelID, discordgo.WithContext(ctx))
@@ -177,7 +177,7 @@ func (d *Interactions) Queue(ctx context.Context, interaction *discordgo.Interac
 
 	order, err := channelPlayer.AddToQueue(songURL, interaction.Member.User.ID)
 	if err != nil {
-		log.Error("failed to queue song", zap.Error(err))
+		log.Error("failed to queue playbackState", zap.Error(err))
 
 		d.bot.FollowupInteractionMessageAndForget(interaction, &discord.InteractionReply{
 			Content:   messages.Messages.Player.FailedToQueue,
@@ -192,7 +192,7 @@ func (d *Interactions) Queue(ctx context.Context, interaction *discordgo.Interac
 		message = messages.Messages.Player.AddedToQueueAsNext
 	} else {
 		message = util.ApplyTokens(arrayutil.RandomElement(messages.Messages.Player.AddedToQueue), map[string]string{
-			"INDEX": strconv.Itoa(order),
+			"INDEX": strconv.Itoa(order + 1),
 		})
 	}
 

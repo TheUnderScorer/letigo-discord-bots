@@ -4,9 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/bwmarrin/discordgo"
-	"github.com/jonas747/dca/v2"
 	"go.uber.org/zap"
-	"io"
 	"sync"
 	"time"
 )
@@ -178,18 +176,23 @@ func (m *VoiceManager) IsSpeaking() bool {
 }
 
 // Speak sends a message to the voice channel that is managed by this manager. It blocks until the speaker finishes speaking.
+// Deprecated: Speaker approach is no longer recommended, prefer SpeakVoiceContext instead
 func (m *VoiceManager) Speak(speaker Speaker) error {
 	return m.SpeakContext(context.Background(), speaker)
 }
 
 // SpeakContext sends a message to the voice channel that is managed by this manager. It blocks until the speaker finishes speaking.
+// Deprecated: Speaker approach is no longer recommended, prefer SpeakVoiceContext instead
 func (m *VoiceManager) SpeakContext(ctx context.Context, speaker Speaker) error {
 	return m.doSpeakContext(ctx, speaker)
 }
 
-// SpeakOpusReaderContext streams audio frames from a dca.OpusReader to the voice connection until the context is done or disposed.
-func (m *VoiceManager) SpeakOpusReaderContext(ctx context.Context, reader dca.OpusReader) error {
+// SpeakVoiceContext handles voice playback within a context, managing voice connection setup and synchronizing speaking state.
+func (m *VoiceManager) SpeakVoiceContext(ctx context.Context, voice *Voice) error {
 	m.logger.Debug("starting to speak")
+
+	ctx, cancel := m.getSpeakerContext(ctx)
+	defer cancel()
 
 	vc, err := m.VoiceConnection()
 	if err != nil {
@@ -216,34 +219,35 @@ func (m *VoiceManager) SpeakOpusReaderContext(ctx context.Context, reader dca.Op
 	}()
 
 	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-
-		case <-m.Disposed:
-			m.logger.Info("player disposed, aborting playback")
-			return errors.New("player disposed")
-
-		default:
-			if !vc.Ready {
-				m.logger.Info("voice connection is not ready")
-				continue
-			}
-
-			frame, err := reader.OpusFrame()
-
-			if err != nil {
-				if err == io.EOF {
-					m.logger.Info("reached end of stream")
-				} else {
-					m.logger.Error("failed to read opus frame", zap.Error(err))
-				}
-
-				return err
-			}
-
-			vc.OpusSend <- frame
+		err := m.speakFrame(ctx, voice, vc.OpusSend)
+		if err != nil {
+			m.logger.Error("failed to speak frame", zap.Error(err))
+			return err
 		}
+	}
+}
+
+func (m *VoiceManager) speakFrame(ctx context.Context, voice *Voice, opusSendCh chan []byte) error {
+	frame, err := voice.reader.OpusFrame()
+	if err != nil {
+		return err
+	}
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+
+	case opusSendCh <- frame:
+		voice.framesSent++
+
+		if voice.framesSentCh != nil {
+			select {
+			case voice.framesSentCh <- voice.framesSent:
+			default: // non-blocking; drop if not ready to receive
+			}
+		}
+
+		return nil
 	}
 }
 

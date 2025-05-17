@@ -25,6 +25,10 @@ func (b *Command) ToApplicationCommand() *discordgo.ApplicationCommand {
 }
 
 func (b *Command) Handle(bot *Bot, interaction *discordgo.InteractionCreate) {
+	if interaction.Type != discordgo.InteractionApplicationCommand {
+		return
+	}
+
 	ctx, cancel := NewInteractionContext(context.Background())
 	defer cancel()
 	data := interaction.ApplicationCommandData()

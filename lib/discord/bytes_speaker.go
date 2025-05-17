@@ -7,15 +7,15 @@ import (
 	"io"
 )
 
-type NonDcaSpeaker struct {
+type BytesSpeaker struct {
 	voice io.Reader
 }
 
-func NewNonDcaSpeaker(voice io.Reader) *NonDcaSpeaker {
-	return &NonDcaSpeaker{voice: voice}
+func NewBytesSpeaker(voice io.Reader) *BytesSpeaker {
+	return &BytesSpeaker{voice: voice}
 }
 
-func (b NonDcaSpeaker) Speak(ctx context.Context, vc *discordgo.VoiceConnection) error {
+func (b BytesSpeaker) Speak(ctx context.Context, vc *discordgo.VoiceConnection) error {
 	stream, err := dca2.EncodeMem(b.voice, dca2.StdEncodeOptions)
 	if err != nil {
 		return err

@@ -3,6 +3,8 @@ package player
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"github.com/bwmarrin/discordgo"
 	"github.com/charmbracelet/log"
 	jonasdca "github.com/jonas747/dca/v2"
 	"go.uber.org/zap"
@@ -10,10 +12,10 @@ import (
 	libdiscord "lib/discord"
 	"lib/errors"
 	"lib/logging"
-	"lib/util"
-	"lib/util/arrayutil"
+	"lib/progress"
 	"lib/util/markdownutil"
 	ytdlp "lib/yt-dlp"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -30,7 +32,10 @@ type ChannelPlayer struct {
 	channelID    string
 	voiceManager *libdiscord.VoiceManager
 
-	stream      *jonasdca.EncodeSession
+	stream *jonasdca.EncodeSession
+	voice  *libdiscord.Voice
+	buffer *bytes.Buffer
+
 	queue       *SongQueue
 	currentSong *Song
 
@@ -38,6 +43,10 @@ type ChannelPlayer struct {
 
 	nextSong       chan *Song
 	pauseRequested chan bool
+
+	playbackState *playbackState
+
+	songMessage *songMessage
 }
 
 var logger = logging.Get().Named("channelPlayer")
@@ -68,15 +77,12 @@ func NewChannelPlayer(bot *libdiscord.Bot, channelID string, onDisposed func()) 
 	return player, nil
 }
 
-// Dispose releases resources and clears song queue
+// Dispose releases resources and clears playbackState queue
 func (p *ChannelPlayer) Dispose() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if p.stream != nil {
-		p.stream.Cleanup()
-		p.stream = nil
-	}
+	p.cleanupStream()
 
 	p.queue.Clear()
 	p.currentSong = nil
@@ -84,7 +90,7 @@ func (p *ChannelPlayer) Dispose() {
 	p.voiceManager.Dispose()
 }
 
-// Next advances to the next song in the queue, playing it if available, or signaling the end of the queue if empty.
+// Next advances to the next playbackState in the queue, playing it if available, or signaling the end of the queue if empty.
 func (p *ChannelPlayer) Next() error {
 	if p.queue.Length() == 0 {
 		return errors.NewErrPublic(messages.Messages.Player.NoMoreSongs)
@@ -99,24 +105,24 @@ func (p *ChannelPlayer) Next() error {
 	go func() {
 		select {
 		case p.nextSong <- song:
-			p.logger.Info("next song dispatched", zap.Any("song", song))
+			p.logger.Info("next playbackState dispatched", zap.Any("playbackState", song))
 		default:
-			p.logger.Info("next song not dispatched", zap.Any("song", song))
+			p.logger.Info("next playbackState not dispatched", zap.Any("playbackState", song))
 		}
 
 		err := p.PlaySong(song)
 		if err != nil {
-			p.logger.Error("failed to play song", zap.Error(err))
+			p.logger.Error("failed to play playbackState", zap.Error(err))
 		}
 	}()
 
 	return nil
 }
 
-// PlaySong plays the provided song by downloading, encoding, and preparing the audio stream for playback.
+// PlaySong plays the provided playbackState by downloading, encoding, and preparing the audio stream for playback.
 // Returns an error if voice readiness, opus download, or DCA encoding fails.
 func (p *ChannelPlayer) PlaySong(song *Song) error {
-	logger := p.logger.With(zap.String("song", song.Name))
+	logger := p.logger.With(zap.String("playbackState", song.Name))
 
 	opusBytes, err := ytdlp.DownloadOpus(context.TODO(), song.Url)
 	if err != nil {
@@ -124,18 +130,43 @@ func (p *ChannelPlayer) PlaySong(song *Song) error {
 		return err
 	}
 
-	dcaStream, err := jonasdca.EncodeMem(bytes.NewBuffer(opusBytes), jonasdca.StdEncodeOptions)
+	buffer := bytes.NewBuffer(opusBytes)
+	dcaStream, err := jonasdca.EncodeMem(buffer, jonasdca.StdEncodeOptions)
 	if err != nil {
 		logger.Error("failed to encode audio", zap.Error(err))
 		return err
 	}
 	logger.Info("prepared dca stream")
+
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.buffer = buffer
+	p.voice = libdiscord.NewVoice(dcaStream)
+
 	p.stream = dcaStream
 	p.currentSong = song
+	p.playbackState = &playbackState{
+		song: song,
+		isPlaying: func() bool {
+			return p.voiceManager.IsSpeaking()
+		},
+		progress: progress.NewBar(100),
+	}
 
 	p.doPlayRoutine()
 
 	return nil
+}
+
+func (p *ChannelPlayer) cleanupStream() {
+	if p.stream != nil {
+		p.stream.Cleanup()
+		p.stream = nil
+	}
+	p.voice = nil
+	p.buffer = nil
+	p.playbackState = nil
 }
 
 // doPlayRoutine invokes the doPlay method in a separate goroutine, handling playback errors and logging them.
@@ -148,8 +179,11 @@ func (p *ChannelPlayer) doPlayRoutine() {
 	}()
 }
 
-// doPlay handles the playback of the current song in the voice channel, managing states and transitions.
+// doPlay handles the playback of the current playbackState in the voice channel, managing states and transitions.
 func (p *ChannelPlayer) doPlay() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
 	err := p.bot.UpdateListeningStatus(p.currentSong.Name)
 	if err != nil {
 		log.Error("failed to update listening status", zap.Error(err))
@@ -164,48 +198,59 @@ func (p *ChannelPlayer) doPlay() error {
 		}
 	}()
 
-	p.bot.SendMessageAndForget(p.channelID, util.ApplyTokens(arrayutil.RandomElement(messages.Messages.Player.NowPlaying), map[string]string{
-		"SONG_NAME": p.currentSong.Name,
-	}))
-
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := p.playbackContext()
 	defer cancel()
 
-	go func() {
-		for {
-			select {
-			case <-p.nextSong:
-				p.logger.Info("next song requested, aborting current playback", zap.Any("song", p.currentSong))
-				cancel()
-				return
-
-			case <-p.pauseRequested:
-				p.logger.Info("pause requested, aborting current playback", zap.Any("song", p.currentSong))
-				cancel()
-				return
-
-			case <-ctx.Done():
-				p.logger.Info("context done")
-				return
+	// Cleanup previous playbackState message
+	if p.songMessage != nil {
+		if p.songMessage.playbackState.song != p.currentSong {
+			err = p.songMessage.Delete(ctx)
+			if err != nil {
+				log.Error("failed to dispose playbackState message", zap.Error(err))
+			} else {
+				log.Debug("removed old song message")
 			}
+
+			p.songMessage = nil
 		}
-	}()
+	}
 
-	err = p.voiceManager.SpeakOpusReaderContext(ctx, p.stream)
-	log.Info("finished playing", zap.Error(err))
+	if p.songMessage == nil {
+		p.songMessage = &songMessage{
+			playbackState: p.playbackState,
+			bot:           p.bot,
+			channelID:     p.channelID,
+			getComponents: func() *[]discordgo.MessageComponent {
+				components, _ := GetPlayerComponent(p)
+				return components
+			},
+			discordMessage: nil,
+		}
+	}
+
+	err = p.songMessage.Send(ctx)
 	if err != nil {
-		// On end of stream, continue playback with next song
+		log.Error("failed to send playbackState message", zap.Error(err))
+	}
+
+	framesCh := make(chan int, 1)
+	defer close(framesCh)
+	p.voice.SetFramesSentCh(framesCh)
+
+	go p.trackPlayback(ctx, framesCh)
+
+	err = p.voiceManager.SpeakVoiceContext(ctx, p.voice)
+	log.Info("finished playing", zap.Error(err))
+
+	if err != nil {
+		// On end of stream, continue playback with next playback State
 		if err == io.EOF {
-			// Cleanup old stream
-			if p.stream != nil {
-				p.stream.Cleanup()
-				p.stream = nil
-			}
+			p.cleanupStream()
 
 			if p.queue.Length() > 0 {
 				err = p.Next()
 				if err != nil {
-					p.logger.Error("failed to play next song", zap.Error(err))
+					p.logger.Error("failed to play next playbackState", zap.Error(err))
 				}
 			} else {
 				err = p.Pause()
@@ -216,13 +261,112 @@ func (p *ChannelPlayer) doPlay() error {
 				p.bot.SendMessageAndForget(p.channelID, messages.Messages.Player.NoMoreSongs)
 			}
 		} else {
-			log.Error("SpeakOpusReaderContext returned error", zap.Error(err))
+			log.Error("SpeakVoiceContext returned error", zap.Error(err))
+
+			err := p.songMessage.Send(context.Background())
+			if err != nil {
+				log.Error("failed to send song message after finishing playback", zap.Error(err))
+			}
 
 			return err
 		}
 	}
 
 	return nil
+}
+
+// playbackContext creates a new cancelable context for playback management and triggers cancellation handling in a goroutine.
+func (p *ChannelPlayer) playbackContext() (context.Context, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go p.handlePlaybackCancellation(ctx, cancel)
+
+	return ctx, cancel
+}
+
+// handlePlaybackCancellation listens for playback cancellation signals and cancels the current playback when triggered.
+func (p *ChannelPlayer) handlePlaybackCancellation(ctx context.Context, cancel context.CancelFunc) {
+	for {
+		select {
+		case <-p.nextSong:
+			p.logger.Info("next playbackState requested, aborting current playback", zap.Any("playbackState", p.currentSong))
+			cancel()
+			return
+
+		case <-p.pauseRequested:
+			p.logger.Info("pause requested, aborting current playback", zap.Any("playbackState", p.currentSong))
+			cancel()
+			return
+
+		case <-ctx.Done():
+			p.logger.Info("context done", zap.Error(ctx.Err()))
+			return
+		}
+	}
+}
+
+// trackPlayback tracks the playback progress by periodically updating the elapsed and remaining song duration in real-time.
+func (p *ChannelPlayer) trackPlayback(ctx context.Context, framesCh chan int) {
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	var latestFramesSent int
+	var hasUpdate bool
+
+	for {
+		select {
+		case <-ctx.Done():
+			p.logger.Debug("trackPlayback is done", zap.Error(ctx.Err()))
+			return
+
+		case framesSent := <-framesCh:
+			latestFramesSent = framesSent
+			hasUpdate = true
+
+		case <-ticker.C:
+			if hasUpdate {
+				frameDuration, elapsedDuration, percentagePlayed := p.getLatestPlaybackState(latestFramesSent)
+
+				err := p.playbackState.updateProgressPlayed(int64(percentagePlayed))
+				if err != nil {
+					log.Error("failed to update progress", zap.Error(err))
+					continue
+				}
+
+				p.playbackState.updateDuration(p.currentSong.Duration - elapsedDuration)
+
+				p.logger.Debug("percentage played",
+					zap.Float64("progressPlayed", percentagePlayed),
+					zap.Int("framesSent", latestFramesSent),
+					zap.Duration("songDuration", p.currentSong.Duration),
+					zap.Duration("frameDuration", frameDuration),
+				)
+
+				// Re-send message with updated playback state
+				err = p.songMessage.Send(ctx)
+				if err != nil {
+					log.Error("failed to update song message", zap.Error(err))
+				}
+
+				hasUpdate = false
+			}
+		}
+	}
+}
+
+// getLatestPlaybackState calculates playback metrics such as frame duration, elapsed duration, and percentage played.
+func (p *ChannelPlayer) getLatestPlaybackState(latestFramesSent int) (frameDuration time.Duration, elapsedDuration time.Duration, percentagePlayed float64) {
+	frameDurationOpt := p.stream.Options().FrameDuration
+	frameDurationMs := float64(frameDurationOpt)
+	frameDuration = time.Millisecond * time.Duration(frameDurationOpt)
+
+	elapsedMs := float64(latestFramesSent) * frameDurationMs
+	elapsedDuration = time.Duration(elapsedMs) * time.Millisecond
+
+	percentagePlayed = (elapsedMs / float64(p.currentSong.Duration.Milliseconds())) * 100
+	percentagePlayed = math.Min(percentagePlayed, 100)
+
+	return frameDuration, elapsedDuration, percentagePlayed
 }
 
 // Pause stops the bot from speaking in the voice channel and updates its speaking state. Returns an error if unsuccessful.
@@ -266,30 +410,35 @@ func (p *ChannelPlayer) Queue() []*Song {
 	return p.queue.List()
 }
 
-// AddToQueue adds a song to the queue using the provided URL and user ID, returning the song's index or an error.
+// AddToQueue adds a playbackState to the queue using the provided URL and user ID, returning the playbackState's index or an error.
 func (p *ChannelPlayer) AddToQueue(url string, userID string) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	p.logger.Info("adding to queue", zap.String("url", url))
-	title, err := ytdlp.GetTitle(context.TODO(), url)
+	metadata, err := ytdlp.GetMetadata(ctx, url)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to get title")
+		return 0, errors.Wrap(err, "failed to get metadata")
 	}
 
 	song := &Song{
-		Url:      url,
-		Name:     title,
-		AuthorID: userID,
+		Url:          url,
+		Name:         metadata.Title,
+		Duration:     metadata.Duration,
+		AuthorID:     userID,
+		ThumbnailUrl: metadata.ThumbnailUrl,
 	}
 
 	itemIndex := p.queue.Length()
 	p.queue.Enqueue(song)
 
 	if !p.voiceManager.IsSpeaking() {
-		p.logger.Info("not speaking, playing first queue item", zap.Any("song", song))
+		p.logger.Info("not speaking, playing first queue item", zap.Any("playbackState", song))
 		err = p.Next()
 		return itemIndex, err
 	}
 
-	p.logger.Info("added to queue", zap.Any("song", song))
+	p.logger.Info("added to queue", zap.Any("playbackState", song))
 	return itemIndex, nil
 }
 
@@ -302,11 +451,14 @@ func (p *ChannelPlayer) ClearQueue() {
 	p.logger.Info("cleared queue")
 }
 
-// ListQueueForDisplay returns a formatted string representation of the current song queue for display purposes.
+// ListQueueForDisplay returns a formatted string representation of the current playbackState queue for display purposes.
 func (p *ChannelPlayer) ListQueueForDisplay() string {
 	items := make([]string, 0)
-	for _, song := range p.queue.List() {
-		items = append(items, "* "+markdownutil.Link(song.Url, song.Name))
+	for i, song := range p.queue.List() {
+		displayIndex := i + 1
+		mention := libdiscord.Mention(song.AuthorID)
+		text := fmt.Sprintf("%d. %s (dodane przez %s)", displayIndex, markdownutil.Link(song.Url, song.Name), mention)
+		items = append(items, text)
 	}
 	return strings.Join(items, "\n")
 }

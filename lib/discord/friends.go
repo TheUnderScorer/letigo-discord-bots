@@ -8,7 +8,7 @@ type MemberDefinition struct {
 }
 
 func (m *MemberDefinition) Mention() string {
-	return "<@" + m.ID + ">"
+	return Mention(m.ID)
 }
 
 // Friends contains static map of discord id to a member definition
