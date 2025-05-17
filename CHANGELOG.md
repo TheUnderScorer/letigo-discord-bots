@@ -1,3 +1,10 @@
+## [2.22.1](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.22.0...v2.22.1) (2025-05-17)
+
+
+### Bug Fixes
+
+* propagate dispose event to ongoing playback ([ba2ff64](https://github.com/TheUnderScorer/letigo-discord-bots/commit/ba2ff64b06fba8e21cd1cf84f7bf9feac43e0be0))
+
 # [2.22.0](https://github.com/TheUnderScorer/letigo-discord-bots/compare/v2.21.0...v2.22.0) (2025-05-17)
 
 
