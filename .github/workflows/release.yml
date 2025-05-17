@@ -50,11 +50,16 @@ jobs:
         run: |
           npm ci
 
-      - name: Build
-        run: go build src/main.go
+      - name: Build wojciech-bot
+        run: cd wojciech-bot && make build_prod_linux
 
-      - name: Test
-        run: go test app
+      - name: Test lib
+        run: go test ./...
+        working-directory: lib
+      
+      - name: Test wojciech-bot
+        run: go test ./...
+        working-directory: wojciech-bot
 
       - name: Release
         env:
