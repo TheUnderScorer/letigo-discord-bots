@@ -54,12 +54,6 @@
       ],
       "@semantic-release/npm",
       [
-        "@semantic-release/exec",
-        {
-          "publishCmd": "cd src && bash ../scripts/build-prod.sh && mv app app_linux && cd .."
-        }
-      ],
-      [
         "@semantic-release/git",
         {
           "assets": [
@@ -69,17 +63,7 @@
           ]
         }
       ],
-      [
-        "@semantic-release/github",
-        {
-          "assets": [
-            {
-              "path": "src/app_linux",
-              "label": "Linux build"
-            }
-          ]
-        }
-      ]
+      "@semantic-release/github"
     ]
   }
 }
