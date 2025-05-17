@@ -21,6 +21,9 @@ services:
       - ./wojciech-bot/.env
   wojciech-bot-prod:
     restart: always
+    network_mode: host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       GO_ENV: production
       GIN_MODE: release
